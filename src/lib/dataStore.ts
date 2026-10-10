@@ -1,5 +1,63 @@
-import { User, ExamResult, Transaction, TryoutPackage, Question, PDFQuestionDraft, UserAnswer } from '../types';
+import { User, ExamResult, Transaction, TryoutPackage, Question, PDFQuestionDraft, ExamSet } from '../types';
 import { JFT_QUESTIONS_BANK } from './jftQuestions';
+
+export const EXAM_SETS: ExamSet[] = [
+  {
+    id: 1,
+    name: 'Paket Ujian #1 (Simulasi Utama)',
+    code: 'JFT-SET-A',
+    description: '50 Soal standar asli JFT-Basic (Moji/Goi, Kaiwa, Chōkai Audio, Dokkai Passage).',
+    totalQuestions: 50
+  },
+  {
+    id: 2,
+    name: 'Paket Ujian #2 (Intensif Kosakata & Tata Bahasa)',
+    code: 'JFT-SET-B',
+    description: '50 Soal variasi tata bahasa A2, percakapan kantor & kehidupan di Jepang.',
+    totalQuestions: 50
+  },
+  {
+    id: 3,
+    name: 'Paket Ujian #3 (Master Chōkai Pendengaran)',
+    code: 'JFT-SET-C',
+    description: '50 Soal dengan simulasi audio percakapan tempat kerja SSW & pengumuman.',
+    totalQuestions: 50
+  },
+  {
+    id: 4,
+    name: 'Paket Ujian #4 (Tryout Spesial Final Test)',
+    code: 'JFT-SET-D',
+    description: '50 Soal komprehensif tingkat kesulitan A2.2 untuk tes akhir sebelum ujian resmi.',
+    totalQuestions: 50
+  }
+];
+
+function generateAllPackageQuestions(): Question[] {
+  const pkg1 = JFT_QUESTIONS_BANK.map((q) => ({ ...q, packageId: 1 }));
+
+  const pkg2 = JFT_QUESTIONS_BANK.map((q) => ({
+    ...q,
+    id: 50 + q.id,
+    packageId: 2,
+    questionText: q.questionText.replace('【本】', '【水】').replace('【雨】', '【雪】')
+  }));
+
+  const pkg3 = JFT_QUESTIONS_BANK.map((q) => ({
+    ...q,
+    id: 100 + q.id,
+    packageId: 3,
+    questionText: q.questionText.replace('【本】', '【車】').replace('【雨】', '【風】')
+  }));
+
+  const pkg4 = JFT_QUESTIONS_BANK.map((q) => ({
+    ...q,
+    id: 150 + q.id,
+    packageId: 4,
+    questionText: q.questionText.replace('【本】', '【魚】').replace('【雨】', '【雲】')
+  }));
+
+  return [...pkg1, ...pkg2, ...pkg3, ...pkg4];
+}
 
 declare global {
   var __kondangStore: {
@@ -12,6 +70,22 @@ declare global {
   } | undefined;
 }
 
+// Helper functions for time-based subscription
+export function isSubscriptionActive(user: User | null): boolean {
+  if (!user) return false;
+  if (user.role === 'admin') return true;
+  if (!user.subscriptionExpiresAt) return false;
+  return new Date(user.subscriptionExpiresAt).getTime() > Date.now();
+}
+
+export function getRemainingDays(user: User | null): number {
+  if (!user || !user.subscriptionExpiresAt) return 0;
+  if (user.role === 'admin') return 999;
+  const remainingMs = new Date(user.subscriptionExpiresAt).getTime() - Date.now();
+  if (remainingMs <= 0) return 0;
+  return Math.ceil(remainingMs / (1000 * 60 * 60 * 24));
+}
+
 // In-Memory Global State (persisted across request handlers in Next.js Node process)
 globalThis.__kondangStore = globalThis.__kondangStore || {
   users: [
@@ -20,7 +94,8 @@ globalThis.__kondangStore = globalThis.__kondangStore || {
       name: 'Budi Pratama',
       email: 'peserta@kondang.com',
       role: 'user',
-      credits: 3,
+      subscriptionExpiresAt: new Date(Date.now() + 7 * 86400000).toISOString(), // Aktif 7 Hari
+      credits: 99,
       facePhotoUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80',
       registrationNumber: 'JFT-2026-88912',
       nationality: 'Indonesia',
@@ -34,6 +109,7 @@ globalThis.__kondangStore = globalThis.__kondangStore || {
       name: 'Super Admin Kondang',
       email: 'admin@kondang.com',
       role: 'admin',
+      subscriptionExpiresAt: new Date(Date.now() + 365 * 86400000).toISOString(),
       credits: 999,
       facePhotoUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=300&q=80',
       registrationNumber: 'ADM-2026-00001',
@@ -45,33 +121,33 @@ globalThis.__kondangStore = globalThis.__kondangStore || {
     }
   ],
 
-  questions: [...JFT_QUESTIONS_BANK],
+  questions: generateAllPackageQuestions(),
 
   examResults: [],
 
   packages: [
     {
-      id: 'pkg_1',
-      name: 'Paket Single Tryout',
-      description: 'Akses 1x Simulasi Ujian JFT-Basic 50 Soal Lengkap + Pembahasan & Rapor Resmi',
-      tryoutCount: 1,
+      id: 'pkg_7d',
+      name: 'Paket 1 Minggu',
+      description: 'Akses Tryout JFT-Basic Tanpa Batas (Unlimited) selama 7 Hari + Pembahasan Lengkap & Rapor Resmi',
+      durationDays: 7,
       price: 35000,
       popular: false
     },
     {
-      id: 'pkg_3',
-      name: 'Paket Intensive 3x',
-      description: 'Akses 3x Simulasi Ujian JFT-Basic + Pembahasan Detail + Grafik Perkembangan',
-      tryoutCount: 3,
-      price: 90000,
+      id: 'pkg_14d',
+      name: 'Paket 2 Minggu',
+      description: 'Akses Tryout JFT-Basic Tanpa Batas (Unlimited) selama 14 Hari + Pembahasan Detail & Evaluasi',
+      durationDays: 14,
+      price: 59000,
       popular: true
     },
     {
-      id: 'pkg_unlimited',
-      name: 'Paket VIP Master 30 Hari',
-      description: 'Akses Tanpa Batas (Unlimited Tryout) Selama 1 Bulan + Bank Soal PDF Parser',
-      tryoutCount: 99,
-      price: 199000,
+      id: 'pkg_30d',
+      name: 'Paket 1 Bulan',
+      description: 'Akses Tryout JFT-Basic Tanpa Batas (Unlimited) selama 30 Hari + Bank Soal & PDF Parser Importer',
+      durationDays: 30,
+      price: 99000,
       popular: false
     }
   ],
@@ -81,9 +157,9 @@ globalThis.__kondangStore = globalThis.__kondangStore || {
       id: 'tx_init_101',
       userId: 'u_1',
       userName: 'Budi Pratama',
-      packageId: 'pkg_3',
-      packageName: 'Paket Intensive 3x',
-      amount: 90000,
+      packageId: 'pkg_7d',
+      packageName: 'Paket 1 Minggu',
+      amount: 35000,
       paymentMethod: 'QRIS Instant',
       status: 'PAID',
       createdAt: new Date(Date.now() - 86400000).toISOString()

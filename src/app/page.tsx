@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { User, Question, ExamResult, TryoutPackage, Transaction, UserAnswer, PDFQuestionDraft } from '../types';
-import { getStore } from '../lib/dataStore';
+import { getStore, isSubscriptionActive, getRemainingDays, EXAM_SETS } from '../lib/dataStore';
 import { Navbar } from '../components/Navbar';
 import { SingleSessionLockModal } from '../components/SingleSessionLockModal';
 import { CbtExamEngine } from '../components/CbtExamEngine';
@@ -10,23 +10,24 @@ import { JftResultReport } from '../components/JftResultReport';
 import { QuestionReview } from '../components/QuestionReview';
 import { PackagePaymentModal } from '../components/PackagePaymentModal';
 import { AdminPortal } from '../components/AdminPortal';
-import { Play, Award, Zap, History, Lock, ShieldAlert, Sparkles, BookOpen, Clock, CheckCircle2, ArrowRight } from 'lucide-react';
+import { Play, Award, Zap, History, Lock, ShieldAlert, Sparkles, BookOpen, Layers } from 'lucide-react';
 
 export default function HomePage() {
-  const [currentUser, setCurrentUser] = useState<User | null>(null);
-  const [sessionId, setSessionId] = useState<string | null>(null);
+  const [currentUser, setCurrentUser] = useState<User | null>(() => getStore().users[0] || null);
+  const [sessionId, setSessionId] = useState<string | null>(() => getStore().users[0]?.activeSessionId || 'sess-demo-user');
   const [isSessionLocked, setIsSessionLocked] = useState(false);
   const [sessionLockMessage, setSessionLockMessage] = useState('');
 
   // Active view: 'dashboard' | 'exam' | 'report' | 'review' | 'admin'
   const [view, setView] = useState<'dashboard' | 'exam' | 'report' | 'review' | 'admin'>('dashboard');
 
-  // App Data
-  const [questions, setQuestions] = useState<Question[]>([]);
-  const [examResults, setExamResults] = useState<ExamResult[]>([]);
-  const [packages, setPackages] = useState<TryoutPackage[]>([]);
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const [pdfDrafts, setPdfDrafts] = useState<PDFQuestionDraft[]>([]);
+  // App Data & Selected Question Package (1, 2, 3, 4)
+  const [questions, setQuestions] = useState<Question[]>(() => getStore().questions);
+  const [selectedPackageId, setSelectedPackageId] = useState<number>(1);
+  const [examResults, setExamResults] = useState<ExamResult[]>(() => getStore().examResults);
+  const [packages] = useState<TryoutPackage[]>(() => getStore().packages);
+  const [transactions, setTransactions] = useState<Transaction[]>(() => getStore().transactions);
+  const [pdfDrafts, setPdfDrafts] = useState<PDFQuestionDraft[]>(() => getStore().pdfDrafts);
 
   // Selected result for report / review
   const [currentResult, setCurrentResult] = useState<ExamResult | null>(null);
@@ -34,26 +35,27 @@ export default function HomePage() {
   // Payment Modal
   const [paymentModalOpen, setPaymentModalOpen] = useState(false);
 
-  // Initialize Store Data & Default Login
-  useEffect(() => {
-  async function init() {
-// eslint-disable-next-line react-hooks/set-state-in-effect
-    const store = getStore();
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setQuestions(store.questions);
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setExamResults(store.examResults);
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setPackages(store.packages);
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setTransactions(store.transactions);
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setPdfDrafts(store.pdfDrafts);
-    // Initial Auto Login as Peserta Demo
-    await handleLogin('peserta@kondang.com', 'user');
-  }
-  init();
-}, [handleFinishExam]);
+  // Login handler
+  const handleLogin = useCallback(async (email: string, role: 'user' | 'admin') => {
+    try {
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, role })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setCurrentUser(data.user);
+        setSessionId(data.sessionId);
+        setIsSessionLocked(false);
+        if (data.user.role === 'admin') {
+          setView('dashboard');
+        }
+      }
+    } catch (err) {
+      console.error('Login error', err);
+    }
+  }, []);
 
   // Single Session Lock Polling Heartbeat (Checks every 3 seconds)
   useEffect(() => {
@@ -71,35 +73,13 @@ export default function HomePage() {
           setIsSessionLocked(true);
           setSessionLockMessage(data.message || 'Sesi ini telah diakhiri karena akun Anda login di perangkat lain.');
         }
-      } catch (e) {
+      } catch {
         // Ignore network errors during heartbeat
       }
     }, 3000);
 
     return () => clearInterval(interval);
   }, [currentUser, sessionId]);
-
-  // Login handler
-  function handleLogin(email: string, role: 'user' | 'admin') {
-  try {
-    const res = await fetch('/api/auth/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, role })
-    });
-    const data = await res.json();
-    if (data.success) {
-      setCurrentUser(data.user);
-      setSessionId(data.sessionId);
-      setIsSessionLocked(false);
-      if (data.user.role === 'admin') {
-        setView('dashboard');
-      }
-    }
-  } catch (err) {
-    console.error('Login error', err);
-  }
-}
 
   // Logout handler
   const handleLogout = async () => {
@@ -114,14 +94,36 @@ export default function HomePage() {
     setSessionId(null);
   };
 
-  // Start CBT Exam
-  const handleStartExam = () => {
+  // Start CBT Exam for a specific Question Package (1, 2, 3, 4)
+  const handleStartExam = (pkgId?: number) => {
     if (!currentUser) return;
-    if (currentUser.role !== 'admin' && currentUser.credits <= 0) {
+    if (!isSubscriptionActive(currentUser)) {
       setPaymentModalOpen(true);
       return;
     }
+    if (pkgId) {
+      setSelectedPackageId(pkgId);
+    }
     setView('exam');
+  };
+
+  // Admin Question Edit / Save Handler
+  const handleSaveQuestion = (updatedQ: Question) => {
+    const store = getStore();
+    const idx = store.questions.findIndex((q) => q.id === updatedQ.id);
+    if (idx !== -1) {
+      store.questions[idx] = updatedQ;
+    } else {
+      store.questions.push(updatedQ);
+    }
+    setQuestions([...store.questions]);
+  };
+
+  // Admin Question Delete Handler
+  const handleDeleteQuestion = (questionId: number) => {
+    const store = getStore();
+    store.questions = store.questions.filter((q) => q.id !== questionId);
+    setQuestions([...store.questions]);
   };
 
   // Submit Exam
@@ -141,7 +143,9 @@ export default function HomePage() {
       if (data.success) {
         const store = getStore();
         setExamResults([...store.examResults]);
-        setCurrentUser((prev) => prev ? { ...prev, credits: data.remainingCredits } : prev);
+        if (data.user) {
+          setCurrentUser(data.user);
+        }
         setCurrentResult(data.result);
         setView('report');
       }
@@ -167,7 +171,7 @@ export default function HomePage() {
       if (data.success) {
         const store = getStore();
         setTransactions([...store.transactions]);
-        setCurrentUser((prev) => prev ? { ...prev, credits: data.newCredits } : prev);
+        setCurrentUser((prev) => prev ? { ...prev, subscriptionExpiresAt: data.subscriptionExpiresAt } : prev);
       }
     } catch (err) {
       console.error('Payment error', err);
@@ -198,12 +202,15 @@ export default function HomePage() {
     }
   };
 
-  // Admin Add Credits
+  // Admin Add Subscription Days
   const handleAddCredit = (userId: string, count: number) => {
     const store = getStore();
     const target = store.users.find((u: User) => u.id === userId);
     if (target) {
-      target.credits += count;
+      const baseTime = target.subscriptionExpiresAt && new Date(target.subscriptionExpiresAt).getTime() > Date.now()
+        ? new Date(target.subscriptionExpiresAt).getTime()
+        : Date.now();
+      target.subscriptionExpiresAt = new Date(baseTime + count * 86400000).toISOString();
       if (currentUser?.id === userId) {
         setCurrentUser({ ...target });
       }
@@ -266,7 +273,11 @@ export default function HomePage() {
       <main className="flex-1 p-4 sm:p-6 md:p-8">
         {/* VIEW: CBT EXAM SIMULATOR */}
         {view === 'exam' && (
-          <CbtExamEngine questions={questions} onSubmitExam={handleSubmitExam} user={currentUser} />
+          <CbtExamEngine
+            questions={questions.filter((q) => (q.packageId || 1) === selectedPackageId)}
+            onSubmitExam={handleSubmitExam}
+            user={currentUser}
+          />
         )}
 
         {/* VIEW: JFT CERTIFICATE REPORT */}
@@ -274,14 +285,14 @@ export default function HomePage() {
           <JftResultReport
             result={currentResult}
             onOpenReview={() => setView('review')}
-            onRetake={handleStartExam}
+            onRetake={() => handleStartExam(selectedPackageId)}
           />
         )}
 
         {/* VIEW: QUESTION REVIEW & EVALUATION */}
         {view === 'review' && currentResult && (
           <QuestionReview
-            questions={questions}
+            questions={questions.filter((q) => (q.packageId || 1) === selectedPackageId)}
             userAnswers={currentResult.answers}
             onBackToReport={() => setView('report')}
           />
@@ -297,6 +308,8 @@ export default function HomePage() {
             onKickSession={handleKickSession}
             onAddCredit={handleAddCredit}
             onImportPdfText={handleImportPdfText}
+            onSaveQuestion={handleSaveQuestion}
+            onDeleteQuestion={handleDeleteQuestion}
           />
         )}
 
@@ -370,10 +383,12 @@ export default function HomePage() {
             {/* User Stats Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               <div className="p-5 bg-slate-900 rounded-2xl border border-slate-800 space-y-2">
-                <div className="text-xs text-slate-400 font-semibold">Kuota Sesi Tryout</div>
-                <div className="text-2xl font-black text-amber-400 flex items-center gap-2">
+                <div className="text-xs text-slate-400 font-semibold">Masa Aktif Akses Tryout</div>
+                <div className="text-xl font-black text-amber-400 flex items-center gap-2">
                   <Zap className="w-6 h-6 fill-amber-400" />
-                  {currentUser.credits} Sesi Tersisa
+                  {isSubscriptionActive(currentUser)
+                    ? `Unlimited (${getRemainingDays(currentUser)} Hari)`
+                    : 'Masa Aktif Habis'}
                 </div>
               </div>
 
@@ -401,6 +416,60 @@ export default function HomePage() {
                 <div className="text-xs font-mono bg-slate-950 p-2 rounded-lg border border-slate-800 text-slate-300">
                   A1: 145 • A2.1: 175 • A2.2: 200
                 </div>
+              </div>
+            </div>
+
+            {/* Question Packages Selection Grid (Pilihan Paket 1 - 4) */}
+            <div className="bg-slate-900 rounded-3xl p-6 border border-slate-800 space-y-4 shadow-xl">
+              <div className="flex flex-wrap items-center justify-between border-b pb-4 border-slate-800 gap-2">
+                <div>
+                  <h2 className="text-lg font-bold text-white flex items-center gap-2">
+                    <Layers className="w-5 h-5 text-indigo-400" />
+                    Pilihan Paket Bank Soal Ujian JFT-Basic ({EXAM_SETS.length} Paket Soal Tersedia)
+                  </h2>
+                  <p className="text-xs text-slate-400">Pilih salah satu dari 4 paket simulasi 50 soal yang ingin Anda kerjakan hari ini</p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {EXAM_SETS.map((set) => {
+                  const setQuestionCount = questions.filter((q) => (q.packageId || 1) === set.id).length;
+                  const isSelected = selectedPackageId === set.id;
+                  return (
+                    <div
+                      key={set.id}
+                      className={`p-5 rounded-2xl border transition flex flex-col justify-between gap-4 ${
+                        isSelected
+                          ? 'bg-slate-950 border-indigo-500/80 shadow-lg shadow-indigo-500/10'
+                          : 'bg-slate-950/60 border-slate-800 hover:border-slate-700'
+                      }`}
+                    >
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="px-2.5 py-1 rounded-lg bg-indigo-950 border border-indigo-700 text-indigo-400 font-mono text-[11px] font-bold">
+                            {set.code}
+                          </span>
+                          <span className="text-[11px] font-semibold text-emerald-400 bg-emerald-950/60 px-2 py-0.5 rounded border border-emerald-800">
+                            {setQuestionCount} Soal Aktif
+                          </span>
+                        </div>
+                        <h3 className="text-base font-bold text-white">{set.name}</h3>
+                        <p className="text-xs text-slate-400 leading-relaxed">{set.description}</p>
+                      </div>
+
+                      <div className="pt-2 flex items-center justify-between border-t border-slate-800/80">
+                        <span className="text-[11px] text-slate-500">Seksi S1, S2, S3, S4</span>
+                        <button
+                          onClick={() => handleStartExam(set.id)}
+                          className="py-2.5 px-4 bg-indigo-600 hover:bg-indigo-500 text-white font-extrabold text-xs rounded-xl shadow transition flex items-center gap-1.5"
+                        >
+                          <Play className="w-3.5 h-3.5 fill-white" />
+                          Kerjakan Paket #{set.id}
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </div>
 

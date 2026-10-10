@@ -26,16 +26,25 @@ export async function POST(request: Request) {
       createdAt: new Date().toISOString()
     };
 
-    user.credits += pkg.tryoutCount;
+    // Calculate new expiration date (extend if active, or set from now)
+    const durationMs = (pkg.durationDays || 7) * 24 * 60 * 60 * 1000;
+    const baseTime = user.subscriptionExpiresAt && new Date(user.subscriptionExpiresAt).getTime() > Date.now()
+      ? new Date(user.subscriptionExpiresAt).getTime()
+      : Date.now();
+
+    const newExpiry = new Date(baseTime + durationMs).toISOString();
+    user.subscriptionExpiresAt = newExpiry;
     store.transactions.unshift(newTx);
 
     return NextResponse.json({
       success: true,
       transaction: newTx,
-      newCredits: user.credits,
-      message: `Pembayaran berhasil! +${pkg.tryoutCount} kuota tryout telah ditambahkan ke akun Anda.`
+      subscriptionExpiresAt: newExpiry,
+      user,
+      message: `Pembayaran berhasil! Akses Tryout Unlimited Anda bertambah +${pkg.durationDays} hari.`
     });
-  } catch (error: any) {
-    return NextResponse.json({ success: false, message: error.message }, { status: 500 });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    return NextResponse.json({ success: false, message }, { status: 500 });
   }
 }

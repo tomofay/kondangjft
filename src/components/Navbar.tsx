@@ -2,7 +2,9 @@
 
 import React from 'react';
 import { User } from '../types';
-import { ShieldCheck, Lock, LogOut, Zap, UserCheck, ShieldAlert, Award, Sparkles } from 'lucide-react';
+import { Lock, LogOut, Zap, Sparkles } from 'lucide-react';
+
+import { isSubscriptionActive, getRemainingDays } from '../lib/dataStore';
 
 interface NavbarProps {
   user: User;
@@ -75,14 +77,18 @@ export const Navbar: React.FC<NavbarProps> = ({
             <span>1 Sesi Aktif (Locked)</span>
           </div>
 
-          {/* Quota Badge */}
+          {/* Subscription Status Badge */}
           {user.role === 'user' && (
             <button
               onClick={onOpenBuyCredits}
               className="px-3 py-1.5 bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-500 hover:to-blue-500 text-white font-bold rounded-xl shadow-md flex items-center gap-1.5 transition"
             >
               <Zap className="w-3.5 h-3.5 text-amber-300 fill-amber-300" />
-              <span>{user.credits} Tryout Tersisa</span>
+              <span>
+                {isSubscriptionActive(user)
+                  ? `Unlimited (${getRemainingDays(user)} Hari)`
+                  : 'Masa Aktif Habis (Beli Paket)'}
+              </span>
             </button>
           )}
 

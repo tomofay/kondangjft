@@ -26,7 +26,7 @@ export async function POST(request: Request) {
       valid: true,
       credits: user?.credits || 0
     });
-  } catch (error: any) {
+  } catch {
     return NextResponse.json({ valid: true }, { status: 200 });
   }
 }

@@ -1,15 +1,11 @@
-import React, { useState, useEffect } from 'react';
-import { Question, UserAnswer } from '../types';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { Question, UserAnswer, User } from '../types';
 import { Clock, Bookmark, ChevronLeft, ChevronRight, Send, Volume2, AlertTriangle } from 'lucide-react';
-
-
-
-
-
 
 interface CbtExamEngineProps {
   questions: Question[];
   onSubmitExam: (answers: UserAnswer[], timeSpentSeconds: number) => void;
+  user?: User;
 }
 
 export const CbtExamEngine: React.FC<CbtExamEngineProps> = ({
@@ -31,26 +27,32 @@ export const CbtExamEngine: React.FC<CbtExamEngineProps> = ({
 
   const [confirmModalOpen, setConfirmModalOpen] = useState(false);
 
-const handleFinishExam = () => {
-  const timeSpent = TOTAL_TIME - timeLeft;
-  const answerList = Array.from(answers.values());
-  onSubmitExam(answerList, timeSpent);
-};
+  const handleFinishExam = useCallback(() => {
+    const timeSpent = TOTAL_TIME - timeLeft;
+    const answerList = Array.from(answers.values());
+    onSubmitExam(answerList, timeSpent);
+  }, [TOTAL_TIME, timeLeft, answers, onSubmitExam]);
+
+  const handleFinishExamRef = useRef(handleFinishExam);
+  useEffect(() => {
+    handleFinishExamRef.current = handleFinishExam;
+  }, [handleFinishExam]);
+
   // Countdown timer effect
   useEffect(() => {
-  const timer = setInterval(() => {
-    setTimeLeft((prev) => {
-      if (prev <= 1) {
-        clearInterval(timer);
-        handleFinishExam();
-        return 0;
-      }
-      return prev - 1;
-    });
-  }, 1000);
+    const timer = setInterval(() => {
+      setTimeLeft((prev) => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          handleFinishExamRef.current();
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
 
-  return () => clearInterval(timer);
-}, []);
+    return () => clearInterval(timer);
+  }, []);
 
   const formatTime = (seconds: number) => {
     const m = Math.floor(seconds / 60);

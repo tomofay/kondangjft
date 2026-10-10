@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { ShieldAlert, LogOut, RefreshCw } from 'lucide-react';
+import { ShieldAlert, RefreshCw } from 'lucide-react';
 
 interface SingleSessionLockModalProps {
   isOpen: boolean;

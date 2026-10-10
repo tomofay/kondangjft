@@ -7,7 +7,8 @@ export interface User {
   name: string;
   email: string;
   role: Role;
-  credits: number; // Jumlah tryout tersisa
+  subscriptionExpiresAt?: string | null; // Tanggal kedaluwarsa akses unlimited (ISO string)
+  credits?: number; // Opsional untuk kompatibilitas
   facePhotoUrl?: string;
   registrationNumber: string;
   nationality: string;
@@ -19,6 +20,7 @@ export interface User {
 
 export interface Question {
   id: number;
+  packageId?: number; // 1 | 2 | 3 | 4 (default 1)
   section: SectionType; // S1: Moji/Goi, S2: Kaiwa, S3: Chokai, S4: Dokkai
   sectionTitle: string; // e.g. "Seksi 1 - 文字と語彙 (Huruf & Kosakata)"
   number: number; // 1-50
@@ -33,6 +35,14 @@ export interface Question {
   }[];
   correctAnswer: 'A' | 'B' | 'C' | 'D';
   explanation: string; // Teks pembahasan & insight lengkap
+}
+
+export interface ExamSet {
+  id: number;
+  name: string;
+  code: string;
+  description: string;
+  totalQuestions: number;
 }
 
 export interface UserAnswer {
@@ -65,7 +75,7 @@ export interface TryoutPackage {
   id: string;
   name: string;
   description: string;
-  tryoutCount: number;
+  durationDays: number; // Durasi masa aktif akses unlimited (dalam hari)
   price: number;
   popular?: boolean;
 }

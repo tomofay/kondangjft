@@ -1,8 +1,9 @@
 'use client';
 
 import React, { useState } from 'react';
-import { User, Question, Transaction, PDFQuestionDraft } from '../types';
-import { Users, FileText, Plus, Edit, Trash2, ShieldAlert, CheckCircle2, Lock, Upload, Search, RefreshCw, Key, Layers, DollarSign } from 'lucide-react';
+import { User, Question, Transaction, PDFQuestionDraft, SectionType } from '../types';
+import { Users, FileText, Lock, Upload, Layers, DollarSign } from 'lucide-react';
+import { isSubscriptionActive, getRemainingDays } from '../lib/dataStore';
 
 interface AdminPortalProps {
   users: User[];
@@ -12,21 +13,32 @@ interface AdminPortalProps {
   onKickSession: (userId: string) => void;
   onAddCredit: (userId: string, count: number) => void;
   onImportPdfText: (pdfText: string) => Promise<void>;
+  onSaveQuestion?: (question: Question) => void;
+  onDeleteQuestion?: (questionId: number) => void;
 }
 
 export const AdminPortal: React.FC<AdminPortalProps> = ({
   users,
   questions,
   transactions,
-  pdfDrafts,
+  pdfDrafts: _pdfDrafts,
   onKickSession,
   onAddCredit,
-  onImportPdfText
+  onImportPdfText,
+  onSaveQuestion,
+  onDeleteQuestion
 }) => {
   const [activeTab, setActiveTab] = useState<'USERS' | 'QUESTIONS' | 'PDF_PARSER' | 'TRANSACTIONS'>('USERS');
   const [pdfInputText, setPdfInputText] = useState('');
   const [isParsing, setIsParsing] = useState(false);
   const [parseMessage, setParseMessage] = useState('');
+
+  // Question Bank Editor Filters & Modal State
+  const [selectedPkgFilter, setSelectedPkgFilter] = useState<number>(0); // 0 = Semua Paket
+  const [selectedSecFilter, setSelectedSecFilter] = useState<string>('ALL');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [editingQuestion, setEditingQuestion] = useState<Question | null>(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
   // Sample PDF demo text generator
   const fillSamplePdfText = () => {
@@ -66,12 +78,63 @@ Pembahasan: Laki-laki mengusulkan 10:30.`);
     try {
       await onImportPdfText(pdfInputText);
       setParseMessage('Berhasil mengimpor draf soal dari teks PDF!');
-    } catch (err: any) {
-      setParseMessage('Gagal mengurai PDF: ' + err.message);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      setParseMessage('Gagal mengurai PDF: ' + msg);
     } finally {
       setIsParsing(false);
     }
   };
+
+  const handleOpenEdit = (q: Question) => {
+    setEditingQuestion({ ...q, options: q.options.map(o => ({ ...o })) });
+    setIsEditModalOpen(true);
+  };
+
+  const handleOpenAdd = () => {
+    const nextId = questions.length > 0 ? Math.max(...questions.map((q) => q.id)) + 1 : 1;
+    const targetPkg = selectedPkgFilter > 0 ? selectedPkgFilter : 1;
+    setEditingQuestion({
+      id: nextId,
+      packageId: targetPkg,
+      section: 'S1',
+      sectionTitle: 'Seksi 1 - 文字と語彙 (Huruf & Kosakata)',
+      number: 1,
+      questionText: '',
+      options: [
+        { key: 'A', text: '' },
+        { key: 'B', text: '' },
+        { key: 'C', text: '' },
+        { key: 'D', text: '' }
+      ],
+      correctAnswer: 'A',
+      explanation: ''
+    });
+    setIsEditModalOpen(true);
+  };
+
+  const handleSaveEditModal = () => {
+    if (!editingQuestion || !onSaveQuestion) return;
+    if (!editingQuestion.questionText.trim()) {
+      alert('Teks pertanyaan tidak boleh kosong!');
+      return;
+    }
+    onSaveQuestion(editingQuestion);
+    setIsEditModalOpen(false);
+    setEditingQuestion(null);
+  };
+
+  // Filter questions list
+  const filteredQuestions = questions.filter((q) => {
+    const pkg = q.packageId || 1;
+    if (selectedPkgFilter > 0 && pkg !== selectedPkgFilter) return false;
+    if (selectedSecFilter !== 'ALL' && q.section !== selectedSecFilter) return false;
+    if (searchQuery.trim()) {
+      const qText = (q.questionText + ' ' + q.explanation).toLowerCase();
+      if (!qText.includes(searchQuery.toLowerCase())) return false;
+    }
+    return true;
+  });
 
   return (
     <div className="max-w-7xl mx-auto space-y-6 pb-12">
@@ -190,7 +253,7 @@ Pembahasan: Laki-laki mengusulkan 10:30.`);
                       </td>
 
                       <td className="p-3 font-bold text-slate-800 dark:text-slate-200">
-                        {u.credits} Sesi
+                        {isSubscriptionActive(u) ? `${getRemainingDays(u)} Hari (Unlimited)` : 'Kedaluwarsa'}
                       </td>
 
                       <td className="p-3 text-right space-x-2">
@@ -203,10 +266,10 @@ Pembahasan: Laki-laki mengusulkan 10:30.`);
                           </button>
                         )}
                         <button
-                          onClick={() => onAddCredit(u.id, 1)}
+                          onClick={() => onAddCredit(u.id, 7)}
                           className="py-1 px-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-semibold text-[11px] transition shadow"
                         >
-                          +1 Sesi Tryout
+                          +7 Hari Akses
                         </button>
                       </td>
                     </tr>
@@ -221,36 +284,144 @@ Pembahasan: Laki-laki mengusulkan 10:30.`);
       {/* Tab 2: Questions Bank */}
       {activeTab === 'QUESTIONS' && (
         <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 shadow-xl border border-slate-200 dark:border-slate-800 space-y-6">
-          <div className="flex items-center justify-between border-b pb-4 border-slate-200 dark:border-slate-800">
+          <div className="flex flex-wrap items-center justify-between gap-4 border-b pb-4 border-slate-200 dark:border-slate-800">
             <div>
               <h2 className="text-lg font-bold text-slate-900 dark:text-white">
-                Bank Soal JFT-Basic (Total 50 Soal Standard)
+                Bank Soal JFT-Basic ({questions.length} Total Soal Dikelola)
               </h2>
               <p className="text-xs text-slate-500 dark:text-slate-400">
-                Terbagi atas Seksi S1 (Moji Goi), S2 (Kaiwa), S3 (Chokai Listening), S4 (Dokkai Reading)
+                Edit teks soal, opsi A-D, kunci jawaban, seksi (S1-S4), dan alokasi Paket (Paket 1, 2, 3, 4)
               </p>
+            </div>
+
+            <button
+              onClick={handleOpenAdd}
+              className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl shadow transition flex items-center gap-1.5"
+            >
+              + Tambah Soal Baru
+            </button>
+          </div>
+
+          {/* Filters: Paket & Seksi */}
+          <div className="flex flex-wrap items-center justify-between gap-3 bg-slate-50 dark:bg-slate-950 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 text-xs">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="font-bold text-slate-700 dark:text-slate-300">Filter Paket:</span>
+              {[0, 1, 2, 3, 4].map((pkgNum) => (
+                <button
+                  key={pkgNum}
+                  onClick={() => setSelectedPkgFilter(pkgNum)}
+                  className={`px-3 py-1.5 rounded-xl font-bold transition ${
+                    selectedPkgFilter === pkgNum
+                      ? 'bg-indigo-600 text-white shadow'
+                      : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700'
+                  }`}
+                >
+                  {pkgNum === 0 ? 'Semua Paket' : `Paket #${pkgNum}`}
+                </button>
+              ))}
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="font-bold text-slate-700 dark:text-slate-300">Filter Seksi:</span>
+              {['ALL', 'S1', 'S2', 'S3', 'S4'].map((sec) => (
+                <button
+                  key={sec}
+                  onClick={() => setSelectedSecFilter(sec)}
+                  className={`px-3 py-1.5 rounded-xl font-bold transition ${
+                    selectedSecFilter === sec
+                      ? 'bg-slate-800 dark:bg-slate-200 text-white dark:text-slate-900 shadow'
+                      : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700'
+                  }`}
+                >
+                  {sec === 'ALL' ? 'Semua Seksi' : sec}
+                </button>
+              ))}
+            </div>
+
+            <div className="w-full sm:w-64">
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Cari kata kunci soal..."
+                className="w-full px-3 py-1.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              />
             </div>
           </div>
 
+          {/* Question List */}
           <div className="grid grid-cols-1 gap-4">
-            {questions.slice(0, 15).map((q) => (
-              <div
-                key={q.id}
-                className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 space-y-2 text-xs"
-              >
-                <div className="flex items-center justify-between font-bold text-slate-900 dark:text-white">
-                  <span className="px-2.5 py-1 rounded bg-indigo-100 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300">
-                    Soal #{q.number} ({q.section})
-                  </span>
-                  <span className="text-emerald-600 dark:text-emerald-400">Kunci: {q.correctAnswer}</span>
-                </div>
-                <p className="font-semibold font-japanese text-slate-800 dark:text-slate-200">{q.questionText}</p>
-                <p className="text-[11px] text-slate-500 italic">Pembahasan: {q.explanation}</p>
+            {filteredQuestions.length === 0 ? (
+              <div className="p-8 text-center text-xs text-slate-400 bg-slate-50 dark:bg-slate-950/40 rounded-2xl border border-dashed border-slate-300 dark:border-slate-800">
+                Tidak ada soal yang cocok dengan filter.
               </div>
-            ))}
-            {questions.length > 15 && (
+            ) : (
+              filteredQuestions.slice(0, 30).map((q) => (
+                <div
+                  key={q.id}
+                  className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 space-y-3 text-xs"
+                >
+                  <div className="flex items-center justify-between font-bold text-slate-900 dark:text-white flex-wrap gap-2">
+                    <div className="flex items-center gap-2">
+                      <span className="px-2.5 py-1 rounded-lg bg-indigo-100 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800">
+                        Paket #{q.packageId || 1} • Soal #{q.number} ({q.section})
+                      </span>
+                      <span className="text-slate-500 text-[11px] font-normal">{q.sectionTitle}</span>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <span className="px-2 py-0.5 rounded bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 font-bold">
+                        Kunci: {q.correctAnswer}
+                      </span>
+                      <button
+                        onClick={() => handleOpenEdit(q)}
+                        className="px-3 py-1 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold rounded-lg transition"
+                      >
+                        Edit Soal
+                      </button>
+                      {onDeleteQuestion && (
+                        <button
+                          onClick={() => {
+                            if (confirm(`Hapus soal #${q.number} dari Paket #${q.packageId || 1}?`)) {
+                              onDeleteQuestion(q.id);
+                            }
+                          }}
+                          className="px-3 py-1 bg-red-600 hover:bg-red-700 text-white font-bold rounded-lg transition"
+                        >
+                          Hapus
+                        </button>
+                      )}
+                    </div>
+                  </div>
+
+                  <p className="font-semibold text-slate-900 dark:text-white font-japanese text-sm bg-white dark:bg-slate-900 p-3 rounded-xl border border-slate-200 dark:border-slate-800">
+                    {q.questionText}
+                  </p>
+
+                  <div className="grid grid-cols-2 gap-2 text-[11px] font-mono text-slate-700 dark:text-slate-300">
+                    {q.options.map((opt) => (
+                      <div
+                        key={opt.key}
+                        className={`p-2 rounded-lg border ${
+                          opt.key === q.correctAnswer
+                            ? 'bg-emerald-50 dark:bg-emerald-950/60 border-emerald-300 dark:border-emerald-800 font-bold text-emerald-800 dark:text-emerald-300'
+                            : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800'
+                        }`}
+                      >
+                        {opt.key}) {opt.text}
+                      </div>
+                    ))}
+                  </div>
+
+                  <p className="text-[11px] text-slate-500 italic bg-slate-100 dark:bg-slate-900/60 p-2.5 rounded-lg">
+                    💡 Pembahasan: {q.explanation}
+                  </p>
+                </div>
+              ))
+            )}
+            {filteredQuestions.length > 30 && (
               <p className="text-center text-xs text-slate-400 py-2">
-                ...dan {questions.length - 15} soal JFT-Basic lainnya aktif dalam database.
+                Menampilkan 30 dari {filteredQuestions.length} soal. Gunakan pencarian untuk menyempitkan hasil.
               </p>
             )}
           </div>
@@ -349,6 +520,166 @@ Pembahasan: Laki-laki mengusulkan 10:30.`);
                 ))}
               </tbody>
             </table>
+          </div>
+        </div>
+      )}
+
+      {/* QUESTION EDIT MODAL OVERLAY */}
+      {isEditModalOpen && editingQuestion && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-md p-4 overflow-y-auto">
+          <div className="bg-white dark:bg-slate-900 max-w-2xl w-full rounded-3xl p-6 shadow-2xl border border-slate-200 dark:border-slate-800 space-y-4 my-8">
+            <div className="flex items-center justify-between border-b pb-3 border-slate-200 dark:border-slate-800">
+              <h3 className="text-base font-bold text-slate-900 dark:text-white">
+                Editor Soal JFT (ID #{editingQuestion.id})
+              </h3>
+              <button
+                onClick={() => setIsEditModalOpen(false)}
+                className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-sm font-bold"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="grid grid-cols-3 gap-3 text-xs">
+              <div>
+                <label className="font-bold text-slate-700 dark:text-slate-300 block mb-1">Pilih Paket:</label>
+                <select
+                  value={editingQuestion.packageId || 1}
+                  onChange={(e) =>
+                    setEditingQuestion({ ...editingQuestion, packageId: Number(e.target.value) })
+                  }
+                  className="w-full p-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-slate-100 font-bold"
+                >
+                  <option value={1}>Paket #1 (Simulasi Utama)</option>
+                  <option value={2}>Paket #2 (Intensif)</option>
+                  <option value={3}>Paket #3 (Master Chokai)</option>
+                  <option value={4}>Paket #4 (Tryout Spesial)</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="font-bold text-slate-700 dark:text-slate-300 block mb-1">Seksi Ujian:</label>
+                <select
+                  value={editingQuestion.section}
+                  onChange={(e) => {
+                    const sec = e.target.value as SectionType;
+                    const secTitles: Record<SectionType, string> = {
+                      S1: 'Seksi 1 - 文字と語彙 (Huruf & Kosakata)',
+                      S2: 'Seksi 2 - 会話表現 (Percakapan & Ekspresi)',
+                      S3: 'Seksi 3 - 聴解 (Pendengaran)',
+                      S4: 'Seksi 4 - 読解 (Pemahaman Bacaan)'
+                    };
+                    setEditingQuestion({
+                      ...editingQuestion,
+                      section: sec,
+                      sectionTitle: secTitles[sec] || sec
+                    });
+                  }}
+                  className="w-full p-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-slate-100 font-bold"
+                >
+                  <option value="S1">S1 (Moji Goi)</option>
+                  <option value="S2">S2 (Kaiwa)</option>
+                  <option value="S3">S3 (Chokai)</option>
+                  <option value="S4">S4 (Dokkai)</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="font-bold text-slate-700 dark:text-slate-300 block mb-1">Nomor Soal:</label>
+                <input
+                  type="number"
+                  value={editingQuestion.number}
+                  onChange={(e) => setEditingQuestion({ ...editingQuestion, number: Number(e.target.value) })}
+                  className="w-full p-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-slate-100 font-bold"
+                />
+              </div>
+            </div>
+
+            <div className="text-xs space-y-1">
+              <label className="font-bold text-slate-700 dark:text-slate-300">Teks Pertanyaan:</label>
+              <textarea
+                rows={3}
+                value={editingQuestion.questionText}
+                onChange={(e) => setEditingQuestion({ ...editingQuestion, questionText: e.target.value })}
+                className="w-full p-3 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-slate-100 font-japanese text-xs"
+              ></textarea>
+            </div>
+
+            {/* Options A-D */}
+            <div className="space-y-2 text-xs">
+              <label className="font-bold text-slate-700 dark:text-slate-300">Opsi Jawaban A, B, C, D:</label>
+              <div className="grid grid-cols-2 gap-2">
+                {editingQuestion.options.map((opt, idx) => (
+                  <div key={opt.key} className="flex items-center gap-2">
+                    <span className="font-bold text-indigo-600 dark:text-indigo-400 w-4">{opt.key})</span>
+                    <input
+                      type="text"
+                      value={opt.text}
+                      onChange={(e) => {
+                        const newOpts = [...editingQuestion.options];
+                        newOpts[idx].text = e.target.value;
+                        setEditingQuestion({ ...editingQuestion, options: newOpts });
+                      }}
+                      className="w-full p-2 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg text-slate-900 dark:text-slate-100 text-xs"
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3 text-xs">
+              <div>
+                <label className="font-bold text-slate-700 dark:text-slate-300 block mb-1">Kunci Jawaban Benar:</label>
+                <select
+                  value={editingQuestion.correctAnswer}
+                  onChange={(e) => setEditingQuestion({ ...editingQuestion, correctAnswer: e.target.value as 'A' | 'B' | 'C' | 'D' })}
+                  className="w-full p-2.5 bg-emerald-50 dark:bg-emerald-950 border border-emerald-300 dark:border-emerald-800 rounded-xl text-emerald-900 dark:text-emerald-300 font-bold"
+                >
+                  <option value="A">Opsi A</option>
+                  <option value="B">Opsi B</option>
+                  <option value="C">Opsi C</option>
+                  <option value="D">Opsi D</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="font-bold text-slate-700 dark:text-slate-300 block mb-1">URL Audio (Opsional S3):</label>
+                <input
+                  type="text"
+                  value={editingQuestion.audioUrl || ''}
+                  onChange={(e) => setEditingQuestion({ ...editingQuestion, audioUrl: e.target.value })}
+                  placeholder="https://..."
+                  className="w-full p-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-slate-100 text-xs"
+                />
+              </div>
+            </div>
+
+            <div className="text-xs space-y-1">
+              <label className="font-bold text-slate-700 dark:text-slate-300">Penjelasan & Pembahasan (Insight):</label>
+              <textarea
+                rows={2}
+                value={editingQuestion.explanation}
+                onChange={(e) => setEditingQuestion({ ...editingQuestion, explanation: e.target.value })}
+                className="w-full p-3 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-slate-100 text-xs"
+              ></textarea>
+            </div>
+
+            <div className="flex justify-end gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => setIsEditModalOpen(false)}
+                className="px-4 py-2 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 text-slate-700 dark:text-slate-300 font-bold rounded-xl text-xs transition"
+              >
+                Batal
+              </button>
+              <button
+                type="button"
+                onClick={handleSaveEditModal}
+                className="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-xs transition shadow-lg"
+              >
+                Simpan Perubahan Soal
+              </button>
+            </div>
           </div>
         </div>
       )}

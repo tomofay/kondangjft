@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { TryoutPackage } from '../types';
-import { CreditCard, QrCode, CheckCircle2, ShieldCheck, Zap, X } from 'lucide-react';
+import { CreditCard, QrCode, ShieldCheck, Zap, X } from 'lucide-react';
 
 interface PackagePaymentModalProps {
   isOpen: boolean;
@@ -97,7 +97,7 @@ export const PackagePaymentModal: React.FC<PackagePaymentModalProps> = ({
                       <div className="text-base font-extrabold text-indigo-600 dark:text-indigo-400">
                         Rp {pkg.price.toLocaleString('id-ID')}
                       </div>
-                      <div className="text-[11px] text-slate-500">{pkg.tryoutCount} Sesi Tryout</div>
+                      <div className="text-[11px] font-semibold text-emerald-500">{pkg.durationDays} Hari Akses Unlimited</div>
                     </div>
                   </div>
                 );

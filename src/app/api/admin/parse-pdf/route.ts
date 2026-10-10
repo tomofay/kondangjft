@@ -18,7 +18,8 @@ export async function POST(request: Request) {
       drafts,
       message: `Berhasil mengekstrak ${drafts.length} draf soal dari teks PDF.`
     });
-  } catch (error: any) {
-    return NextResponse.json({ success: false, message: error.message }, { status: 500 });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    return NextResponse.json({ success: false, message }, { status: 500 });
   }
 }

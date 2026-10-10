@@ -30,7 +30,7 @@ Platform wajib mengakomodasi 50 soal dalam satu kali simulasi dengan pembagian s
 
 ### 4.1. Modul Administrator (Backend)
 * **Manajemen Pengguna:** CRUD (Create, Read, Update, Delete) data peserta, mereset kata sandi, dan memantau riwayat ujian tiap peserta.
-* **Manajemen Pembayaran & Paket:** Membuat paket tryout (contoh: "Paket 1x Tryout", "Bundel 5 Tryout"), menetapkan harga, dan melakukan validasi pembayaran (manual maupun otomatis via Payment Gateway).
+* **Manajemen Pembayaran & Paket Langganan:** Membuat paket langganan berbasis durasi waktu (contoh: "Paket 1 Minggu", "Paket 2 Minggu", "Paket 1 Bulan" dengan akses tryout tanpa batas / unlimited selama masa aktif), menetapkan harga, dan melakukan validasi pembayaran.
 * **Manajemen Bank Soal:**
   * Editor visual untuk memasukkan teks soal, gambar pendukung, audio, opsi jawaban, jawaban benar, dan teks penjelasan/pembahasan.
   * Fitur modifikasi soal secara individual (satu per satu) untuk perbaikan *typo* atau penggantian *asset*.

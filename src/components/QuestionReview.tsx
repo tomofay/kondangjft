@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { Question, UserAnswer } from '../types';
-import { CheckCircle2, XCircle, HelpCircle, Volume2, ArrowLeft, Bookmark, Filter, BookOpen } from 'lucide-react';
+import { CheckCircle2, XCircle, HelpCircle, ArrowLeft, Filter, BookOpen } from 'lucide-react';
 
 interface QuestionReviewProps {
   questions: Question[];

@@ -31,7 +31,8 @@ export async function POST(request: Request) {
       sessionId,
       message: 'Login berhasil. Sesi tunggal diaktifkan.'
     });
-  } catch (error: any) {
-    return NextResponse.json({ success: false, message: error.message }, { status: 500 });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    return NextResponse.json({ success: false, message }, { status: 500 });
   }
 }

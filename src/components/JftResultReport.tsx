@@ -2,7 +2,7 @@
 
 import React, { useRef, useState } from 'react';
 import { ExamResult } from '../types';
-import { Award, CheckCircle2, XCircle, Download, BookOpen, RefreshCw, FileText } from 'lucide-react';
+import { CheckCircle2, XCircle, Download, BookOpen, RefreshCw } from 'lucide-react';
 import html2canvas from 'html2canvas';
 import confetti from 'canvas-confetti';
 

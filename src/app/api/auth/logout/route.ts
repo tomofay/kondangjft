@@ -8,7 +8,7 @@ export async function POST(request: Request) {
       kickUserSession(userId);
     }
     return NextResponse.json({ success: true });
-  } catch (error) {
+  } catch {
     return NextResponse.json({ success: true });
   }
 }

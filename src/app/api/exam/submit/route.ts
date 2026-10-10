@@ -12,9 +12,10 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: false, message: 'User tidak ditemukan' }, { status: 404 });
     }
 
-    // Deduct 1 credit if not admin
-    if (user.role !== 'admin' && user.credits > 0) {
-      user.credits = Math.max(0, user.credits - 1);
+    // Verify active subscription (unlimited tryouts during active period)
+    const isSubActive = user.role === 'admin' || (user.subscriptionExpiresAt && new Date(user.subscriptionExpiresAt).getTime() > Date.now());
+    if (!isSubActive) {
+      return NextResponse.json({ success: false, message: 'Masa aktif langganan Anda telah habis. Silakan perpanjang paket.' }, { status: 403 });
     }
 
     const { totalScore, assessmentResult, isPassed, sectionScores } = calculateJFTScore(answers);
@@ -41,7 +42,8 @@ export async function POST(request: Request) {
       result: examResult,
       remainingCredits: user.credits
     });
-  } catch (error: any) {
-    return NextResponse.json({ success: false, message: error.message }, { status: 500 });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    return NextResponse.json({ success: false, message }, { status: 500 });
   }
 }
