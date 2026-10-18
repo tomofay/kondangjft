@@ -1,0 +1,103 @@
+name: CI/CD Deploy to VPS (Docker)
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: Deploy to VPS
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Deploy to VPS via SSH
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USERNAME }}
+          password: ${{ secrets.VPS_PASSWORD }}
+          port: ${{ secrets.VPS_PORT || 22 }}
+          script_stop: true
+          script: |
+            set -e
+
+            echo "=================================================="
+            echo "🚀 Memulai Deployment Otomatis KondangSensei CBT"
+            echo "=================================================="
+
+            # 1. Menentukan direktori proyek di VPS
+            DEPLOY_PATH="${{ secrets.VPS_DEPLOY_PATH }}"
+
+            if [ -z "$DEPLOY_PATH" ]; then
+              if [ -d "$HOME/kondangjft/.git" ]; then
+                DEPLOY_PATH="$HOME/kondangjft"
+              elif [ -d "/var/www/kondangjft/.git" ]; then
+                DEPLOY_PATH="/var/www/kondangjft"
+              elif [ -d "/root/kondangjft/.git" ]; then
+                DEPLOY_PATH="/root/kondangjft"
+              else
+                DEPLOY_PATH="$HOME/kondangjft"
+              fi
+            fi
+
+            echo "📁 Direktori aplikasi di VPS: $DEPLOY_PATH"
+
+            # 2. Clone repository jika belum ada di direktori tersebut
+            if [ ! -d "$DEPLOY_PATH/.git" ]; then
+              echo "📥 Direktori belum ada git repo, mengkloning dari GitHub..."
+              mkdir -p "$DEPLOY_PATH"
+              git clone https://github.com/tomofay/kondangjft.git "$DEPLOY_PATH"
+            fi
+
+            cd "$DEPLOY_PATH"
+
+            # 3. Pull pembaruan kode terbaru dari branch main
+            echo "🔄 Sinkronisasi kode dari branch main..."
+            git fetch origin main
+            git reset --hard origin/main
+
+            # 4. Siapkan berkas .env jika belum tersedia di VPS
+            if [ ! -f .env ]; then
+              if [ -f .env.production.example ]; then
+                echo "📄 Menginisialisasi berkas .env dari template..."
+                cp .env.production.example .env
+              else
+                echo "📄 Membuat berkas .env kosong..."
+                touch .env
+              fi
+            fi
+
+            # 5. Deteksi perintah Docker Compose (v2 plugin vs v1 standalone)
+            echo "🔍 Memeriksa instalasi Docker & Docker Compose..."
+            if docker compose version >/dev/null 2>&1; then
+              COMPOSE_CMD="docker compose"
+            elif which docker-compose >/dev/null 2>&1; then
+              COMPOSE_CMD="docker-compose"
+            else
+              echo "❌ Error: Docker Compose tidak ditemukan di VPS. Pastikan Docker sudah terpasang."
+              exit 1
+            fi
+
+            echo "🐳 Menjalankan Docker Compose Build & Up..."
+            $COMPOSE_CMD down --remove-orphans || true
+            $COMPOSE_CMD build --pull
+            $COMPOSE_CMD up -d
+
+            # 6. Bersihkan image lama yang tidak terpakai agar menghemat ruang disk VPS
+            echo "🧹 Membersihkan image lama yang tidak terpakai..."
+            docker image prune -f || true
+
+            # 7. Tampilkan status kontainer yang sedang berjalan
+            echo "=================================================="
+            echo "📊 Status Kontainer Aktif:"
+            echo "=================================================="
+            $COMPOSE_CMD ps
+
+            echo "=================================================="
+            echo "✅ Deployment ke VPS Berhasil Diselesaikan!"
+            echo "=================================================="

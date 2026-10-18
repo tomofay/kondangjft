@@ -36,8 +36,8 @@ COPY --from=builder /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
-# Ensure persistent uploads directory exists with proper permissions
-RUN mkdir -p ./public/uploads/avatars && chown -R nextjs:nodejs ./public/uploads
+# Ensure persistent uploads directories exist with proper permissions
+RUN mkdir -p ./public/uploads/avatars ./public/uploads/questions ./public/uploads/audio && chown -R nextjs:nodejs ./public/uploads
 
 USER nextjs
 
