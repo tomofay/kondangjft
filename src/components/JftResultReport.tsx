@@ -158,7 +158,7 @@ export const JftResultReport: React.FC<JftResultReportProps> = ({
             </div>
             <div className="flex gap-3 text-xs">
               <img
-                src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80"
+                src={result.facePhotoUrl || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80"}
                 alt="Face Photo"
                 className="w-16 h-20 object-cover rounded border border-slate-300 bg-slate-200"
               />
@@ -172,13 +172,16 @@ export const JftResultReport: React.FC<JftResultReportProps> = ({
                   <span className="font-bold">{result.userName}</span>
                 </div>
                 <div>
-                  <span className="text-slate-500">国籍 / Nationality:</span> INDONESIA
+                  <span className="text-slate-500">国籍 / Nationality:</span>{' '}
+                  <span className="font-semibold uppercase">{result.nationality || 'INDONESIA'}</span>
                 </div>
                 <div>
-                  <span className="text-slate-500">生年月日 / Date of Birth:</span> 2001/05/14
+                  <span className="text-slate-500">生年月日 / Date of Birth:</span>{' '}
+                  <span className="font-semibold">{result.dateOfBirth || '2001/05/14'}</span>
                 </div>
                 <div>
-                  <span className="text-slate-500">性別 / Sex:</span> MALE
+                  <span className="text-slate-500">性別 / Sex:</span>{' '}
+                  <span className="font-semibold uppercase">{result.sex || 'MALE'}</span>
                 </div>
               </div>
             </div>

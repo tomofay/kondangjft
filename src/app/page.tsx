@@ -2,21 +2,53 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { User, Question, ExamResult, TryoutPackage, Transaction, UserAnswer, PDFQuestionDraft } from '../types';
-import { getStore, isSubscriptionActive, getRemainingDays, EXAM_SETS } from '../lib/dataStore';
+import { getStore, isSubscriptionActive, getRemainingDays, getRemainingSubscriptionText, EXAM_SETS } from '../lib/dataStore';
 import { Navbar } from '../components/Navbar';
 import { SingleSessionLockModal } from '../components/SingleSessionLockModal';
 import { CbtExamEngine } from '../components/CbtExamEngine';
 import { JftResultReport } from '../components/JftResultReport';
 import { QuestionReview } from '../components/QuestionReview';
 import { PackagePaymentModal } from '../components/PackagePaymentModal';
+import { PendingPaymentsModal } from '../components/PendingPaymentsModal';
 import { AdminPortal } from '../components/AdminPortal';
-import { Play, Award, Zap, History, Lock, ShieldAlert, Sparkles, BookOpen, Layers } from 'lucide-react';
+import { ProfileModal } from '../components/ProfileModal';
+import {
+  Play,
+  Award,
+  Zap,
+  History,
+  Lock,
+  Sparkles,
+  BookOpen,
+  Layers,
+  UserCheck,
+  User as UserIcon,
+  GraduationCap,
+  Clock,
+  Mail,
+  Key,
+  LogIn,
+  UserPlus,
+  AlertCircle,
+  Eye,
+  EyeOff
+} from 'lucide-react';
 
 export default function HomePage() {
-  const [currentUser, setCurrentUser] = useState<User | null>(() => getStore().users[0] || null);
-  const [sessionId, setSessionId] = useState<string | null>(() => getStore().users[0]?.activeSessionId || 'sess-demo-user');
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [profileModalOpen, setProfileModalOpen] = useState(false);
+  const [sessionId, setSessionId] = useState<string | null>(null);
   const [isSessionLocked, setIsSessionLocked] = useState(false);
   const [sessionLockMessage, setSessionLockMessage] = useState('');
+
+  // Auth mode: 'login' | 'signup'
+  const [authMode, setAuthMode] = useState<'login' | 'signup'>('login');
+  const [loginEmail, setLoginEmail] = useState('');
+  const [loginPassword, setLoginPassword] = useState('');
+  const [signupName, setSignupName] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [loginLoading, setLoginLoading] = useState(false);
+  const [loginError, setLoginError] = useState('');
 
   // Active view: 'dashboard' | 'exam' | 'report' | 'review' | 'admin'
   const [view, setView] = useState<'dashboard' | 'exam' | 'report' | 'review' | 'admin'>('dashboard');
@@ -32,29 +64,146 @@ export default function HomePage() {
   // Selected result for report / review
   const [currentResult, setCurrentResult] = useState<ExamResult | null>(null);
 
-  // Payment Modal
+  // Payment Modals
   const [paymentModalOpen, setPaymentModalOpen] = useState(false);
+  const [pendingPaymentsModalOpen, setPendingPaymentsModalOpen] = useState(false);
+  const [pendingTransactions, setPendingTransactions] = useState<Transaction[]>([]);
+
+  // Load pending payments for currentUser
+  const loadPendingPayments = useCallback(async (userId: string) => {
+    try {
+      const res = await fetch(`/api/payments/pending?userId=${encodeURIComponent(userId)}`);
+      const data = await res.json();
+      if (data.success && Array.isArray(data.pendingTransactions)) {
+        setPendingTransactions(data.pendingTransactions);
+      }
+    } catch (err) {
+      console.warn('Failed to load pending payments:', err);
+    }
+  }, []);
 
   // Login handler
-  const handleLogin = useCallback(async (email: string, role: 'user' | 'admin') => {
+  const handleLogin = useCallback(async (email: string, password?: string) => {
+    setLoginLoading(true);
+    setLoginError('');
     try {
       const res = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, role })
+        body: JSON.stringify({ email, password: password || 'password123' })
       });
       const data = await res.json();
       if (data.success) {
         setCurrentUser(data.user);
         setSessionId(data.sessionId);
         setIsSessionLocked(false);
+        // If admin, open admin portal, if regular user default to dashboard
         if (data.user.role === 'admin') {
+          setView('admin');
+        } else {
           setView('dashboard');
         }
+      } else {
+        setLoginError(data.message || 'Login gagal.');
       }
     } catch (err) {
-      console.error('Login error', err);
+      const msg = err instanceof Error ? err.message : String(err);
+      setLoginError('Koneksi gagal: ' + msg);
+    } finally {
+      setLoginLoading(false);
     }
+  }, []);
+
+  // Signup handler
+  const handleSignup = useCallback(async (name: string, email: string, password?: string) => {
+    setLoginLoading(true);
+    setLoginError('');
+    try {
+      const res = await fetch('/api/auth/signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, email, password: password || 'password123' })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setCurrentUser(data.user);
+        setSessionId(data.sessionId);
+        setIsSessionLocked(false);
+        setView('dashboard');
+        // Akun baru memiliki 0 hari masa aktif, otomatis tawarkan modal paket
+        setPaymentModalOpen(true);
+      } else {
+        setLoginError(data.message || 'Pendaftaran gagal.');
+      }
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      setLoginError('Koneksi gagal: ' + msg);
+    } finally {
+      setLoginLoading(false);
+    }
+  }, []);
+
+  // Logout handler
+  const handleLogout = useCallback(async () => {
+    if (currentUser?.id) {
+      try {
+        await fetch('/api/auth/logout', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId: currentUser.id })
+        });
+      } catch {
+        // silent catch
+      }
+    }
+    setCurrentUser(null);
+    setSessionId(null);
+    setIsSessionLocked(false);
+    setView('dashboard');
+    setLoginEmail('');
+    setLoginPassword('');
+    setLoginError('');
+  }, [currentUser]);
+
+  // Load user exam history from database
+  const loadExamHistory = useCallback(async (userId: string) => {
+    try {
+      const res = await fetch(`/api/exam/history?userId=${encodeURIComponent(userId)}`);
+      const data = await res.json();
+      if (data.success && Array.isArray(data.results)) {
+        setExamResults(data.results);
+      }
+    } catch (err) {
+      console.warn('Failed to fetch exam history:', err);
+    }
+  }, []);
+
+  // Fetch history & pending payments whenever currentUser changes
+  useEffect(() => {
+    if (currentUser?.id) {
+      loadExamHistory(currentUser.id);
+      loadPendingPayments(currentUser.id);
+    } else {
+      setExamResults([]);
+      setPendingTransactions([]);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentUser?.id]);
+
+  // Load questions from MySQL database on initial mount
+  useEffect(() => {
+    async function loadQuestionsFromDb() {
+      try {
+        const res = await fetch('/api/questions');
+        const data = await res.json();
+        if (data.success && Array.isArray(data.questions) && data.questions.length > 0) {
+          setQuestions(data.questions);
+        }
+      } catch (err) {
+        console.warn('Failed to load questions from API:', err);
+      }
+    }
+    loadQuestionsFromDb();
   }, []);
 
   // Single Session Lock Polling Heartbeat (Checks every 3 seconds)
@@ -81,19 +230,6 @@ export default function HomePage() {
     return () => clearInterval(interval);
   }, [currentUser, sessionId]);
 
-  // Logout handler
-  const handleLogout = async () => {
-    if (currentUser) {
-      await fetch('/api/auth/logout', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: currentUser.id })
-      });
-    }
-    setCurrentUser(null);
-    setSessionId(null);
-  };
-
   // Start CBT Exam for a specific Question Package (1, 2, 3, 4)
   const handleStartExam = (pkgId?: number) => {
     if (!currentUser) return;
@@ -107,8 +243,19 @@ export default function HomePage() {
     setView('exam');
   };
 
-  // Admin Question Edit / Save Handler
-  const handleSaveQuestion = (updatedQ: Question) => {
+  // Admin Question Edit / Save Handler (Synced with MySQL)
+  const handleSaveQuestion = async (updatedQ: Question) => {
+    // Optimistic UI update
+    setQuestions((prev) => {
+      const idx = prev.findIndex((q) => q.id === updatedQ.id);
+      if (idx !== -1) {
+        const next = [...prev];
+        next[idx] = updatedQ;
+        return next;
+      }
+      return [...prev, updatedQ];
+    });
+
     const store = getStore();
     const idx = store.questions.findIndex((q) => q.id === updatedQ.id);
     if (idx !== -1) {
@@ -116,14 +263,33 @@ export default function HomePage() {
     } else {
       store.questions.push(updatedQ);
     }
-    setQuestions([...store.questions]);
+
+    try {
+      await fetch('/api/questions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updatedQ)
+      });
+    } catch (err) {
+      console.warn('Error saving question to MySQL API:', err);
+    }
   };
 
-  // Admin Question Delete Handler
-  const handleDeleteQuestion = (questionId: number) => {
+  // Admin Question Delete Handler (Synced with MySQL)
+  const handleDeleteQuestion = async (questionId: number) => {
+    // Optimistic UI update
+    setQuestions((prev) => prev.filter((q) => q.id !== questionId));
+
     const store = getStore();
     store.questions = store.questions.filter((q) => q.id !== questionId);
-    setQuestions([...store.questions]);
+
+    try {
+      await fetch(`/api/questions?id=${questionId}`, {
+        method: 'DELETE'
+      });
+    } catch (err) {
+      console.warn('Error deleting question from MySQL API:', err);
+    }
   };
 
   // Submit Exam
@@ -141,8 +307,12 @@ export default function HomePage() {
       });
       const data = await res.json();
       if (data.success) {
-        const store = getStore();
-        setExamResults([...store.examResults]);
+        if (data.result) {
+          setExamResults((prev) => [data.result, ...prev.filter((r) => r.id !== data.result.id)]);
+        }
+        if (currentUser?.id) {
+          loadExamHistory(currentUser.id);
+        }
         if (data.user) {
           setCurrentUser(data.user);
         }
@@ -217,40 +387,203 @@ export default function HomePage() {
     }
   };
 
-  // Test Dual Session Conflict (Simulates logging in on another tab)
-  const handleTestDualSessionConflict = () => {
-    if (!currentUser) return;
-    fetch('/api/auth/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: currentUser.email, role: currentUser.role })
-    });
-  };
-
   if (!currentUser) {
     return (
       <div className="min-h-screen bg-slate-950 text-white flex items-center justify-center p-4">
-        <div className="max-w-md w-full bg-slate-900 rounded-3xl p-8 border border-slate-800 shadow-2xl text-center space-y-6">
-          <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-red-600 to-amber-500 flex items-center justify-center mx-auto text-2xl font-black shadow-lg">
-            JFT
+        <div className="max-w-md w-full bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6 animate-in fade-in zoom-in-95 duration-200">
+          {/* Header Brand */}
+          <div className="text-center space-y-2">
+            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-red-500 via-rose-600 to-amber-500 flex items-center justify-center mx-auto text-white shadow-xl shadow-red-500/20">
+              <GraduationCap className="w-8 h-8" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-black text-white tracking-tight">
+                Kondang<span className="text-red-500">Sensei</span> CBT
+              </h1>
+              <p className="text-xs text-slate-400">Masuk untuk mengakses Ujian Simulasi JFT-Basic 2026</p>
+            </div>
           </div>
-          <div>
-            <h1 className="text-2xl font-black tracking-tight">KondangSensei</h1>
-            <p className="text-xs text-slate-400">Platform Simulasi Ujian JFT-Basic 1 Sesi Terkunci</p>
-          </div>
-          <div className="space-y-3 pt-2">
+
+          {/* Error Alert */}
+          {loginError && (
+            <div className="p-3.5 bg-red-950/80 border border-red-800 text-red-300 rounded-2xl text-xs font-semibold flex items-center gap-2">
+              <AlertCircle className="w-4 h-4 shrink-0 text-red-400" />
+              <span>{loginError}</span>
+            </div>
+          )}
+
+          {/* Auth Tab Switcher */}
+          <div className="flex p-1 bg-slate-950 rounded-2xl border border-slate-800">
             <button
-              onClick={() => handleLogin('peserta@kondang.com', 'user')}
-              className="w-full py-3 px-4 bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 text-white font-bold text-xs rounded-xl shadow-lg transition"
+              type="button"
+              onClick={() => {
+                setAuthMode('login');
+                setLoginError('');
+              }}
+              className={`flex-1 py-2 rounded-xl font-bold text-xs transition flex items-center justify-center gap-1.5 ${
+                authMode === 'login'
+                  ? 'bg-slate-800 text-white shadow'
+                  : 'text-slate-400 hover:text-white'
+              }`}
             >
-              Masuk sebagai Peserta Demo
+              <LogIn className="w-3.5 h-3.5" />
+              Masuk (Login)
             </button>
             <button
-              onClick={() => handleLogin('admin@kondang.com', 'admin')}
-              className="w-full py-3 px-4 bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-xs rounded-xl transition"
+              type="button"
+              onClick={() => {
+                setAuthMode('signup');
+                setLoginError('');
+              }}
+              className={`flex-1 py-2 rounded-xl font-bold text-xs transition flex items-center justify-center gap-1.5 ${
+                authMode === 'signup'
+                  ? 'bg-gradient-to-r from-red-600 to-rose-600 text-white shadow font-black'
+                  : 'text-slate-400 hover:text-white'
+              }`}
             >
-              Masuk sebagai Superadmin
+              <UserPlus className="w-3.5 h-3.5" />
+              Daftar Akun Baru
             </button>
+          </div>
+
+          {/* Form Login / Signup */}
+          {authMode === 'login' ? (
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleLogin(loginEmail, loginPassword);
+              }}
+              className="space-y-4 text-xs"
+            >
+              <div className="space-y-1.5">
+                <label className="font-bold text-slate-300 flex items-center gap-1.5">
+                  <Mail className="w-3.5 h-3.5 text-indigo-400" />
+                  Alamat Email:
+                </label>
+                <input
+                  type="email"
+                  required
+                  value={loginEmail}
+                  onChange={(e) => setLoginEmail(e.target.value)}
+                  placeholder="nama@email.com"
+                  className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 placeholder-slate-500 text-xs focus:outline-none focus:ring-2 focus:ring-red-500"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="font-bold text-slate-300 flex items-center gap-1.5">
+                  <Key className="w-3.5 h-3.5 text-indigo-400" />
+                  Kata Sandi (Password):
+                </label>
+                <div className="relative">
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    required
+                    value={loginPassword}
+                    onChange={(e) => setLoginPassword(e.target.value)}
+                    placeholder="••••••••"
+                    className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 placeholder-slate-500 text-xs pr-10 focus:outline-none focus:ring-2 focus:ring-red-500"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-3 text-slate-400 hover:text-slate-200"
+                  >
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                disabled={loginLoading}
+                className="w-full py-3.5 px-4 bg-gradient-to-r from-red-600 via-rose-600 to-amber-600 hover:from-red-700 hover:to-amber-700 text-white font-black text-xs rounded-xl shadow-lg shadow-red-600/30 transition flex items-center justify-center gap-2 disabled:opacity-50"
+              >
+                <LogIn className="w-4 h-4" />
+                {loginLoading ? 'Memproses Masuk...' : 'Masuk ke Akun'}
+              </button>
+            </form>
+          ) : (
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleSignup(signupName, loginEmail, loginPassword);
+              }}
+              className="space-y-4 text-xs"
+            >
+              <div className="space-y-1.5">
+                <label className="font-bold text-slate-300 flex items-center gap-1.5">
+                  <UserIcon className="w-3.5 h-3.5 text-rose-400" />
+                  Nama Lengkap Peserta:
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={signupName}
+                  onChange={(e) => setSignupName(e.target.value)}
+                  placeholder="Contoh: Andi Pratama"
+                  className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 placeholder-slate-500 text-xs focus:outline-none focus:ring-2 focus:ring-rose-500"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="font-bold text-slate-300 flex items-center gap-1.5">
+                  <Mail className="w-3.5 h-3.5 text-rose-400" />
+                  Alamat Email:
+                </label>
+                <input
+                  type="email"
+                  required
+                  value={loginEmail}
+                  onChange={(e) => setLoginEmail(e.target.value)}
+                  placeholder="nama@email.com"
+                  className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 placeholder-slate-500 text-xs focus:outline-none focus:ring-2 focus:ring-rose-500"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="font-bold text-slate-300 flex items-center gap-1.5">
+                  <Key className="w-3.5 h-3.5 text-rose-400" />
+                  Buat Kata Sandi (Minimal 6 Karakter):
+                </label>
+                <div className="relative">
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    required
+                    minLength={6}
+                    value={loginPassword}
+                    onChange={(e) => setLoginPassword(e.target.value)}
+                    placeholder="••••••••"
+                    className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 placeholder-slate-500 text-xs pr-10 focus:outline-none focus:ring-2 focus:ring-rose-500"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-3 text-slate-400 hover:text-slate-200"
+                  >
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+              </div>
+
+              <div className="p-3 rounded-xl bg-amber-950/40 border border-amber-800/60 text-amber-300 text-[11px] leading-relaxed">
+                Catatan: Akun baru dibuat dengan 0 hari akses CBT. Anda dapat memilih paket langganan untuk mulai mengerjakan soal.
+              </div>
+
+              <button
+                type="submit"
+                disabled={loginLoading}
+                className="w-full py-3.5 px-4 bg-gradient-to-r from-rose-600 to-amber-600 hover:from-rose-700 hover:to-amber-700 text-white font-black text-xs rounded-xl shadow-lg shadow-rose-600/30 transition flex items-center justify-center gap-2 disabled:opacity-50"
+              >
+                <UserPlus className="w-4 h-4" />
+                {loginLoading ? 'Mendaftarkan Akun...' : 'Buat Akun & Mulai'}
+              </button>
+            </form>
+          )}
+
+          <div className="text-center text-[11px] text-slate-500 flex items-center justify-center gap-1 pt-2 border-t border-slate-800/80">
+            <Lock className="w-3.5 h-3.5 text-emerald-400" />
+            <span>Dilindungi enkripsi sesi tunggal CBT</span>
           </div>
         </div>
       </div>
@@ -263,7 +596,9 @@ export default function HomePage() {
       <Navbar
         user={currentUser}
         onOpenBuyCredits={() => setPaymentModalOpen(true)}
-        onSwitchRole={(role) => handleLogin(role === 'admin' ? 'admin@kondang.com' : 'peserta@kondang.com', role)}
+        onOpenProfile={() => setProfileModalOpen(true)}
+        onOpenPendingPayments={() => setPendingPaymentsModalOpen(true)}
+        pendingCount={pendingTransactions.length}
         onLogout={handleLogout}
         activeView={view}
         onChangeView={(v) => setView(v)}
@@ -292,7 +627,13 @@ export default function HomePage() {
         {/* VIEW: QUESTION REVIEW & EVALUATION */}
         {view === 'review' && currentResult && (
           <QuestionReview
-            questions={questions.filter((q) => (q.packageId || 1) === selectedPackageId)}
+            questions={(() => {
+              const answeredIds = new Set(currentResult.answers.map((a) => a.questionId));
+              const resultQuestions = questions.filter((q) => answeredIds.has(q.id));
+              return resultQuestions.length > 0
+                ? resultQuestions
+                : questions.filter((q) => (q.packageId || 1) === selectedPackageId);
+            })()}
             userAnswers={currentResult.answers}
             onBackToReport={() => setView('report')}
           />
@@ -317,68 +658,63 @@ export default function HomePage() {
         {view === 'dashboard' && (
           <div className="max-w-7xl mx-auto space-y-8 pb-12">
             {/* Hero Section Banner */}
-            <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 border border-slate-800 p-8 shadow-2xl">
+            <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 border border-slate-800 p-4 sm:p-6 md:p-8 shadow-2xl">
               <div className="absolute right-0 top-0 bottom-0 w-1/3 bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-indigo-500/20 via-transparent to-transparent pointer-events-none"></div>
 
-              <div className="relative z-10 max-w-2xl space-y-4">
-                <div className="flex items-center gap-2">
-                  <span className="px-3 py-1 rounded-full bg-red-950/80 border border-red-800 text-red-400 text-xs font-bold uppercase tracking-wider flex items-center gap-1.5">
-                    <Sparkles className="w-3.5 h-3.5" /> JFT-Basic CBT Engine 2026
-                  </span>
-                  <span className="px-3 py-1 rounded-full bg-emerald-950/80 border border-emerald-800 text-emerald-400 text-xs font-bold flex items-center gap-1">
+              <div className="relative z-10 max-w-2xl space-y-3 sm:space-y-4">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="px-2.5 sm:px-3 py-1 rounded-full bg-emerald-950/80 border border-emerald-800 text-emerald-400 text-[11px] sm:text-xs font-bold flex items-center gap-1">
                     <Lock className="w-3 h-3" /> 1 Sesi Terkunci
                   </span>
+
+                  {pendingTransactions.length > 0 && (
+                    <button
+                      onClick={() => setPendingPaymentsModalOpen(true)}
+                      className="px-2.5 sm:px-3 py-1 rounded-full bg-amber-950/90 border border-amber-600 text-amber-300 text-[11px] sm:text-xs font-extrabold flex items-center gap-1.5 hover:bg-amber-900 transition animate-pulse"
+                    >
+                      <Clock className="w-3.5 h-3.5 text-amber-400" />
+                      <span>{pendingTransactions.length} Tagihan Pending</span>
+                    </button>
+                  )}
                 </div>
 
-                <h1 className="text-3xl sm:text-4xl font-black text-white tracking-tight leading-tight">
-                  Simulasi Ujian JFT-Basic Realistis & Evaluasi Pembahasan Detail
+                <h1 className="text-xl sm:text-2xl md:text-4xl font-black text-white tracking-tight leading-tight">
+                  Simulasi Ujian JFT-Basic & Evaluasi Pembahasan Detail
                 </h1>
 
-                <p className="text-sm text-slate-300 leading-relaxed">
+                <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
                   Latihan 50 soal CBT Japan Foundation Test (Moji Goi, Kaiwa, Chōkai Listening, & Dokkai Reading). Dapatkan Rapor Resmi JFT & analisis jawaban salah.
                 </p>
 
-                <div className="pt-3 flex flex-wrap items-center gap-4">
+                <div className="pt-2 sm:pt-3 flex flex-col xs:flex-row flex-wrap items-stretch sm:items-center gap-2.5 sm:gap-4">
                   <button
-                    onClick={handleStartExam}
-                    className="py-3.5 px-6 bg-gradient-to-r from-red-600 via-rose-600 to-amber-600 hover:from-red-700 hover:to-amber-700 text-white font-extrabold text-sm rounded-2xl shadow-xl shadow-red-600/30 transition flex items-center gap-2 transform hover:-translate-y-0.5"
+                    onClick={() => handleStartExam()}
+                    className="py-3 sm:py-3.5 px-5 sm:px-6 bg-gradient-to-r from-red-600 via-rose-600 to-amber-600 hover:from-red-700 hover:to-amber-700 text-white font-extrabold text-xs sm:text-sm rounded-xl sm:rounded-2xl shadow-xl shadow-red-600/30 transition flex items-center justify-center gap-2 transform hover:-translate-y-0.5"
                   >
-                    <Play className="w-5 h-5 fill-white" />
-                    Mulai Ujian Simulasi JFT Sekarang
+                    <Play className="w-4 h-4 sm:w-5 sm:h-5 fill-white" />
+                    <span>Mulai Ujian Simulasi Sekarang</span>
                   </button>
 
                   <button
                     onClick={() => setPaymentModalOpen(true)}
-                    className="py-3.5 px-5 bg-slate-800/80 hover:bg-slate-700 text-slate-200 font-bold text-xs rounded-2xl border border-slate-700 transition flex items-center gap-2"
+                    className="py-2.5 sm:py-3.5 px-4 sm:px-5 bg-slate-800/80 hover:bg-slate-700 text-slate-200 font-bold text-xs rounded-xl sm:rounded-2xl border border-slate-700 transition flex items-center justify-center gap-2"
                   >
                     <Zap className="w-4 h-4 text-amber-400 fill-amber-400" />
-                    Beli Paket Tryout
+                    <span>Beli Paket Tryout</span>
+                  </button>
+
+                  <button
+                    onClick={() => setProfileModalOpen(true)}
+                    className="py-2.5 sm:py-3.5 px-4 sm:px-5 bg-indigo-950/80 hover:bg-indigo-900 text-indigo-300 font-bold text-xs rounded-xl sm:rounded-2xl border border-indigo-700/80 transition flex items-center justify-center gap-2"
+                  >
+                    <UserCheck className="w-4 h-4 text-indigo-400" />
+                    <span>Edit Profil Sertifikat</span>
                   </button>
                 </div>
               </div>
             </div>
 
-            {/* Test Single Session Conflict Feature Banner */}
-            <div className="p-5 bg-slate-900 rounded-2xl border border-indigo-900/60 flex flex-wrap items-center justify-between gap-4 shadow-lg">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-500 text-amber-400 flex items-center justify-center font-bold">
-                  <ShieldAlert className="w-5 h-5" />
-                </div>
-                <div>
-                  <h3 className="text-sm font-bold text-white">Uji Fitur Proteksi Sesi Tunggal (1 Device per Akun)</h3>
-                  <p className="text-xs text-slate-400">
-                    Klik tombol di sebelah kanan untuk menyimulasikan login di tab/perangkat ke-2. Sistem akan mendeteksi dan mengunci sesi di tab ini.
-                  </p>
-                </div>
-              </div>
 
-              <button
-                onClick={handleTestDualSessionConflict}
-                className="py-2.5 px-4 bg-amber-600 hover:bg-amber-700 text-slate-950 font-bold text-xs rounded-xl shadow transition"
-              >
-                Simulasikan Login 2nd Device (Tes Kunci Sesi)
-              </button>
-            </div>
 
             {/* User Stats Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -387,8 +723,8 @@ export default function HomePage() {
                 <div className="text-xl font-black text-amber-400 flex items-center gap-2">
                   <Zap className="w-6 h-6 fill-amber-400" />
                   {isSubscriptionActive(currentUser)
-                    ? `Unlimited (${getRemainingDays(currentUser)} Hari)`
-                    : 'Masa Aktif Habis'}
+                    ? `Unlimited (${getRemainingSubscriptionText(currentUser)})`
+                    : '0 Hari (Perlu Aktivasi)'}
                 </div>
               </div>
 
@@ -540,8 +876,29 @@ export default function HomePage() {
       <PackagePaymentModal
         isOpen={paymentModalOpen}
         packages={packages}
-        onClose={() => setPaymentModalOpen(false)}
-        onPaymentSuccess={handlePaymentSuccess}
+        currentUser={currentUser}
+        onClose={() => {
+          setPaymentModalOpen(false);
+          if (currentUser?.id) loadPendingPayments(currentUser.id);
+        }}
+        onPaymentSuccess={(pkgId, method) => {
+          handlePaymentSuccess(pkgId, method);
+          if (currentUser?.id) loadPendingPayments(currentUser.id);
+        }}
+      />
+
+      {/* Pending Payments List Modal */}
+      <PendingPaymentsModal
+        isOpen={pendingPaymentsModalOpen}
+        pendingTransactions={pendingTransactions}
+        onClose={() => setPendingPaymentsModalOpen(false)}
+        onRefresh={() => {
+          if (currentUser?.id) loadPendingPayments(currentUser.id);
+        }}
+        onPaymentSuccess={(pkgId, method) => {
+          handlePaymentSuccess(pkgId, method);
+          if (currentUser?.id) loadPendingPayments(currentUser.id);
+        }}
       />
 
       {/* Single Session Lock Modal */}
@@ -549,6 +906,29 @@ export default function HomePage() {
         isOpen={isSessionLocked}
         message={sessionLockMessage}
         onRelogin={() => handleLogin(currentUser.email, currentUser.role)}
+      />
+
+      {/* Examinee Profile & Certificate Edit Modal */}
+      <ProfileModal
+        isOpen={profileModalOpen}
+        user={currentUser}
+        onClose={() => setProfileModalOpen(false)}
+        onUpdateUser={(updated) => {
+          setCurrentUser(updated);
+          // If viewing certificate report, sync report info immediately
+          setCurrentResult((prev) => {
+            if (!prev) return null;
+            return {
+              ...prev,
+              userName: updated.name,
+              registrationNumber: updated.registrationNumber,
+              nationality: updated.nationality,
+              dateOfBirth: updated.dateOfBirth,
+              sex: updated.sex,
+              facePhotoUrl: updated.facePhotoUrl
+            };
+          });
+        }}
       />
     </div>
   );

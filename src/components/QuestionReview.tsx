@@ -178,8 +178,9 @@ export const QuestionReview: React.FC<QuestionReviewProps> = ({
                 {/* Dokkai Passage if any */}
                 {q.readingPassage && (
                   <div className="my-3 p-3.5 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-200 dark:border-slate-700 text-xs leading-relaxed text-slate-800 dark:text-slate-200 whitespace-pre-line font-japanese">
-                    <div className="text-[10px] font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-wider mb-1">
-                      📖 Teks Bacaan (Dokkai):
+                    <div className="text-[10px] font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-wider mb-1 flex items-center gap-1.5">
+                      <BookOpen className="w-3.5 h-3.5" />
+                      Teks Bacaan (Dokkai):
                     </div>
                     {q.readingPassage}
                   </div>
@@ -193,8 +194,14 @@ export const QuestionReview: React.FC<QuestionReviewProps> = ({
                 {/* Audio button if Chokai */}
                 {q.audioUrl && (
                   <div className="my-2">
-                    <audio controls className="w-full h-9 rounded-lg">
-                      <source src={q.audioUrl} type="audio/ogg" />
+                    <audio
+                      key={q.audioUrl + '_' + q.id}
+                      controls
+                      preload="none"
+                      className="w-full h-9 rounded-lg"
+                      src={q.audioUrl}
+                    >
+                      <source src={q.audioUrl} type={q.audioUrl.endsWith('.ogg') ? 'audio/ogg' : 'audio/mpeg'} />
                     </audio>
                   </div>
                 )}

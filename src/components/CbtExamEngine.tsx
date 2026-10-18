@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Question, UserAnswer, User } from '../types';
-import { Clock, Bookmark, ChevronLeft, ChevronRight, Send, Volume2, AlertTriangle } from 'lucide-react';
+import { Clock, Bookmark, ChevronLeft, ChevronRight, Send, Volume2, AlertTriangle, BookOpen, Check } from 'lucide-react';
 
 interface CbtExamEngineProps {
   questions: Question[];
@@ -118,19 +118,19 @@ export const CbtExamEngine: React.FC<CbtExamEngineProps> = ({
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col select-none font-sans">
       {/* Top CBT Header */}
-      <header className="bg-slate-900 border-b border-slate-800 px-6 py-3 flex items-center justify-between shadow-md">
-        <div className="flex items-center gap-4">
-          <div className="px-3 py-1 bg-red-600 font-extrabold text-lg text-white rounded tracking-wider shadow">
-            JFT-Basic CBT
+      <header className="bg-slate-900 border-b border-slate-800 px-3 sm:px-6 py-2.5 sm:py-3 flex items-center justify-between shadow-md shrink-0">
+        <div className="flex items-center gap-2 sm:gap-4">
+          <div className="px-2 sm:px-3 py-1 bg-red-600 font-extrabold text-xs sm:text-base md:text-lg text-white rounded tracking-wider shadow shrink-0">
+            JFT CBT
           </div>
           <div>
-            <h1 className="text-sm font-bold text-white">Simulasi Ujian Japan Foundation Test</h1>
-            <p className="text-xs text-slate-400">Standard 50 Soal • Sesi Aktif CBT</p>
+            <h1 className="text-xs sm:text-sm font-bold text-white leading-tight">Simulasi JFT-Basic</h1>
+            <p className="text-[10px] sm:text-xs text-slate-400 hidden xs:block">50 Soal • Sesi Aktif</p>
           </div>
         </div>
 
         {/* Section Navigation Tabs */}
-        <div className="hidden md:flex items-center gap-1 bg-slate-800 p-1 rounded-xl text-xs font-semibold">
+        <div className="hidden lg:flex items-center gap-1 bg-slate-800 p-1 rounded-xl text-xs font-semibold">
           <button
             onClick={() => jumpToSection('S1')}
             className={`px-3 py-1.5 rounded-lg transition ${
@@ -166,24 +166,25 @@ export const CbtExamEngine: React.FC<CbtExamEngineProps> = ({
         </div>
 
         {/* Timer & Submit */}
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2 sm:gap-4">
           <div
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl border text-sm font-mono font-bold shadow ${
+            className={`flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-xl border text-xs sm:text-sm font-mono font-bold shadow ${
               timeLeft < 300
                 ? 'bg-red-950/80 border-red-600 text-red-400 animate-pulse'
                 : 'bg-slate-800 border-slate-700 text-amber-400'
             }`}
           >
-            <Clock className="w-4 h-4" />
+            <Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
             <span>{formatTime(timeLeft)}</span>
           </div>
 
           <button
             onClick={() => setConfirmModalOpen(true)}
-            className="py-2 px-4 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl shadow-lg transition flex items-center gap-1.5"
+            className="py-1.5 sm:py-2 px-2.5 sm:px-4 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl shadow-lg transition flex items-center gap-1.5 shrink-0"
           >
-            <Send className="w-4 h-4" />
-            Selesai Ujian
+            <Send className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+            <span className="hidden xs:inline sm:inline">Selesai Ujian</span>
+            <span className="xs:hidden sm:hidden">Kirim</span>
           </button>
         </div>
       </header>
@@ -191,7 +192,7 @@ export const CbtExamEngine: React.FC<CbtExamEngineProps> = ({
       {/* Main Body */}
       <div className="flex-1 flex flex-col md:flex-row overflow-hidden">
         {/* Left / Middle: Question Workspace */}
-        <main className="flex-1 flex flex-col p-6 overflow-y-auto space-y-6">
+        <main className="flex-1 flex flex-col p-3 sm:p-5 md:p-6 overflow-y-auto space-y-4 sm:space-y-6">
           {/* Question Header Card */}
           <div className="flex items-center justify-between bg-slate-900 p-4 rounded-2xl border border-slate-800 shadow">
             <div className="flex items-center gap-3">
@@ -222,8 +223,9 @@ export const CbtExamEngine: React.FC<CbtExamEngineProps> = ({
           {/* Reading Passage (Dokkai S4 Split View) */}
           {currentQ.readingPassage && (
             <div className="p-4 bg-slate-900/90 rounded-2xl border border-indigo-900/50 space-y-2 text-xs text-slate-200 font-japanese leading-relaxed">
-              <div className="text-[11px] font-bold text-indigo-400 uppercase tracking-wider border-b border-slate-800 pb-1">
-                📖 Teks Bacaan (Dokkai):
+              <div className="text-[11px] font-bold text-indigo-400 uppercase tracking-wider border-b border-slate-800 pb-1 flex items-center gap-1.5">
+                <BookOpen className="w-3.5 h-3.5" />
+                Teks Bacaan (Dokkai):
               </div>
               <div className="whitespace-pre-line leading-relaxed">{currentQ.readingPassage}</div>
             </div>
@@ -245,8 +247,14 @@ export const CbtExamEngine: React.FC<CbtExamEngineProps> = ({
                   </span>
                   <span className="text-[11px] text-slate-400">Putar ulang audio per soal</span>
                 </div>
-                <audio controls className="w-full h-10 rounded-lg">
-                  <source src={currentQ.audioUrl} type="audio/ogg" />
+                <audio
+                  key={currentQ.audioUrl + '_' + currentQ.id}
+                  controls
+                  preload="auto"
+                  className="w-full h-10 rounded-lg shadow-inner"
+                  src={currentQ.audioUrl}
+                >
+                  <source src={currentQ.audioUrl} type={currentQ.audioUrl.endsWith('.ogg') ? 'audio/ogg' : 'audio/mpeg'} />
                   Browser Anda tidak mendukung pemutar audio.
                 </audio>
               </div>
@@ -294,7 +302,7 @@ export const CbtExamEngine: React.FC<CbtExamEngineProps> = ({
 
                   {isSelected && (
                     <div className="w-4 h-4 rounded-full bg-indigo-500 flex items-center justify-center text-white">
-                      ✓
+                      <Check className="w-2.5 h-2.5 stroke-[3]" />
                     </div>
                   )}
                 </button>

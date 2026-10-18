@@ -1,9 +1,11 @@
 import { NextResponse } from 'next/server';
 import { getStore, calculateJFTScore } from '../../../../lib/dataStore';
+import { pool, initDatabase } from '@/lib/db';
 import { ExamResult, User } from '../../../../types';
 
 export async function POST(request: Request) {
   try {
+    await initDatabase();
     const { userId, answers, timeSpentSeconds } = await request.json();
     const store = getStore();
 
@@ -25,6 +27,10 @@ export async function POST(request: Request) {
       userId: user.id,
       userName: user.name,
       registrationNumber: user.registrationNumber || 'JFT-2026-88912',
+      nationality: user.nationality || 'INDONESIA',
+      dateOfBirth: user.dateOfBirth || '2001/05/14',
+      sex: user.sex || 'MALE',
+      facePhotoUrl: user.facePhotoUrl,
       testDate: new Date().toISOString().split('T')[0],
       testLocation: 'CBT Online Simulator',
       totalScore,
@@ -36,6 +42,30 @@ export async function POST(request: Request) {
     };
 
     store.examResults.unshift(examResult);
+
+    // Save to MySQL db_kondangsensei
+    try {
+      await pool.query(
+        `INSERT INTO exam_results (id, userId, userName, registrationNumber, testDate, testLocation, totalScore, assessmentResult, isPassed, sectionScores, answers, totalTimeSpentSeconds)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [
+          examResult.id,
+          examResult.userId,
+          examResult.userName,
+          examResult.registrationNumber,
+          examResult.testDate,
+          examResult.testLocation,
+          examResult.totalScore,
+          examResult.assessmentResult,
+          examResult.isPassed ? 1 : 0,
+          JSON.stringify(examResult.sectionScores),
+          JSON.stringify(examResult.answers),
+          examResult.totalTimeSpentSeconds
+        ]
+      );
+    } catch (dbErr) {
+      console.warn('Could not save exam result to MySQL:', dbErr);
+    }
 
     return NextResponse.json({
       success: true,

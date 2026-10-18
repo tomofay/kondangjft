@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { ShieldAlert, RefreshCw } from 'lucide-react';
+import { ShieldAlert, RefreshCw, HelpCircle } from 'lucide-react';
 
 interface SingleSessionLockModalProps {
   isOpen: boolean;
@@ -34,8 +34,9 @@ export const SingleSessionLockModal: React.FC<SingleSessionLockModalProps> = ({
         </div>
 
         <div className="p-3 bg-amber-50 dark:bg-amber-950/40 rounded-xl border border-amber-200 dark:border-amber-800/60 text-xs text-amber-800 dark:text-amber-300 text-left space-y-1">
-          <p className="font-semibold flex items-center gap-1">
-            💡 Mengapa hal ini terjadi?
+          <p className="font-semibold flex items-center gap-1.5">
+            <HelpCircle className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
+            Mengapa hal ini terjadi?
           </p>
           <ul className="list-disc list-inside space-y-0.5 opacity-90">
             <li>Seseorang sedang menggunakan akun Anda di tab/device lain.</li>

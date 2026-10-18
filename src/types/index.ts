@@ -6,6 +6,7 @@ export interface User {
   id: string;
   name: string;
   email: string;
+  password?: string;
   role: Role;
   subscriptionExpiresAt?: string | null; // Tanggal kedaluwarsa akses unlimited (ISO string)
   credits?: number; // Opsional untuk kompatibilitas
@@ -13,7 +14,7 @@ export interface User {
   registrationNumber: string;
   nationality: string;
   dateOfBirth: string;
-  sex: 'Male' | 'Female';
+  sex: 'Male' | 'Female' | 'MALE' | 'FEMALE' | string;
   activeSessionId?: string; // Single session token
   lastActiveAt?: string;
 }
@@ -56,6 +57,10 @@ export interface ExamResult {
   userId: string;
   userName: string;
   registrationNumber: string;
+  nationality?: string;
+  dateOfBirth?: string;
+  sex?: string;
+  facePhotoUrl?: string;
   testDate: string;
   testLocation: string;
   totalScore: number; // 10 - 250
@@ -76,8 +81,11 @@ export interface TryoutPackage {
   name: string;
   description: string;
   durationDays: number; // Durasi masa aktif akses unlimited (dalam hari)
+  durationHours?: number; // Opsional jika durasi dalam jam (misal paket trial 1 jam)
   price: number;
   popular?: boolean;
+  firstTimeOnly?: boolean; // Khusus pengguna pertama kali / belum pernah langganan
+  badge?: string;
 }
 
 export interface Transaction {
@@ -90,6 +98,9 @@ export interface Transaction {
   paymentMethod: string; // e.g. "QRIS", "BCA Virtual Account", "Mandiri VA"
   status: 'PENDING' | 'PAID' | 'FAILED';
   createdAt: string;
+  paymentCode?: string;
+  howToPayUrl?: string;
+  expiredAt?: string;
 }
 
 export interface PDFQuestionDraft {

@@ -9,9 +9,12 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@types/bcryptjs": "^2.4.6",
+    "bcryptjs": "^3.0.3",
     "canvas-confetti": "^1.9.4",
     "html2canvas": "^1.4.1",
     "lucide-react": "^1.54.0",
+    "mysql2": "^3.24.5",
     "next": "16.4.0",
     "react": "19.3.0",
     "react-dom": "19.3.0"

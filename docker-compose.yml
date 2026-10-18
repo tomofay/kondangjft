@@ -1,0 +1,60 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: kondangjft_app
+    restart: always
+    ports:
+      - "80:3000"
+    env_file:
+      - .env
+    environment:
+      - NODE_ENV=production
+      - NEXT_PUBLIC_BASE_URL=${NEXT_PUBLIC_BASE_URL:-https://kondangsensei.my.id}
+      - DB_HOST=db
+      - DB_PORT=3306
+      - DB_USER=${DB_USER:-kondang_user}
+      - DB_PASSWORD=${DB_PASSWORD:-KondangSecurePass2026!}
+      - DB_NAME=${DB_NAME:-db_kondangsensei}
+      - DOKU_CLIENT_ID=${DOKU_CLIENT_ID:-BRN-0217-1792292490991}
+      - DOKU_SECRET_KEY=${DOKU_SECRET_KEY:-SK-exfHwYOtzTIzZi16bxSz}
+      - DOKU_API_KEY=${DOKU_API_KEY:-doku_key_ab1c491ff95c4d48805cb7c2b840a276}
+      - DOKU_PUBLIC_KEY=${DOKU_PUBLIC_KEY}
+      - DOKU_IS_PRODUCTION=true
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - kondang_net
+
+  db:
+    image: mysql:8.0
+    container_name: kondangjft_db
+    restart: always
+    env_file:
+      - .env
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-KondangRootPass2026!}
+      MYSQL_DATABASE: ${DB_NAME:-db_kondangsensei}
+      MYSQL_USER: ${DB_USER:-kondang_user}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-KondangSecurePass2026!}
+    ports:
+      - "127.0.0.1:3306:3306"
+    volumes:
+      - kondang_mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${DB_ROOT_PASSWORD:-KondangRootPass2026!}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - kondang_net
+
+networks:
+  kondang_net:
+    driver: bridge
+
+volumes:
+  kondang_mysql_data:
+    driver: local

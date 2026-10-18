@@ -32,7 +32,7 @@ export const EXAM_SETS: ExamSet[] = [
   }
 ];
 
-function generateAllPackageQuestions(): Question[] {
+export function generateAllPackageQuestions(): Question[] {
   const pkg1 = JFT_QUESTIONS_BANK.map((q) => ({ ...q, packageId: 1 }));
 
   const pkg2 = JFT_QUESTIONS_BANK.map((q) => ({
@@ -86,6 +86,21 @@ export function getRemainingDays(user: User | null): number {
   return Math.ceil(remainingMs / (1000 * 60 * 60 * 24));
 }
 
+export function getRemainingSubscriptionText(user: User | null): string {
+  if (!user || !user.subscriptionExpiresAt) return '0 Hari';
+  if (user.role === 'admin') return 'Unlimited (Admin)';
+  const remainingMs = new Date(user.subscriptionExpiresAt).getTime() - Date.now();
+  if (remainingMs <= 0) return '0 Hari';
+
+  const remainingHours = Math.floor(remainingMs / (1000 * 60 * 60));
+  if (remainingHours < 24) {
+    const remainingMins = Math.floor((remainingMs % (1000 * 60 * 60)) / (1000 * 60));
+    return `${remainingHours} Jam ${remainingMins} Menit`;
+  }
+  const remainingDays = Math.ceil(remainingMs / (1000 * 60 * 60 * 24));
+  return `${remainingDays} Hari`;
+}
+
 // In-Memory Global State (persisted across request handlers in Next.js Node process)
 globalThis.__kondangStore = globalThis.__kondangStore || {
   users: [
@@ -93,14 +108,31 @@ globalThis.__kondangStore = globalThis.__kondangStore || {
       id: 'u_1',
       name: 'Budi Pratama',
       email: 'peserta@kondang.com',
+      password: 'password123',
       role: 'user',
       subscriptionExpiresAt: new Date(Date.now() + 7 * 86400000).toISOString(), // Aktif 7 Hari
       credits: 99,
       facePhotoUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80',
       registrationNumber: 'JFT-2026-88912',
-      nationality: 'Indonesia',
+      nationality: 'INDONESIA',
       dateOfBirth: '2001/05/14',
-      sex: 'Male',
+      sex: 'MALE',
+      activeSessionId: undefined,
+      lastActiveAt: new Date().toISOString()
+    },
+    {
+      id: 'u_2',
+      name: 'Siti Rahmawati',
+      email: 'siti@kondang.com',
+      password: 'password123',
+      role: 'user',
+      subscriptionExpiresAt: new Date(Date.now() + 14 * 86400000).toISOString(), // Aktif 14 Hari
+      credits: 99,
+      facePhotoUrl: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=300&q=80',
+      registrationNumber: 'JFT-2026-77821',
+      nationality: 'INDONESIA',
+      dateOfBirth: '2002/08/21',
+      sex: 'FEMALE',
       activeSessionId: undefined,
       lastActiveAt: new Date().toISOString()
     },
@@ -108,14 +140,15 @@ globalThis.__kondangStore = globalThis.__kondangStore || {
       id: 'u_admin',
       name: 'Super Admin Kondang',
       email: 'admin@kondang.com',
+      password: 'adminsecret123',
       role: 'admin',
       subscriptionExpiresAt: new Date(Date.now() + 365 * 86400000).toISOString(),
       credits: 999,
       facePhotoUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=300&q=80',
       registrationNumber: 'ADM-2026-00001',
-      nationality: 'Indonesia',
+      nationality: 'INDONESIA',
       dateOfBirth: '1995/10/20',
-      sex: 'Male',
+      sex: 'MALE',
       activeSessionId: undefined,
       lastActiveAt: new Date().toISOString()
     }
@@ -125,51 +158,59 @@ globalThis.__kondangStore = globalThis.__kondangStore || {
 
   examResults: [],
 
-  packages: [
-    {
-      id: 'pkg_7d',
-      name: 'Paket 1 Minggu',
-      description: 'Akses Tryout JFT-Basic Tanpa Batas (Unlimited) selama 7 Hari + Pembahasan Lengkap & Rapor Resmi',
-      durationDays: 7,
-      price: 35000,
-      popular: false
-    },
-    {
-      id: 'pkg_14d',
-      name: 'Paket 2 Minggu',
-      description: 'Akses Tryout JFT-Basic Tanpa Batas (Unlimited) selama 14 Hari + Pembahasan Detail & Evaluasi',
-      durationDays: 14,
-      price: 59000,
-      popular: true
-    },
-    {
-      id: 'pkg_30d',
-      name: 'Paket 1 Bulan',
-      description: 'Akses Tryout JFT-Basic Tanpa Batas (Unlimited) selama 30 Hari + Bank Soal & PDF Parser Importer',
-      durationDays: 30,
-      price: 99000,
-      popular: false
-    }
-  ],
+  packages: [],
 
-  transactions: [
-    {
-      id: 'tx_init_101',
-      userId: 'u_1',
-      userName: 'Budi Pratama',
-      packageId: 'pkg_7d',
-      packageName: 'Paket 1 Minggu',
-      amount: 35000,
-      paymentMethod: 'QRIS Instant',
-      status: 'PAID',
-      createdAt: new Date(Date.now() - 86400000).toISOString()
-    }
-  ],
+  transactions: [],
 
   pdfDrafts: []
 };
 
-export const getStore = () => globalThis.__kondangStore!;
+export const DEFAULT_PACKAGES: TryoutPackage[] = [
+  {
+    id: 'pkg_special_1h',
+    name: 'Paket Spesial Pengguna Baru (1 Jam)',
+    description: 'Penawaran istimewa untuk pengguna pertama kali! Akses penuh simulasi JFT-Basic & pembahasan soal selama 1 jam.',
+    durationDays: 0,
+    durationHours: 1,
+    price: 100,
+    popular: false,
+    firstTimeOnly: true,
+    badge: 'PROMO KHUSUS PENGGUNA BARU'
+  },
+  {
+    id: 'pkg_7d',
+    name: 'Paket 1 Minggu',
+    description: 'Akses Tryout JFT-Basic Tanpa Batas (Unlimited) selama 7 Hari + Pembahasan Lengkap & Rapor Resmi',
+    durationDays: 7,
+    price: 35000,
+    popular: false
+  },
+  {
+    id: 'pkg_14d',
+    name: 'Paket 2 Minggu',
+    description: 'Akses Tryout JFT-Basic Tanpa Batas (Unlimited) selama 14 Hari + Pembahasan Detail & Evaluasi',
+    durationDays: 14,
+    price: 59000,
+    popular: true
+  },
+  {
+    id: 'pkg_30d',
+    name: 'Paket 1 Bulan',
+    description: 'Akses Tryout JFT-Basic Tanpa Batas (Unlimited) selama 30 Hari + Bank Soal & PDF Parser Importer',
+    durationDays: 30,
+    price: 99000,
+    popular: false
+  }
+];
+
+export const getStore = () => {
+  const store = globalThis.__kondangStore!;
+  // Ensure default packages list is always up-to-date even if global was previously cached
+  if (!store.packages || !store.packages.some(p => p.id === 'pkg_special_1h')) {
+    store.packages = DEFAULT_PACKAGES;
+  }
+  return store;
+};
 
 // Single Session Manager Utilities
 export function generateSessionId(): string {

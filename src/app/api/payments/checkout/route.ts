@@ -27,7 +27,9 @@ export async function POST(request: Request) {
     };
 
     // Calculate new expiration date (extend if active, or set from now)
-    const durationMs = (pkg.durationDays || 7) * 24 * 60 * 60 * 1000;
+    const durationMs = pkg.durationHours
+      ? pkg.durationHours * 60 * 60 * 1000
+      : (pkg.durationDays || 7) * 24 * 60 * 60 * 1000;
     const baseTime = user.subscriptionExpiresAt && new Date(user.subscriptionExpiresAt).getTime() > Date.now()
       ? new Date(user.subscriptionExpiresAt).getTime()
       : Date.now();
@@ -36,12 +38,14 @@ export async function POST(request: Request) {
     user.subscriptionExpiresAt = newExpiry;
     store.transactions.unshift(newTx);
 
+    const durationLabel = pkg.durationHours ? `${pkg.durationHours} Jam` : `${pkg.durationDays} Hari`;
+
     return NextResponse.json({
       success: true,
       transaction: newTx,
       subscriptionExpiresAt: newExpiry,
       user,
-      message: `Pembayaran berhasil! Akses Tryout Unlimited Anda bertambah +${pkg.durationDays} hari.`
+      message: `Pembayaran berhasil! Akses Tryout Unlimited Anda bertambah +${durationLabel}.`
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
