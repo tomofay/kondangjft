@@ -191,6 +191,17 @@ export const QuestionReview: React.FC<QuestionReviewProps> = ({
                   {q.questionText}
                 </div>
 
+                {/* Question Image if any */}
+                {q.imageUrl && (
+                  <div className="my-3 flex justify-center bg-slate-50 dark:bg-slate-950 p-2.5 rounded-xl border border-slate-200 dark:border-slate-800">
+                    <img
+                      src={q.imageUrl}
+                      alt={`Gambar Soal #${q.number}`}
+                      className="max-h-64 max-w-full rounded-lg object-contain shadow-sm"
+                    />
+                  </div>
+                )}
+
                 {/* Audio button if Chokai */}
                 {q.audioUrl && (
                   <div className="my-2">
