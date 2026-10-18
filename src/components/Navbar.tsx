@@ -61,7 +61,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               </span>
             </div>
             <p className="text-[10px] text-slate-400 font-medium hidden md:block">
-              Simulasi Ujian Japan Foundation Test (JFT-Basic)
+              Simulasi Ujian CBT Bahasa Jepang KondangSensei
             </p>
           </div>
         </div>

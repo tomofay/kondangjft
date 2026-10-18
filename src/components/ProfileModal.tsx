@@ -232,7 +232,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
               </div>
 
               <p className="text-[10px] text-slate-400">
-                Format foto JPG, PNG, atau WebP (maks. 5MB). Otomatis tampil di sertifikat resmi JFT.
+                Format foto JPG, PNG, atau WebP (maks. 5MB). Otomatis tampil di lembar rapor evaluasi KondangSensei.
               </p>
             </div>
           </div>

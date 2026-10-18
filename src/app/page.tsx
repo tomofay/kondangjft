@@ -947,7 +947,7 @@ export default function HomePage() {
                 </h1>
 
                 <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
-                  Latihan 50 soal CBT Japan Foundation Test (Moji Goi, Kaiwa, Chōkai Listening, & Dokkai Reading). Dapatkan Rapor Resmi JFT & analisis jawaban salah.
+                  Latihan soal CBT Simulasi Bahasa Jepang KondangSensei (Moji Goi, Kaiwa, Chōkai Listening, & Dokkai Reading). Dapatkan Rapor Evaluasi Siswa & analisis pembahasan detail.
                 </p>
 
                 <div className="pt-2 sm:pt-3 flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 sm:gap-3">
@@ -1135,7 +1135,7 @@ export default function HomePage() {
                           }}
                           className="py-2 px-3 bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold rounded-xl transition"
                         >
-                          Lihat Rapor Resmi
+                          Lihat Rapor Evaluasi
                         </button>
                         <button
                           onClick={() => {

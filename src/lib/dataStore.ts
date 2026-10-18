@@ -183,7 +183,7 @@ export const DEFAULT_PACKAGES: TryoutPackage[] = [
   {
     id: 'pkg_7d',
     name: 'Paket 1 Minggu',
-    description: 'Akses Tryout JFT-Basic Tanpa Batas (Unlimited) selama 7 Hari + Pembahasan Lengkap & Rapor Resmi',
+    description: 'Akses Tryout JFT-Basic Tanpa Batas (Unlimited) selama 7 Hari + Pembahasan Lengkap & Rapor Evaluasi',
     durationDays: 7,
     price: 35000,
     popular: false

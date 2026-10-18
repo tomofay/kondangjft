@@ -2775,7 +2775,7 @@ B：いえ、だいじょうぶですよ。
                                       className="px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold transition shadow-sm flex items-center gap-1.5"
                                     >
                                       <Eye className="w-4 h-4" />
-                                      <span>Lihat Rapor Resmi</span>
+                                      <span>Lihat Rapor Hasil Evaluasi</span>
                                     </button>
                                   </div>
                                 </div>
@@ -2870,7 +2870,7 @@ B：いえ、だいじょうぶですよ。
                 </div>
                 <div>
                   <h3 className="text-sm sm:text-base font-black">
-                    Lembar Hasil Ujian Resmi JFT-Basic — {previewingExamResult.userName}
+                    Lembar Hasil Evaluasi Simulasi KondangSensei — {previewingExamResult.userName}
                   </h3>
                   <p className="text-xs text-slate-400">
                     {getPackageInfoForResult(previewingExamResult).name} • Tanggal: {previewingExamResult.testDate}

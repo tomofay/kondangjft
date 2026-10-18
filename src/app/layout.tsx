@@ -14,8 +14,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "KondangSensei CBT - Simulasi Ujian JFT-Basic",
-  description: "Platform resmi Simulasi Ujian CBT JFT-Basic (Japan Foundation Test) dengan Rapor Sertifikat Otentik & Pembahasan Lengkap.",
+  title: "KondangSensei CBT - Simulasi Ujian Bahasa Jepang",
+  description: "Platform Simulasi Ujian CBT Bahasa Jepang KondangSensei dengan Rapor Evaluasi Siswa & Pembahasan Lengkap.",
   icons: {
     icon: "/favicon.svg",
   },
