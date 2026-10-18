@@ -250,21 +250,33 @@ export function kickUserSession(userId: string): void {
 }
 
 // Exam & Scoring Algorithm (JFT Standard 10 - 250 Score Mapping)
-export function calculateJFTScore(userAnswers: { questionId: number; selectedOption: 'A' | 'B' | 'C' | 'D' | null }[]): {
+export function calculateJFTScore(
+  userAnswers: { questionId: number; selectedOption: 'A' | 'B' | 'C' | 'D' | null }[],
+  questionsList?: { id: number; section: Question['section']; correctAnswer: 'A' | 'B' | 'C' | 'D' }[]
+): {
   totalScore: number;
   assessmentResult: 'A1' | 'A2.1' | 'A2.2' | 'Tidak Lulus (Below A1)';
   isPassed: boolean;
   sectionScores: ExamResult['sectionScores'];
 } {
   const store = getStore();
-  const questions = store.questions;
+  const allQuestions = questionsList && questionsList.length > 0 ? questionsList : store.questions;
+
+  // Filter ONLY questions that belong to this exam session (50 questions), not all packages combined
+  const answeredQuestionIds = new Set(userAnswers.map((a) => a.questionId));
+  let examQuestions = allQuestions.filter((q) => answeredQuestionIds.has(q.id));
+
+  // Fallback: If questions were not found by ID in store, pick first 50
+  if (examQuestions.length === 0) {
+    examQuestions = allQuestions.slice(0, 50);
+  }
 
   let s1Correct = 0, s1Total = 0;
   let s2Correct = 0, s2Total = 0;
   let s3Correct = 0, s3Total = 0;
   let s4Correct = 0, s4Total = 0;
 
-  questions.forEach((q: Question) => {
+  examQuestions.forEach((q) => {
     const ua = userAnswers.find((a) => a.questionId === q.id);
     const isCorrect = ua ? ua.selectedOption === q.correctAnswer : false;
 
@@ -283,9 +295,14 @@ export function calculateJFTScore(userAnswers: { questionId: number; selectedOpt
     }
   });
 
+  const finalS1Total = s1Total || 12;
+  const finalS2Total = s2Total || 12;
+  const finalS3Total = s3Total || 13;
+  const finalS4Total = s4Total || 13;
+  const totalQuestions = finalS1Total + finalS2Total + finalS3Total + finalS4Total;
+
   const totalCorrect = s1Correct + s2Correct + s3Correct + s4Correct;
-  const totalQuestions = questions.length || 50;
-  const rawRatio = totalCorrect / totalQuestions;
+  const rawRatio = totalQuestions > 0 ? totalCorrect / totalQuestions : 0;
 
   // JFT official score range is 10 - 250.
   // Passing score A1 is 145, A2.1 is 175, A2.2 is 200.
@@ -316,10 +333,10 @@ export function calculateJFTScore(userAnswers: { questionId: number; selectedOpt
     assessmentResult,
     isPassed,
     sectionScores: {
-      S1: calcSec(s1Correct, s1Total),
-      S2: calcSec(s2Correct, s2Total),
-      S3: calcSec(s3Correct, s3Total),
-      S4: calcSec(s4Correct, s4Total)
+      S1: calcSec(s1Correct, finalS1Total),
+      S2: calcSec(s2Correct, finalS2Total),
+      S3: calcSec(s3Correct, finalS3Total),
+      S4: calcSec(s4Correct, finalS4Total)
     }
   };
 }

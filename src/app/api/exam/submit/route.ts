@@ -20,7 +20,25 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: false, message: 'Masa aktif langganan Anda telah habis. Silakan perpanjang paket.' }, { status: 403 });
     }
 
-    const { totalScore, assessmentResult, isPassed, sectionScores } = calculateJFTScore(answers);
+    // Fetch questions from MySQL if possible, fallback to store
+    let questionsForExam: any[] = [];
+    try {
+      if (answers && answers.length > 0) {
+        const ids = answers.map((a: any) => a.questionId);
+        const placeholders = ids.map(() => '?').join(',');
+        const [rows] = await pool.query<any[]>(
+          `SELECT id, section, correctAnswer FROM questions WHERE id IN (${placeholders})`,
+          ids
+        );
+        if (rows && rows.length > 0) {
+          questionsForExam = rows;
+        }
+      }
+    } catch (err) {
+      console.warn('MySQL question lookup for scoring fallback:', err);
+    }
+
+    const { totalScore, assessmentResult, isPassed, sectionScores } = calculateJFTScore(answers, questionsForExam);
 
     const examResult: ExamResult = {
       id: 'res_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7),

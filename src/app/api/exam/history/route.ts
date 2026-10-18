@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getStore } from '@/lib/dataStore';
+import { getStore, calculateJFTScore } from '@/lib/dataStore';
 import { pool, initDatabase } from '@/lib/db';
 import { ExamResult } from '@/types';
 import { RowDataPacket } from 'mysql2';
@@ -41,7 +41,7 @@ export async function GET(request: Request) {
 
       if (rows && rows.length > 0) {
         const results: ExamResult[] = rows.map((r) => {
-          let sectionScores = r.sectionScores;
+          let sectionScores = r.sectionScores as any;
           if (typeof sectionScores === 'string') {
             try {
               sectionScores = JSON.parse(sectionScores);
@@ -50,13 +50,32 @@ export async function GET(request: Request) {
             }
           }
 
-          let answers = r.answers;
+          let answers = r.answers as any;
           if (typeof answers === 'string') {
             try {
               answers = JSON.parse(answers);
             } catch {
               answers = [];
             }
+          }
+
+          let totalScore = r.totalScore;
+          let assessmentResult = r.assessmentResult as ExamResult['assessmentResult'];
+          let isPassed = Boolean(r.isPassed);
+
+          // AUTO-FIX: If legacy result was corrupted with 48/52 denominator bug, recalculate accurately
+          if (Array.isArray(answers) && answers.length > 0 && sectionScores?.S1?.maxScore > 20) {
+            const fixed = calculateJFTScore(answers);
+            totalScore = fixed.totalScore;
+            assessmentResult = fixed.assessmentResult;
+            isPassed = fixed.isPassed;
+            sectionScores = fixed.sectionScores;
+
+            // Silently persist fix to MySQL
+            pool.query(
+              'UPDATE exam_results SET totalScore = ?, assessmentResult = ?, isPassed = ?, sectionScores = ? WHERE id = ?',
+              [totalScore, assessmentResult, isPassed ? 1 : 0, JSON.stringify(sectionScores), r.id]
+            ).catch(() => {});
           }
 
           return {
@@ -66,9 +85,9 @@ export async function GET(request: Request) {
             registrationNumber: r.registrationNumber,
             testDate: r.testDate,
             testLocation: r.testLocation,
-            totalScore: r.totalScore,
-            assessmentResult: r.assessmentResult as ExamResult['assessmentResult'],
-            isPassed: Boolean(r.isPassed),
+            totalScore,
+            assessmentResult,
+            isPassed,
             sectionScores: sectionScores as any,
             answers: answers as any,
             totalTimeSpentSeconds: r.totalTimeSpentSeconds

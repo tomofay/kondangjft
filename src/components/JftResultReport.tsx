@@ -20,16 +20,55 @@ export const JftResultReport: React.FC<JftResultReportProps> = ({
   const certificateRef = useRef<HTMLDivElement>(null);
   const [downloading, setDownloading] = useState(false);
 
+  // Normalize result in case an older or corrupted record has total maxScore > 50 (e.g. 200 questions across all packages)
+  const normalizedResult = React.useMemo(() => {
+    const s = result.sectionScores;
+    const totalMax = (s?.S1?.maxScore || 0) + (s?.S2?.maxScore || 0) + (s?.S3?.maxScore || 0) + (s?.S4?.maxScore || 0);
+    if (totalMax > 50) {
+      const s1Score = Math.min(s?.S1?.score || 0, 12);
+      const s2Score = Math.min(s?.S2?.score || 0, 12);
+      const s3Score = Math.min(s?.S3?.score || 0, 13);
+      const s4Score = Math.min(s?.S4?.score || 0, 13);
+      const totalCorrect = s1Score + s2Score + s3Score + s4Score;
+      const totalScore = Math.min(250, Math.max(10, Math.round(10 + (totalCorrect / 50) * 240)));
+      let assessmentResult = 'Tidak Lulus (Below A1)';
+      let isPassed = false;
+      if (totalScore >= 200) {
+        assessmentResult = 'Lulus (A2.2)';
+        isPassed = true;
+      } else if (totalScore >= 175) {
+        assessmentResult = 'Lulus (A2.1)';
+        isPassed = true;
+      } else if (totalScore >= 145) {
+        assessmentResult = 'Lulus (A1)';
+        isPassed = true;
+      }
+      return {
+        ...result,
+        totalScore,
+        assessmentResult,
+        isPassed,
+        sectionScores: {
+          S1: { score: s1Score, maxScore: 12, percentage: Math.round((s1Score / 12) * 100) },
+          S2: { score: s2Score, maxScore: 12, percentage: Math.round((s2Score / 12) * 100) },
+          S3: { score: s3Score, maxScore: 13, percentage: Math.round((s3Score / 13) * 100) },
+          S4: { score: s4Score, maxScore: 13, percentage: Math.round((s4Score / 13) * 100) },
+        }
+      };
+    }
+    return result;
+  }, [result]);
+
   // Trigger confetti if passed
   React.useEffect(() => {
-    if (result.isPassed) {
+    if (normalizedResult.isPassed) {
       confetti({
         particleCount: 80,
         spread: 70,
         origin: { y: 0.6 }
       });
     }
-  }, [result.isPassed]);
+  }, [normalizedResult.isPassed]);
 
   const handleDownload = async () => {
     if (!certificateRef.current) return;
@@ -43,7 +82,7 @@ export const JftResultReport: React.FC<JftResultReportProps> = ({
       const image = canvas.toDataURL('image/png');
       const link = document.createElement('a');
       link.href = image;
-      link.download = `Sertifikat_JFT_${result.userName.replace(/\s+/g, '_')}_${result.testDate}.png`;
+      link.download = `Sertifikat_JFT_${normalizedResult.userName.replace(/\s+/g, '_')}_${normalizedResult.testDate}.png`;
       link.click();
     } catch (err) {
       console.error('Failed downloading certificate image', err);
@@ -60,7 +99,7 @@ export const JftResultReport: React.FC<JftResultReportProps> = ({
     return ((clamped - min) / (max - min)) * 100;
   };
 
-  const pinPercent = calculatePinPercent(result.totalScore);
+  const pinPercent = calculatePinPercent(normalizedResult.totalScore);
 
   return (
     <div className="max-w-4xl mx-auto space-y-6 pb-12">
@@ -69,18 +108,18 @@ export const JftResultReport: React.FC<JftResultReportProps> = ({
         <div className="flex items-center gap-3">
           <div
             className={`w-12 h-12 rounded-xl flex items-center justify-center font-bold text-xl ${
-              result.isPassed ? 'bg-emerald-500 text-slate-950' : 'bg-red-500 text-white'
+              normalizedResult.isPassed ? 'bg-emerald-500 text-slate-950' : 'bg-red-500 text-white'
             }`}
           >
-            {result.isPassed ? <CheckCircle2 className="w-7 h-7" /> : <XCircle className="w-7 h-7" />}
+            {normalizedResult.isPassed ? <CheckCircle2 className="w-7 h-7" /> : <XCircle className="w-7 h-7" />}
           </div>
           <div>
             <h2 className="text-lg font-bold">
-              {result.isPassed ? 'Selamat! Anda Dinyatakan LULUS JFT' : 'Hasil Simulasi: Belum Lulus'}
+              {normalizedResult.isPassed ? 'Selamat! Anda Dinyatakan LULUS JFT' : 'Hasil Simulasi: Belum Lulus'}
             </h2>
             <p className="text-xs text-slate-400">
-              Skor Total: <span className="font-semibold text-amber-400">{result.totalScore} / 250</span> • Level: {' '}
-              <span className="font-semibold text-emerald-400">{result.assessmentResult}</span>
+              Skor Total: <span className="font-semibold text-amber-400">{normalizedResult.totalScore} / 250</span> • Level: {' '}
+              <span className="font-semibold text-emerald-400">{normalizedResult.assessmentResult}</span>
             </p>
           </div>
         </div>
@@ -112,17 +151,18 @@ export const JftResultReport: React.FC<JftResultReportProps> = ({
       </div>
 
       {/* Official JFT Certificate Document Container (Replicating exact Japan Foundation Layout) */}
-      <div
-        ref={certificateRef}
-        className="bg-white text-slate-900 rounded-xl p-8 shadow-2xl border-4 border-slate-300 font-sans space-y-6 relative overflow-hidden select-none"
-        style={{ minWidth: '700px' }}
-      >
-        {/* Decorative Top Logos */}
-        <div className="flex items-center justify-between border-b pb-4 border-slate-300">
-          <div className="flex items-center gap-3">
-            <div className="px-3 py-1 bg-slate-900 text-white font-extrabold text-xl tracking-tighter rounded">
-              JFT-Basic
-            </div>
+      <div className="w-full overflow-x-auto pb-4">
+        <div
+          ref={certificateRef}
+          className="bg-white text-slate-900 rounded-xl p-8 shadow-2xl border-4 border-slate-300 font-sans space-y-6 relative overflow-hidden select-none mx-auto"
+          style={{ minWidth: '700px', maxWidth: '850px' }}
+        >
+          {/* Decorative Top Logos */}
+          <div className="flex items-center justify-between border-b pb-4 border-slate-300">
+            <div className="flex items-center gap-3">
+              <div className="px-3 py-1 bg-slate-900 text-white font-extrabold text-xl tracking-tighter rounded">
+                JFT-Basic
+              </div>
             <div className="text-xs font-semibold text-slate-700 leading-tight">
               国際交流基金 日本語基礎テスト
             </div>
@@ -158,30 +198,30 @@ export const JftResultReport: React.FC<JftResultReportProps> = ({
             </div>
             <div className="flex gap-3 text-xs">
               <img
-                src={result.facePhotoUrl || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80"}
+                src={normalizedResult.facePhotoUrl || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80"}
                 alt="Face Photo"
                 className="w-16 h-20 object-cover rounded border border-slate-300 bg-slate-200"
               />
               <div className="space-y-1 flex-1 text-[11px]">
                 <div>
                   <span className="text-slate-500">受験番号 / Reg No:</span>{' '}
-                  <span className="font-bold">{result.registrationNumber}</span>
+                  <span className="font-bold">{normalizedResult.registrationNumber}</span>
                 </div>
                 <div>
                   <span className="text-slate-500">氏名 / Name:</span>{' '}
-                  <span className="font-bold">{result.userName}</span>
+                  <span className="font-bold">{normalizedResult.userName}</span>
                 </div>
                 <div>
                   <span className="text-slate-500">国籍 / Nationality:</span>{' '}
-                  <span className="font-semibold uppercase">{result.nationality || 'INDONESIA'}</span>
+                  <span className="font-semibold uppercase">{normalizedResult.nationality || 'INDONESIA'}</span>
                 </div>
                 <div>
                   <span className="text-slate-500">生年月日 / Date of Birth:</span>{' '}
-                  <span className="font-semibold">{result.dateOfBirth || '2001/05/14'}</span>
+                  <span className="font-semibold">{normalizedResult.dateOfBirth || '2001/05/14'}</span>
                 </div>
                 <div>
                   <span className="text-slate-500">性別 / Sex:</span>{' '}
-                  <span className="font-semibold uppercase">{result.sex || 'MALE'}</span>
+                  <span className="font-semibold uppercase">{normalizedResult.sex || 'MALE'}</span>
                 </div>
               </div>
             </div>
@@ -195,11 +235,11 @@ export const JftResultReport: React.FC<JftResultReportProps> = ({
             <div className="space-y-2 text-xs pt-1">
               <div>
                 <div className="text-slate-500 text-[10px]">・受験地 / Test Location:</div>
-                <div className="font-semibold text-slate-800 text-[11px] pl-2">{result.testLocation}</div>
+                <div className="font-semibold text-slate-800 text-[11px] pl-2">{normalizedResult.testLocation}</div>
               </div>
               <div>
                 <div className="text-slate-500 text-[10px]">・受験日 / Test Date:</div>
-                <div className="font-semibold text-slate-800 text-[11px] pl-2">{result.testDate}</div>
+                <div className="font-semibold text-slate-800 text-[11px] pl-2">{normalizedResult.testDate}</div>
               </div>
             </div>
           </div>
@@ -211,12 +251,12 @@ export const JftResultReport: React.FC<JftResultReportProps> = ({
             <div className="space-y-2">
               <div className="flex items-baseline gap-3">
                 <span className="text-xs font-bold text-slate-800">総合得分 : <span className="text-[10px] text-slate-500 font-normal">Total Score</span></span>
-                <span className="text-3xl font-extrabold text-slate-900 tracking-tight">{result.totalScore}</span>
+                <span className="text-3xl font-extrabold text-slate-900 tracking-tight">{normalizedResult.totalScore}</span>
               </div>
               <div className="flex items-baseline gap-3">
                 <span className="text-xs font-bold text-slate-800">判定結果 : <span className="text-[10px] text-slate-500 font-normal">Assessment Results</span></span>
-                <span className={`text-2xl font-extrabold tracking-tight ${result.isPassed ? 'text-emerald-700' : 'text-red-600'}`}>
-                  {result.assessmentResult}
+                <span className={`text-2xl font-extrabold tracking-tight ${normalizedResult.isPassed ? 'text-emerald-700' : 'text-red-600'}`}>
+                  {normalizedResult.assessmentResult}
                 </span>
               </div>
             </div>
@@ -269,16 +309,16 @@ export const JftResultReport: React.FC<JftResultReportProps> = ({
               <div className="space-y-1 bg-slate-50 p-2.5 rounded border border-slate-200">
                 <div className="flex justify-between font-semibold text-slate-800 text-[11px]">
                   <span>文字と語彙 (Script and Vocabulary)</span>
-                  <span className="font-bold text-slate-900">{result.sectionScores.S1.percentage}%</span>
+                  <span className="font-bold text-slate-900">{normalizedResult.sectionScores.S1.percentage}%</span>
                 </div>
                 <div className="h-2 bg-slate-200 rounded-full overflow-hidden">
                   <div
                     className="h-full bg-amber-500 rounded-full transition-all duration-500"
-                    style={{ width: `${result.sectionScores.S1.percentage}%` }}
+                    style={{ width: `${normalizedResult.sectionScores.S1.percentage}%` }}
                   ></div>
                 </div>
                 <div className="text-[10px] text-slate-500 text-right">
-                  {result.sectionScores.S1.score} / {result.sectionScores.S1.maxScore} Soal Benar
+                  {normalizedResult.sectionScores.S1.score} / {normalizedResult.sectionScores.S1.maxScore} Soal Benar
                 </div>
               </div>
 
@@ -286,16 +326,16 @@ export const JftResultReport: React.FC<JftResultReportProps> = ({
               <div className="space-y-1 bg-slate-50 p-2.5 rounded border border-slate-200">
                 <div className="flex justify-between font-semibold text-slate-800 text-[11px]">
                   <span>会話と表現 (Conversation and Expression)</span>
-                  <span className="font-bold text-slate-900">{result.sectionScores.S2.percentage}%</span>
+                  <span className="font-bold text-slate-900">{normalizedResult.sectionScores.S2.percentage}%</span>
                 </div>
                 <div className="h-2 bg-slate-200 rounded-full overflow-hidden">
                   <div
                     className="h-full bg-blue-500 rounded-full transition-all duration-500"
-                    style={{ width: `${result.sectionScores.S2.percentage}%` }}
+                    style={{ width: `${normalizedResult.sectionScores.S2.percentage}%` }}
                   ></div>
                 </div>
                 <div className="text-[10px] text-slate-500 text-right">
-                  {result.sectionScores.S2.score} / {result.sectionScores.S2.maxScore} Soal Benar
+                  {normalizedResult.sectionScores.S2.score} / {normalizedResult.sectionScores.S2.maxScore} Soal Benar
                 </div>
               </div>
 
@@ -303,16 +343,16 @@ export const JftResultReport: React.FC<JftResultReportProps> = ({
               <div className="space-y-1 bg-slate-50 p-2.5 rounded border border-slate-200">
                 <div className="flex justify-between font-semibold text-slate-800 text-[11px]">
                   <span>聴解 (Listening Comprehension)</span>
-                  <span className="font-bold text-slate-900">{result.sectionScores.S3.percentage}%</span>
+                  <span className="font-bold text-slate-900">{normalizedResult.sectionScores.S3.percentage}%</span>
                 </div>
                 <div className="h-2 bg-slate-200 rounded-full overflow-hidden">
                   <div
                     className="h-full bg-indigo-500 rounded-full transition-all duration-500"
-                    style={{ width: `${result.sectionScores.S3.percentage}%` }}
+                    style={{ width: `${normalizedResult.sectionScores.S3.percentage}%` }}
                   ></div>
                 </div>
                 <div className="text-[10px] text-slate-500 text-right">
-                  {result.sectionScores.S3.score} / {result.sectionScores.S3.maxScore} Soal Benar
+                  {normalizedResult.sectionScores.S3.score} / {normalizedResult.sectionScores.S3.maxScore} Soal Benar
                 </div>
               </div>
 
@@ -320,16 +360,16 @@ export const JftResultReport: React.FC<JftResultReportProps> = ({
               <div className="space-y-1 bg-slate-50 p-2.5 rounded border border-slate-200">
                 <div className="flex justify-between font-semibold text-slate-800 text-[11px]">
                   <span>読解 (Reading Comprehension)</span>
-                  <span className="font-bold text-slate-900">{result.sectionScores.S4.percentage}%</span>
+                  <span className="font-bold text-slate-900">{normalizedResult.sectionScores.S4.percentage}%</span>
                 </div>
                 <div className="h-2 bg-slate-200 rounded-full overflow-hidden">
                   <div
                     className="h-full bg-emerald-500 rounded-full transition-all duration-500"
-                    style={{ width: `${result.sectionScores.S4.percentage}%` }}
+                    style={{ width: `${normalizedResult.sectionScores.S4.percentage}%` }}
                   ></div>
                 </div>
                 <div className="text-[10px] text-slate-500 text-right">
-                  {result.sectionScores.S4.score} / {result.sectionScores.S4.maxScore} Soal Benar
+                  {normalizedResult.sectionScores.S4.score} / {normalizedResult.sectionScores.S4.maxScore} Soal Benar
                 </div>
               </div>
             </div>
@@ -341,5 +381,6 @@ export const JftResultReport: React.FC<JftResultReportProps> = ({
         </div>
       </div>
     </div>
+  </div>
   );
 };
