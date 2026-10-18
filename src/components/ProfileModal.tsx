@@ -161,6 +161,9 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
               <img
                 src={facePhotoUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80'}
                 alt="Foto Peserta"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80';
+                }}
                 className="w-20 h-24 rounded-xl object-cover border-2 border-slate-300 dark:border-slate-700 shadow-sm bg-slate-200"
               />
               {isUploading && (
