@@ -840,30 +840,32 @@ export default function HomePage() {
                   Latihan 50 soal CBT Japan Foundation Test (Moji Goi, Kaiwa, Chōkai Listening, & Dokkai Reading). Dapatkan Rapor Resmi JFT & analisis jawaban salah.
                 </p>
 
-                <div className="pt-2 sm:pt-3 flex flex-col xs:flex-row flex-wrap items-stretch sm:items-center gap-2.5 sm:gap-4">
+                <div className="pt-2 sm:pt-3 flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 sm:gap-3">
                   <button
                     onClick={() => handleStartExam()}
-                    className="py-3 sm:py-3.5 px-5 sm:px-6 bg-gradient-to-r from-red-600 via-rose-600 to-amber-600 hover:from-red-700 hover:to-amber-700 text-white font-extrabold text-xs sm:text-sm rounded-xl sm:rounded-2xl shadow-xl shadow-red-600/30 transition flex items-center justify-center gap-2 transform hover:-translate-y-0.5"
+                    className="py-3 sm:py-3.5 px-5 sm:px-6 bg-gradient-to-r from-red-600 via-rose-600 to-amber-600 hover:from-red-700 hover:to-amber-700 text-white font-extrabold text-xs sm:text-sm rounded-xl sm:rounded-2xl shadow-xl shadow-red-600/30 transition flex items-center justify-center gap-2 transform hover:-translate-y-0.5 shrink-0"
                   >
                     <Play className="w-4 h-4 sm:w-5 sm:h-5 fill-white" />
                     <span>Mulai Ujian Simulasi Sekarang</span>
                   </button>
 
-                  <button
-                    onClick={() => setPaymentModalOpen(true)}
-                    className="py-2.5 sm:py-3.5 px-4 sm:px-5 bg-slate-800/80 hover:bg-slate-700 text-slate-200 font-bold text-xs rounded-xl sm:rounded-2xl border border-slate-700 transition flex items-center justify-center gap-2"
-                  >
-                    <Zap className="w-4 h-4 text-amber-400 fill-amber-400" />
-                    <span>Beli Paket Tryout</span>
-                  </button>
+                  <div className="grid grid-cols-2 sm:flex sm:items-center gap-2 sm:gap-3">
+                    <button
+                      onClick={() => setPaymentModalOpen(true)}
+                      className="py-2.5 sm:py-3.5 px-4 sm:px-5 bg-slate-800/80 hover:bg-slate-700 text-slate-200 font-bold text-xs rounded-xl sm:rounded-2xl border border-slate-700 transition flex items-center justify-center gap-2 whitespace-nowrap"
+                    >
+                      <Zap className="w-4 h-4 text-amber-400 fill-amber-400 shrink-0" />
+                      <span>Beli Paket Tryout</span>
+                    </button>
 
-                  <button
-                    onClick={() => setProfileModalOpen(true)}
-                    className="py-2.5 sm:py-3.5 px-4 sm:px-5 bg-indigo-950/80 hover:bg-indigo-900 text-indigo-300 font-bold text-xs rounded-xl sm:rounded-2xl border border-indigo-700/80 transition flex items-center justify-center gap-2"
-                  >
-                    <UserCheck className="w-4 h-4 text-indigo-400" />
-                    <span>Edit Profil Sertifikat</span>
-                  </button>
+                    <button
+                      onClick={() => setProfileModalOpen(true)}
+                      className="py-2.5 sm:py-3.5 px-4 sm:px-5 bg-indigo-950/80 hover:bg-indigo-900 text-indigo-300 font-bold text-xs rounded-xl sm:rounded-2xl border border-indigo-700/80 transition flex items-center justify-center gap-2 whitespace-nowrap"
+                    >
+                      <UserCheck className="w-4 h-4 text-indigo-400 shrink-0" />
+                      <span>Edit Profil Sertifikat</span>
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
