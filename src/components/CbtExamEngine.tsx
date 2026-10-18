@@ -77,12 +77,23 @@ export const CbtExamEngine: React.FC<CbtExamEngineProps> = ({
     return () => clearInterval(timer);
   }, []);
 
+  const onProgressUpdateRef = useRef(onProgressUpdate);
+  useEffect(() => {
+    onProgressUpdateRef.current = onProgressUpdate;
+  });
+
+  const lastProgressKeyRef = useRef<string>('');
+
   // Real-time progress update for live supervisor monitoring
   useEffect(() => {
-    if (!onProgressUpdate) return;
+    if (!onProgressUpdateRef.current) return;
     const q = questions[currentIndex];
     const answeredCount = Array.from(answers.values()).filter((a) => a.selectedOption !== null).length;
-    onProgressUpdate({
+    const key = `${currentIndex}_${answeredCount}_${timeLeft}_${questions.length}`;
+    if (lastProgressKeyRef.current === key) return;
+    lastProgressKeyRef.current = key;
+
+    onProgressUpdateRef.current({
       currentIndex,
       currentNumber: q?.number || currentIndex + 1,
       currentSection: q?.section || 'S1',
@@ -91,7 +102,7 @@ export const CbtExamEngine: React.FC<CbtExamEngineProps> = ({
       totalQuestions: questions.length,
       timeLeftSeconds: timeLeft
     });
-  }, [currentIndex, answers, timeLeft, questions, onProgressUpdate]);
+  }, [currentIndex, answers, timeLeft, questions]);
 
   const formatTime = (seconds: number) => {
     const m = Math.floor(seconds / 60);

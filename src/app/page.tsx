@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { User, Question, ExamResult, TryoutPackage, Transaction, UserAnswer, PDFQuestionDraft, ExamSet } from '../types';
 import { getStore, isSubscriptionActive, getRemainingDays, getRemainingSubscriptionText, EXAM_SETS } from '../lib/dataStore';
 import { Navbar } from '../components/Navbar';
@@ -64,7 +64,7 @@ export default function HomePage() {
   const [pdfDrafts, setPdfDrafts] = useState<PDFQuestionDraft[]>(() => getStore().pdfDrafts);
   const [adminUsers, setAdminUsers] = useState<User[]>(() => getStore().users);
   const [adminExamResults, setAdminExamResults] = useState<ExamResult[]>([]);
-  const [examLiveProgress, setExamLiveProgress] = useState<{
+  const examLiveProgressRef = useRef<{
     currentIndex: number;
     currentNumber: number;
     currentSection: string;
@@ -73,6 +73,11 @@ export default function HomePage() {
     totalQuestions: number;
     timeLeftSeconds: number;
   } | null>(null);
+
+  // Memoize questions for the currently selected package to prevent unnecessary array reference changes
+  const currentExamQuestions = useMemo(() => {
+    return questions.filter((q) => (q.packageId || 1) === selectedPackageId);
+  }, [questions, selectedPackageId]);
 
   // Selected result for report / review
   const [currentResult, setCurrentResult] = useState<ExamResult | null>(null);
@@ -346,7 +351,7 @@ export default function HomePage() {
           packageId: selectedPackageId,
           packageName: curPkg?.name || `Paket Ujian #${selectedPackageId}`,
           packageCode: curPkg?.code || `JFT-SET-${selectedPackageId}`,
-          ...(view === 'exam' && examLiveProgress ? examLiveProgress : {}),
+          ...(view === 'exam' && examLiveProgressRef.current ? examLiveProgressRef.current : {}),
           updatedAt: Date.now()
         };
 
@@ -373,7 +378,7 @@ export default function HomePage() {
     const interval = setInterval(sendHeartbeat, 2000);
 
     return () => clearInterval(interval);
-  }, [currentUser, sessionId, view, selectedPackageId, examLiveProgress, examSets]);
+  }, [currentUser, sessionId, view, selectedPackageId, examSets]);
 
   // Start CBT Exam for a specific Question Package (1, 2, 3, 4)
   const handleStartExam = (pkgId?: number) => {
@@ -857,10 +862,12 @@ export default function HomePage() {
         {/* VIEW: CBT EXAM SIMULATOR */}
         {view === 'exam' && (
           <CbtExamEngine
-            questions={questions.filter((q) => (q.packageId || 1) === selectedPackageId)}
+            questions={currentExamQuestions}
             onSubmitExam={handleSubmitExam}
             user={currentUser}
-            onProgressUpdate={setExamLiveProgress}
+            onProgressUpdate={(prog) => {
+              examLiveProgressRef.current = prog;
+            }}
           />
         )}
 
