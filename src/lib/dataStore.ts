@@ -255,7 +255,7 @@ export function kickUserSession(userId: string): void {
   }
 }
 
-// Exam & Scoring Algorithm (JFT Standard 10 - 250 Score Mapping)
+// Exam & Scoring Algorithm (JFT Standard 10 - 250 Score Mapping - Dinamis Fleksibel Sesuai Jumlah Soal)
 export function calculateJFTScore(
   userAnswers: { questionId: number; selectedOption: 'A' | 'B' | 'C' | 'D' | null }[],
   questionsList?: { id: number; section: Question['section']; correctAnswer: 'A' | 'B' | 'C' | 'D' }[]
@@ -268,13 +268,14 @@ export function calculateJFTScore(
   const store = getStore();
   const allQuestions = questionsList && questionsList.length > 0 ? questionsList : store.questions;
 
-  // Filter ONLY questions that belong to this exam session (50 questions), not all packages combined
+  // Filter ONLY questions that belong to this exam session, not all packages combined
   const answeredQuestionIds = new Set(userAnswers.map((a) => a.questionId));
   let examQuestions = allQuestions.filter((q) => answeredQuestionIds.has(q.id));
 
-  // Fallback: If questions were not found by ID in store, pick first 50
+  // Fallback: If questions were not found by ID in store, pick first questions up to userAnswers length
   if (examQuestions.length === 0) {
-    examQuestions = allQuestions.slice(0, 50);
+    const limit = userAnswers.length > 0 ? userAnswers.length : 50;
+    examQuestions = allQuestions.slice(0, limit);
   }
 
   let s1Correct = 0, s1Total = 0;
@@ -301,19 +302,19 @@ export function calculateJFTScore(
     }
   });
 
-  const finalS1Total = s1Total || 12;
-  const finalS2Total = s2Total || 12;
-  const finalS3Total = s3Total || 13;
-  const finalS4Total = s4Total || 13;
-  const totalQuestions = finalS1Total + finalS2Total + finalS3Total + finalS4Total;
-
+  // Total soal dihitung langsung dari total soal riil yang diujikan dalam paket ini
+  const totalQuestions = examQuestions.length;
   const totalCorrect = s1Correct + s2Correct + s3Correct + s4Correct;
   const rawRatio = totalQuestions > 0 ? totalCorrect / totalQuestions : 0;
 
-  // JFT official score range is 10 - 250.
-  // Passing score A1 is 145, A2.1 is 175, A2.2 is 200.
-  const totalScore = Math.round(10 + rawRatio * 240);
+  // Skor standar resmi JFT-Basic adalah skala 10 - 250
+  // Rumus proporsional akurat: Nilai Minimal 10 + (Rasio Benar * 240)
+  const totalScore = Math.min(250, Math.max(10, Math.round(10 + rawRatio * 240)));
 
+  // Kriteria kelulusan resmi CEFR / JFT-Basic:
+  // Level A2.2 (Lulus Utama): Skor >= 200 (~80% benar)
+  // Level A2.1 (Lulus Menengah): Skor >= 175 (~70% benar)
+  // Level A1 (Lulus Dasar): Skor >= 145 (~58% benar)
   let assessmentResult: ExamResult['assessmentResult'] = 'Tidak Lulus (Below A1)';
   let isPassed = false;
 
@@ -339,10 +340,10 @@ export function calculateJFTScore(
     assessmentResult,
     isPassed,
     sectionScores: {
-      S1: calcSec(s1Correct, finalS1Total),
-      S2: calcSec(s2Correct, finalS2Total),
-      S3: calcSec(s3Correct, finalS3Total),
-      S4: calcSec(s4Correct, finalS4Total)
+      S1: calcSec(s1Correct, s1Total),
+      S2: calcSec(s2Correct, s2Total),
+      S3: calcSec(s3Correct, s3Total),
+      S4: calcSec(s4Correct, s4Total)
     }
   };
 }

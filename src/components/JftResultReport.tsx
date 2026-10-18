@@ -20,11 +20,11 @@ export const JftResultReport: React.FC<JftResultReportProps> = ({
   const certificateRef = useRef<HTMLDivElement>(null);
   const [downloading, setDownloading] = useState(false);
 
-  // Normalize result in case an older or corrupted record has total maxScore > 50 (e.g. 200 questions across all packages)
+  // Normalize result only for legacy records where all packages were merged (>80 questions)
   const normalizedResult = React.useMemo(() => {
     const s = result.sectionScores;
     const totalMax = (s?.S1?.maxScore || 0) + (s?.S2?.maxScore || 0) + (s?.S3?.maxScore || 0) + (s?.S4?.maxScore || 0);
-    if (totalMax > 50) {
+    if (totalMax > 80) {
       const s1Score = Math.min(s?.S1?.score || 0, 12);
       const s2Score = Math.min(s?.S2?.score || 0, 12);
       const s3Score = Math.min(s?.S3?.score || 0, 13);
@@ -101,6 +101,19 @@ export const JftResultReport: React.FC<JftResultReportProps> = ({
 
   const pinPercent = calculatePinPercent(normalizedResult.totalScore);
 
+  const totalCorrect =
+    (normalizedResult.sectionScores?.S1?.score || 0) +
+    (normalizedResult.sectionScores?.S2?.score || 0) +
+    (normalizedResult.sectionScores?.S3?.score || 0) +
+    (normalizedResult.sectionScores?.S4?.score || 0);
+
+  const totalQuestions =
+    (normalizedResult.sectionScores?.S1?.maxScore || 0) +
+    (normalizedResult.sectionScores?.S2?.maxScore || 0) +
+    (normalizedResult.sectionScores?.S3?.maxScore || 0) +
+    (normalizedResult.sectionScores?.S4?.maxScore || 0) ||
+    normalizedResult.answers?.length || 0;
+
   return (
     <div className="max-w-4xl mx-auto space-y-6 pb-12">
       {/* Top Action Bar */}
@@ -118,8 +131,16 @@ export const JftResultReport: React.FC<JftResultReportProps> = ({
               {normalizedResult.isPassed ? 'Selamat! Anda Dinyatakan LULUS JFT' : 'Hasil Simulasi: Belum Lulus'}
             </h2>
             <p className="text-xs text-slate-400">
-              Skor Total: <span className="font-semibold text-amber-400">{normalizedResult.totalScore} / 250</span> • Level: {' '}
+              Skor Total: <span className="font-semibold text-amber-400">{normalizedResult.totalScore} / 250</span> • Level:{' '}
               <span className="font-semibold text-emerald-400">{normalizedResult.assessmentResult}</span>
+              {totalQuestions > 0 && (
+                <>
+                  {' '}• Paket Soal:{' '}
+                  <span className="font-semibold text-white">
+                    {totalQuestions} Soal ({totalCorrect} Benar, {Math.max(0, totalQuestions - totalCorrect)} Salah)
+                  </span>
+                </>
+              )}
             </p>
           </div>
         </div>
@@ -309,16 +330,20 @@ export const JftResultReport: React.FC<JftResultReportProps> = ({
               <div className="space-y-1 bg-slate-50 p-2.5 rounded border border-slate-200">
                 <div className="flex justify-between font-semibold text-slate-800 text-[11px]">
                   <span>文字と語彙 (Script and Vocabulary)</span>
-                  <span className="font-bold text-slate-900">{normalizedResult.sectionScores.S1.percentage}%</span>
+                  <span className="font-bold text-slate-900">
+                    {(normalizedResult.sectionScores?.S1?.maxScore || 0) > 0 ? `${normalizedResult.sectionScores.S1.percentage}%` : '-'}
+                  </span>
                 </div>
                 <div className="h-2 bg-slate-200 rounded-full overflow-hidden">
                   <div
                     className="h-full bg-amber-500 rounded-full transition-all duration-500"
-                    style={{ width: `${normalizedResult.sectionScores.S1.percentage}%` }}
+                    style={{ width: `${(normalizedResult.sectionScores?.S1?.maxScore || 0) > 0 ? normalizedResult.sectionScores.S1.percentage : 0}%` }}
                   ></div>
                 </div>
                 <div className="text-[10px] text-slate-500 text-right">
-                  {normalizedResult.sectionScores.S1.score} / {normalizedResult.sectionScores.S1.maxScore} Soal Benar
+                  {(normalizedResult.sectionScores?.S1?.maxScore || 0) > 0
+                    ? `${normalizedResult.sectionScores.S1.score} / ${normalizedResult.sectionScores.S1.maxScore} Soal Benar`
+                    : 'Tidak diujikan dalam paket ini'}
                 </div>
               </div>
 
@@ -326,16 +351,20 @@ export const JftResultReport: React.FC<JftResultReportProps> = ({
               <div className="space-y-1 bg-slate-50 p-2.5 rounded border border-slate-200">
                 <div className="flex justify-between font-semibold text-slate-800 text-[11px]">
                   <span>会話と表現 (Conversation and Expression)</span>
-                  <span className="font-bold text-slate-900">{normalizedResult.sectionScores.S2.percentage}%</span>
+                  <span className="font-bold text-slate-900">
+                    {(normalizedResult.sectionScores?.S2?.maxScore || 0) > 0 ? `${normalizedResult.sectionScores.S2.percentage}%` : '-'}
+                  </span>
                 </div>
                 <div className="h-2 bg-slate-200 rounded-full overflow-hidden">
                   <div
                     className="h-full bg-blue-500 rounded-full transition-all duration-500"
-                    style={{ width: `${normalizedResult.sectionScores.S2.percentage}%` }}
+                    style={{ width: `${(normalizedResult.sectionScores?.S2?.maxScore || 0) > 0 ? normalizedResult.sectionScores.S2.percentage : 0}%` }}
                   ></div>
                 </div>
                 <div className="text-[10px] text-slate-500 text-right">
-                  {normalizedResult.sectionScores.S2.score} / {normalizedResult.sectionScores.S2.maxScore} Soal Benar
+                  {(normalizedResult.sectionScores?.S2?.maxScore || 0) > 0
+                    ? `${normalizedResult.sectionScores.S2.score} / ${normalizedResult.sectionScores.S2.maxScore} Soal Benar`
+                    : 'Tidak diujikan dalam paket ini'}
                 </div>
               </div>
 
@@ -343,16 +372,20 @@ export const JftResultReport: React.FC<JftResultReportProps> = ({
               <div className="space-y-1 bg-slate-50 p-2.5 rounded border border-slate-200">
                 <div className="flex justify-between font-semibold text-slate-800 text-[11px]">
                   <span>聴解 (Listening Comprehension)</span>
-                  <span className="font-bold text-slate-900">{normalizedResult.sectionScores.S3.percentage}%</span>
+                  <span className="font-bold text-slate-900">
+                    {(normalizedResult.sectionScores?.S3?.maxScore || 0) > 0 ? `${normalizedResult.sectionScores.S3.percentage}%` : '-'}
+                  </span>
                 </div>
                 <div className="h-2 bg-slate-200 rounded-full overflow-hidden">
                   <div
                     className="h-full bg-indigo-500 rounded-full transition-all duration-500"
-                    style={{ width: `${normalizedResult.sectionScores.S3.percentage}%` }}
+                    style={{ width: `${(normalizedResult.sectionScores?.S3?.maxScore || 0) > 0 ? normalizedResult.sectionScores.S3.percentage : 0}%` }}
                   ></div>
                 </div>
                 <div className="text-[10px] text-slate-500 text-right">
-                  {normalizedResult.sectionScores.S3.score} / {normalizedResult.sectionScores.S3.maxScore} Soal Benar
+                  {(normalizedResult.sectionScores?.S3?.maxScore || 0) > 0
+                    ? `${normalizedResult.sectionScores.S3.score} / ${normalizedResult.sectionScores.S3.maxScore} Soal Benar`
+                    : 'Tidak diujikan dalam paket ini'}
                 </div>
               </div>
 
@@ -360,16 +393,20 @@ export const JftResultReport: React.FC<JftResultReportProps> = ({
               <div className="space-y-1 bg-slate-50 p-2.5 rounded border border-slate-200">
                 <div className="flex justify-between font-semibold text-slate-800 text-[11px]">
                   <span>読解 (Reading Comprehension)</span>
-                  <span className="font-bold text-slate-900">{normalizedResult.sectionScores.S4.percentage}%</span>
+                  <span className="font-bold text-slate-900">
+                    {(normalizedResult.sectionScores?.S4?.maxScore || 0) > 0 ? `${normalizedResult.sectionScores.S4.percentage}%` : '-'}
+                  </span>
                 </div>
                 <div className="h-2 bg-slate-200 rounded-full overflow-hidden">
                   <div
                     className="h-full bg-emerald-500 rounded-full transition-all duration-500"
-                    style={{ width: `${normalizedResult.sectionScores.S4.percentage}%` }}
+                    style={{ width: `${(normalizedResult.sectionScores?.S4?.maxScore || 0) > 0 ? normalizedResult.sectionScores.S4.percentage : 0}%` }}
                   ></div>
                 </div>
                 <div className="text-[10px] text-slate-500 text-right">
-                  {normalizedResult.sectionScores.S4.score} / {normalizedResult.sectionScores.S4.maxScore} Soal Benar
+                  {(normalizedResult.sectionScores?.S4?.maxScore || 0) > 0
+                    ? `${normalizedResult.sectionScores.S4.score} / ${normalizedResult.sectionScores.S4.maxScore} Soal Benar`
+                    : 'Tidak diujikan dalam paket ini'}
                 </div>
               </div>
             </div>

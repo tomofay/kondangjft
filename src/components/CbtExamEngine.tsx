@@ -456,7 +456,7 @@ export const CbtExamEngine: React.FC<CbtExamEngineProps> = ({
             <div className="p-3 bg-slate-950 rounded-xl border border-slate-800 text-xs text-slate-300 space-y-1">
               <div className="flex justify-between">
                 <span>Soal Dijawab:</span>
-                <span className="font-bold text-emerald-400">{answeredCount} / 50</span>
+                <span className="font-bold text-emerald-400">{answeredCount} / {questions.length}</span>
               </div>
               <div className="flex justify-between">
                 <span>Belum Dijawab:</span>

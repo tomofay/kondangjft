@@ -1066,7 +1066,25 @@ export default function HomePage() {
                             {res.assessmentResult}
                           </span>
                         </div>
-                        <div className="text-slate-400 text-[11px]">Tanggal: {res.testDate}</div>
+                        {(() => {
+                          const totalQ =
+                            (res.sectionScores?.S1?.maxScore || 0) +
+                            (res.sectionScores?.S2?.maxScore || 0) +
+                            (res.sectionScores?.S3?.maxScore || 0) +
+                            (res.sectionScores?.S4?.maxScore || 0) ||
+                            res.answers?.length || 0;
+                          const totalCorr =
+                            (res.sectionScores?.S1?.score || 0) +
+                            (res.sectionScores?.S2?.score || 0) +
+                            (res.sectionScores?.S3?.score || 0) +
+                            (res.sectionScores?.S4?.score || 0);
+                          return (
+                            <div className="text-slate-400 text-[11px]">
+                              Tanggal: {res.testDate}
+                              {totalQ > 0 ? ` • ${totalQ} Soal (${totalCorr} Benar, ${Math.max(0, totalQ - totalCorr)} Salah)` : ''}
+                            </div>
+                          );
+                        })()}
                       </div>
 
                       <div className="flex items-center gap-2">

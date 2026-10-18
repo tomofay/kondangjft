@@ -70,7 +70,7 @@ export const QuestionReview: React.FC<QuestionReviewProps> = ({
               Evaluasi & Pembahasan Soal Lengkap
             </h1>
             <p className="text-xs text-slate-500 dark:text-slate-400">
-              Total 50 Soal • <span className="text-emerald-500 font-semibold">{correctCount} Benar</span> •{' '}
+              Total {questions.length} Soal • <span className="text-emerald-500 font-semibold">{correctCount} Benar</span> •{' '}
               <span className="text-red-500 font-semibold">{wrongCount} Salah</span>
             </p>
           </div>
