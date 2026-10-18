@@ -3,6 +3,95 @@ import fs from 'fs';
 import path from 'path';
 import { parsePdfTextToQuestions, getStore } from '@/lib/dataStore';
 
+function getCharWidths(str: string, totalWidth: number): number[] {
+  const weights = Array.from(str).map((ch) => {
+    const code = ch.charCodeAt(0);
+    if (code >= 0x3000 && code <= 0x9fff) return 1.0;
+    if (code >= 0xff01 && code <= 0xff60) return 1.0;
+    return 0.5;
+  });
+  const sumWeights = weights.reduce((a, b) => a + b, 0);
+  const unit = totalWidth / (sumWeights || 1);
+  return weights.map((w) => w * unit);
+}
+
+async function injectVectorUnderlines(parser: any, rawPdfText: string): Promise<string> {
+  let fullText = rawPdfText;
+  try {
+    const doc = await parser.load();
+    for (let pNum = 1; pNum <= doc.numPages; pNum++) {
+      const page = await doc.getPage(pNum);
+      const ops = await page.getOperatorList();
+      const textContent = await page.getTextContent();
+
+      const underlines: { minX: number; maxX: number; y: number }[] = [];
+      for (let i = 0; i < ops.fnArray.length; i++) {
+        if (ops.fnArray[i] === 91) {
+          const args = ops.argsArray[i];
+          const bbox = args[2];
+          if (bbox && bbox.length === 4) {
+            const height = Math.abs(bbox[3] - bbox[1]);
+            const width = Math.abs(bbox[2] - bbox[0]);
+            if (height < 2.5 && width > 8 && width < 400) {
+              underlines.push({ minX: bbox[0], maxX: bbox[2], y: (bbox[1] + bbox[3]) / 2 });
+            }
+          }
+        }
+      }
+
+      if (underlines.length === 0) continue;
+
+      for (const u of underlines) {
+        for (const item of textContent.items) {
+          if (!item.str || !item.transform) continue;
+          const tx = item.transform[4];
+          const ty = item.transform[5];
+          const itemWidth = item.width || 0;
+          const yDiff = ty - u.y;
+          if (yDiff < -3 || yDiff > 8) continue;
+          if (u.maxX <= tx || u.minX >= tx + itemWidth) continue;
+
+          const chars = Array.from(item.str as string);
+          const charWidths = getCharWidths(item.str, itemWidth);
+          let curX = tx;
+          let startChar = -1;
+          let endChar = -1;
+
+          for (let c = 0; c < chars.length; c++) {
+            const cStart = curX;
+            const cEnd = curX + charWidths[c];
+            const cMid = (cStart + cEnd) / 2;
+            if (cMid >= u.minX && cMid <= u.maxX) {
+              if (startChar === -1) startChar = c;
+              endChar = c + 1;
+            }
+            curX = cEnd;
+          }
+
+          if (startChar !== -1 && endChar !== -1) {
+            const originalText = item.str;
+            const before = chars.slice(0, startChar).join('');
+            const target = chars.slice(startChar, endChar).join('');
+            const after = chars.slice(endChar).join('');
+            const underlinedText = `${before}<u>${target}</u>${after}`;
+
+            const origClean = originalText.replace(/^[０-９\d]+[\.．\:]\s*/, '').trim();
+            const underClean = underlinedText.replace(/^[０-９\d]+[\.．\:]\s*/, '').trim();
+
+            if (origClean && underClean && fullText.includes(origClean)) {
+              fullText = fullText.replace(origClean, underClean);
+            }
+            break;
+          }
+        }
+      }
+    }
+  } catch (err) {
+    console.warn('Gagal membaca underline garis vektor PDF:', err);
+  }
+  return fullText;
+}
+
 export async function POST(request: Request) {
   try {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
@@ -27,10 +116,11 @@ export async function POST(request: Request) {
       const arrayBuffer = await file.arrayBuffer();
       const buffer = Buffer.from(arrayBuffer);
 
-      // 1. Ekstrak teks dari PDF menggunakan PDFParse
+      // 1. Ekstrak teks dari PDF menggunakan PDFParse & injeksikan tag <u> untuk target bergaris bawah
       const parser = new PDFParse({ data: buffer });
       const textResult = await parser.getText();
       pdfText = textResult.text || '';
+      pdfText = await injectVectorUnderlines(parser, pdfText);
 
       // 2. Ekstrak gambar-gambar dari PDF (Cara 2 Otomatisasi Gambar)
       try {

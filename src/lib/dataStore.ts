@@ -341,6 +341,45 @@ export function calculateJFTScore(
   };
 }
 
+function applyLexicalUnderlineFallback(sentence: string, optTexts: string[]): string {
+  if (sentence.includes('<u>') || sentence.includes('＿＿')) return sentence;
+
+  const vocabDict: { target: string; hints: string[] }[] = [
+    { target: '建物', hints: ['たてもの', 'おきもの', 'たてぶつ'] },
+    { target: '便利', hints: ['べんり', 'ふべん', 'ばんり'] },
+    { target: '家庭', hints: ['かてい', 'かたい', 'かだい'] },
+    { target: 'うたいました', hints: ['歌いました', '音いました', '飲いました', 'うた'] },
+    { target: 'あき', hints: ['秋', '春', '冬'] },
+    { target: 'まわります', hints: ['回ります', '同ります', '通ります', 'まわ'] },
+    { target: 'げんき', hints: ['元気', '本気', '天気'] }
+  ];
+
+  for (const v of vocabDict) {
+    if (sentence.includes(v.target)) {
+      const matchesOpt = optTexts.some((opt) => v.hints.some((h) => opt.includes(h) || h.includes(opt)));
+      if (matchesOpt) {
+        return sentence.replace(v.target, `<u>${v.target}</u>`);
+      }
+    }
+  }
+
+  // Generic heuristic for Kanji words in Seksi 1 matching Hiragana options
+  for (const opt of optTexts) {
+    if (/^[\u3040-\u309f]+$/.test(opt) && opt.length >= 2) {
+      const kanjiMatches = sentence.match(/[\u4e00-\u9faf]+/g);
+      if (kanjiMatches) {
+        for (const km of kanjiMatches) {
+          if (!sentence.includes(`<u>${km}</u>`)) {
+            return sentence.replace(km, `<u>${km}</u>`);
+          }
+        }
+      }
+    }
+  }
+
+  return sentence;
+}
+
 // PDF Parser Helper for Question Extraction (Supports standard formats & Japanese Exam sheets)
 export function parsePdfTextToQuestions(
   pdfText: string,
@@ -365,29 +404,48 @@ export function parsePdfTextToQuestions(
     const visualPart = text.substring(0, q5Match);
     text = text.substring(q5Match);
 
-    const lines = visualPart.split('\n').map((l) => l.trim()).filter(Boolean);
-    let currentQ = 0;
-    let currentOpts: string[] = [];
-
-    for (const line of lines) {
-      const qStart = line.match(/^([1-4])\.\s+(?:1\.\s*)?(.*)$/) || (currentQ === 0 && line.match(/^1\.\s*(?:1\.\s*)?(.*)$/));
-      if (qStart && parseInt(qStart[1], 10) === currentQ + 1) {
-        if (currentQ > 0) {
-          visualDrafts.push({ q: currentQ, opts: currentOpts });
-        }
-        currentQ = parseInt(qStart[1], 10);
-        currentOpts = [];
-        const rem = qStart[2]?.trim();
-        if (rem) currentOpts.push(rem);
-      } else if (currentQ > 0) {
-        const optMatch = line.match(/^[2-3]\.\s*(.*)$/);
-        if (optMatch) {
-          currentOpts.push(optMatch[1].trim());
-        }
+    const cleanVisual = visualPart.replace(/お名前：[^\n]+/g, '').replace(/もじ・ごい/g, '');
+    const regex = /(?:^|\n)\s*(?:(1)[\.．]\s*(?:1[\.．]\s*)?|([2-4])[\.．]\s*1[\.．]\s*)/g;
+    let m;
+    const matches: { q: number; idx: number }[] = [];
+    while ((m = regex.exec(cleanVisual)) !== null) {
+      const qNum = parseInt(m[1] || m[2], 10);
+      if (matches.length === 0 && qNum === 1) {
+        matches.push({ q: 1, idx: m.index });
+      } else if (matches.length > 0 && qNum === matches[matches.length - 1].q + 1 && qNum <= 4) {
+        matches.push({ q: qNum, idx: m.index });
       }
     }
-    if (currentQ > 0) {
-      visualDrafts.push({ q: currentQ, opts: currentOpts });
+
+    for (let i = 0; i < matches.length; i++) {
+      const qNum = matches[i].q;
+      const start = matches[i].idx;
+      const end = i + 1 < matches.length ? matches[i + 1].idx : cleanVisual.length;
+      const block = cleanVisual.substring(start, end).trim();
+
+      const lines = block.split('\n').map((l) => l.trim()).filter(Boolean);
+      const opts: string[] = [];
+
+      const firstLineOpt = lines[0].replace(/^[1-4][\.．]\s*(?:1[\.．]\s*)?/, '').trim();
+      if (firstLineOpt) {
+        opts.push(firstLineOpt);
+      }
+
+      for (let l = 1; l < lines.length; l++) {
+        const line = lines[l];
+        const optMatch = line.match(/^(?:[1-3][\.．]\s*)+(.*)$/);
+        if (optMatch) {
+          const val = optMatch[1].trim();
+          if (val) opts.push(val);
+        } else if (!line.match(/^[1-4][\.．]/) && !line.includes('年') && !line.includes('月')) {
+          if (opts.length > 0 && /^[ぁ-ん\s]+$/.test(line)) {
+            const furigana = line.replace(/\s+/g, '');
+            opts[opts.length - 1] = `${opts[opts.length - 1]} (${furigana})`;
+          }
+        }
+      }
+
+      visualDrafts.push({ q: qNum, opts });
     }
   }
 
@@ -412,11 +470,11 @@ export function parsePdfTextToQuestions(
       rawText: vd.opts.join('\n'),
       section: 'S1',
       sectionTitle: 'Seksi 1 - 文字と語彙 (Huruf & Kosakata)',
-      questionText: '画像が表す正しい言葉を選んでください。(Pilih kata yang sesuai dengan gambar)',
+      questionText: `絵を見て、正しい言葉を 1・2・3 からえらんでください。(Pilih kata yang sesuai dengan gambar #${vd.q})`,
       imageUrl: imageMap[vd.q] || undefined,
       options,
       correctAnswer: 'A',
-      explanation: `Draf soal nomor ${vd.q} (Seksi 1 - Huruf & Kosakata).`,
+      explanation: `Draf soal nomor ${vd.q} (Seksi 1 - Huruf & Kosakata bergambar).`,
       status: 'DRAFT'
     });
   });
@@ -485,6 +543,11 @@ export function parsePdfTextToQuestions(
           { key: 'B', text: 'Opsi B' },
           { key: 'C', text: 'Opsi C' }
         );
+      }
+
+      // Fallback lexical underline for Seksi 1 questions without underline or blank
+      if (section === 'S1' && !qText.includes('<u>') && !qText.includes('＿＿')) {
+        qText = applyLexicalUnderlineFallback(qText, options.map((o) => o.text));
       }
 
       drafts.push({

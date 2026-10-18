@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { Question, UserAnswer } from '../types';
 import { CheckCircle2, XCircle, HelpCircle, ArrowLeft, Filter, BookOpen, ZoomIn, ZoomOut, RotateCcw, X } from 'lucide-react';
+import { renderFormattedQuestion } from '../lib/formatQuestion';
 
 interface QuestionReviewProps {
   questions: Question[];
@@ -200,7 +201,7 @@ export const QuestionReview: React.FC<QuestionReviewProps> = ({
 
                 {/* Question Text */}
                 <div className="my-3 text-sm font-semibold text-slate-900 dark:text-white leading-relaxed whitespace-pre-line font-japanese">
-                  {q.questionText}
+                  {renderFormattedQuestion(q.questionText)}
                 </div>
 
                 {/* Question Image if any (Clickable to zoom) */}

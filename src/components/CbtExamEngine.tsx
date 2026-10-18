@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Question, UserAnswer, User } from '../types';
 import { Clock, Bookmark, ChevronLeft, ChevronRight, Send, Volume2, AlertTriangle, BookOpen, Check, ZoomIn, ZoomOut, RotateCcw, X } from 'lucide-react';
+import { renderFormattedQuestion } from '../lib/formatQuestion';
 
 interface CbtExamEngineProps {
   questions: Question[];
@@ -246,7 +247,7 @@ export const CbtExamEngine: React.FC<CbtExamEngineProps> = ({
           {/* Question Main Text */}
           <div className="bg-slate-900 p-6 rounded-2xl border border-slate-800 shadow-md space-y-4">
             <div className="text-base font-semibold text-white leading-relaxed font-japanese whitespace-pre-line">
-              {currentQ.questionText}
+              {renderFormattedQuestion(currentQ.questionText)}
             </div>
 
             {/* Audio Player for Chōkai (Listening) */}

@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { User, Question, Transaction, PDFQuestionDraft, SectionType } from '../types';
 import { Users, FileText, Lock, Upload, Layers, DollarSign, BookOpen, X, ChevronLeft, ChevronRight, RefreshCw, Trash2, Shield, Image as ImageIcon, Link as LinkIcon, UploadCloud, Check, Volume2, Headphones, Sparkles, Eye, ZoomIn, AlertCircle, FileUp, FolderUp } from 'lucide-react';
 import { isSubscriptionActive, getRemainingDays, getRemainingSubscriptionText } from '../lib/dataStore';
+import { renderFormattedQuestion } from '../lib/formatQuestion';
 
 interface AdminPortalProps {
   users: User[];
@@ -886,9 +887,9 @@ B：いえ、だいじょうぶですよ。
                           </div>
                         </div>
 
-                        <p className="font-semibold text-slate-900 dark:text-white font-japanese text-sm bg-white dark:bg-slate-900 p-3 rounded-xl border border-slate-200 dark:border-slate-800">
-                          {q.questionText}
-                        </p>
+                        <div className="font-semibold text-slate-900 dark:text-white font-japanese text-sm bg-white dark:bg-slate-900 p-3 rounded-xl border border-slate-200 dark:border-slate-800 leading-relaxed">
+                          {renderFormattedQuestion(q.questionText)}
+                        </div>
 
                         {q.imageUrl && (
                           <div className="p-2 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 flex items-center gap-3">
@@ -1230,9 +1231,9 @@ B：いえ、だいじょうぶですよ。
                       </div>
 
                       {/* Question Text */}
-                      <p className="text-xs font-semibold text-slate-900 dark:text-slate-100 font-japanese leading-relaxed whitespace-pre-line">
-                        {draft.questionText}
-                      </p>
+                      <div className="text-xs font-semibold text-slate-900 dark:text-slate-100 font-japanese leading-relaxed whitespace-pre-line">
+                        {renderFormattedQuestion(draft.questionText)}
+                      </div>
 
                       {/* Image Preview & Controls (Auto-extracted from PDF) */}
                       {draft.imageUrl ? (
