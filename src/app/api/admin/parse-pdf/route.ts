@@ -3,6 +3,164 @@ import fs from 'fs';
 import path from 'path';
 import { parsePdfTextToQuestions, getStore } from '@/lib/dataStore';
 
+// Polyfill DOMMatrix, Path2D, ImageData on globalThis for Node.js production server environments
+function ensurePdfPolyfills() {
+  const g = globalThis as any;
+  const nodeG = global as any;
+
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const canvas = require('@napi-rs/canvas');
+    if (canvas) {
+      if (!g.DOMMatrix && canvas.DOMMatrix) g.DOMMatrix = canvas.DOMMatrix;
+      if (!nodeG.DOMMatrix && canvas.DOMMatrix) nodeG.DOMMatrix = canvas.DOMMatrix;
+      if (!g.Path2D && canvas.Path2D) g.Path2D = canvas.Path2D;
+      if (!nodeG.Path2D && canvas.Path2D) nodeG.Path2D = canvas.Path2D;
+      if (!g.ImageData && canvas.ImageData) g.ImageData = canvas.ImageData;
+      if (!nodeG.ImageData && canvas.ImageData) nodeG.ImageData = canvas.ImageData;
+      if (!g.DOMPoint && canvas.DOMPoint) g.DOMPoint = canvas.DOMPoint;
+      if (!nodeG.DOMPoint && canvas.DOMPoint) nodeG.DOMPoint = canvas.DOMPoint;
+      if (!g.DOMRect && canvas.DOMRect) g.DOMRect = canvas.DOMRect;
+      if (!nodeG.DOMRect && canvas.DOMRect) nodeG.DOMRect = canvas.DOMRect;
+    }
+  } catch {
+    // @napi-rs/canvas native bindings might be absent on some VPS / container environments
+  }
+
+  if (!g.DOMMatrix || !nodeG.DOMMatrix) {
+    class SimpleDOMMatrix {
+      a = 1; b = 0; c = 0; d = 1; e = 0; f = 0;
+      m11 = 1; m12 = 0; m13 = 0; m14 = 0;
+      m21 = 0; m22 = 1; m23 = 0; m24 = 0;
+      m31 = 0; m32 = 0; m33 = 1; m34 = 0;
+      m41 = 0; m42 = 0; m43 = 0; m44 = 1;
+      is2D = true;
+      isIdentity = true;
+
+      constructor(init?: any) {
+        if (Array.isArray(init)) {
+          if (init.length === 6) {
+            this.a = this.m11 = init[0];
+            this.b = this.m12 = init[1];
+            this.c = this.m21 = init[2];
+            this.d = this.m22 = init[3];
+            this.e = this.m41 = init[4];
+            this.f = this.m42 = init[5];
+            this.is2D = true;
+          } else if (init.length === 16) {
+            this.m11 = init[0]; this.m12 = init[1]; this.m13 = init[2]; this.m14 = init[3];
+            this.m21 = init[4]; this.m22 = init[5]; this.m23 = init[6]; this.m24 = init[7];
+            this.m31 = init[8]; this.m32 = init[9]; this.m33 = init[10]; this.m34 = init[11];
+            this.m41 = init[12]; this.m42 = init[13]; this.m43 = init[14]; this.m44 = init[15];
+            this.a = this.m11; this.b = this.m12; this.c = this.m21; this.d = this.m22;
+            this.e = this.m41; this.f = this.m42;
+            this.is2D = false;
+          }
+        } else if (init && typeof init === 'object') {
+          Object.assign(this, init);
+        }
+      }
+
+      translate(tx = 0, ty = 0, tz = 0) {
+        const copy = new SimpleDOMMatrix(this);
+        copy.e += tx;
+        copy.m41 += tx;
+        copy.f += ty;
+        copy.m42 += ty;
+        return copy;
+      }
+
+      scale(scaleX = 1, scaleY?: number, scaleZ = 1) {
+        const sy = scaleY !== undefined ? scaleY : scaleX;
+        const copy = new SimpleDOMMatrix(this);
+        copy.a *= scaleX;
+        copy.m11 *= scaleX;
+        copy.d *= sy;
+        copy.m22 *= sy;
+        return copy;
+      }
+
+      multiply(other: any) { return new SimpleDOMMatrix(this); }
+      multiplySelf(other: any) { return this; }
+      preMultiplySelf(other: any) { return this; }
+
+      invertSelf() {
+        const det = this.a * this.d - this.b * this.c;
+        if (det !== 0) {
+          const invDet = 1 / det;
+          const a = this.d * invDet;
+          const b = -this.b * invDet;
+          const c = -this.c * invDet;
+          const d = this.a * invDet;
+          const e = (this.c * this.f - this.d * this.e) * invDet;
+          const f = (this.b * this.e - this.a * this.f) * invDet;
+          this.a = this.m11 = a;
+          this.b = this.m12 = b;
+          this.c = this.m21 = c;
+          this.d = this.m22 = d;
+          this.e = this.m41 = e;
+          this.f = this.m42 = f;
+        }
+        return this;
+      }
+
+      inverse() {
+        const copy = new SimpleDOMMatrix(this);
+        return copy.invertSelf();
+      }
+
+      transformPoint(p: any) { return p; }
+
+      toFloat32Array() {
+        return new Float32Array([
+          this.m11, this.m12, this.m13, this.m14,
+          this.m21, this.m22, this.m23, this.m24,
+          this.m31, this.m32, this.m33, this.m34,
+          this.m41, this.m42, this.m43, this.m44
+        ]);
+      }
+
+      toFloat64Array() {
+        return new Float64Array([
+          this.m11, this.m12, this.m13, this.m14,
+          this.m21, this.m22, this.m23, this.m24,
+          this.m31, this.m32, this.m33, this.m34,
+          this.m41, this.m42, this.m43, this.m44
+        ]);
+      }
+    }
+
+    g.DOMMatrix = SimpleDOMMatrix;
+    nodeG.DOMMatrix = SimpleDOMMatrix;
+  }
+
+  if (!g.Path2D || !nodeG.Path2D) {
+    class SimplePath2D {
+      addPath() {}
+    }
+    g.Path2D = SimplePath2D;
+    nodeG.Path2D = SimplePath2D;
+  }
+
+  if (!g.ImageData || !nodeG.ImageData) {
+    class SimpleImageData {
+      data: Uint8ClampedArray;
+      width: number;
+      height: number;
+      constructor(w = 1, h = 1) {
+        this.width = w;
+        this.height = h;
+        this.data = new Uint8ClampedArray(w * h * 4);
+      }
+    }
+    g.ImageData = SimpleImageData;
+    nodeG.ImageData = SimpleImageData;
+  }
+}
+
+// Execute immediately upon module import
+ensurePdfPolyfills();
+
 function getCharWidths(str: string, totalWidth: number): number[] {
   const weights = Array.from(str).map((ch) => {
     const code = ch.charCodeAt(0);
@@ -94,6 +252,7 @@ async function injectVectorUnderlines(parser: any, rawPdfText: string): Promise<
 
 export async function POST(request: Request) {
   try {
+    ensurePdfPolyfills();
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     const { PDFParse } = require('pdf-parse');
 
