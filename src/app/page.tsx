@@ -60,6 +60,7 @@ export default function HomePage() {
   const [packages] = useState<TryoutPackage[]>(() => getStore().packages);
   const [transactions, setTransactions] = useState<Transaction[]>(() => getStore().transactions);
   const [pdfDrafts, setPdfDrafts] = useState<PDFQuestionDraft[]>(() => getStore().pdfDrafts);
+  const [adminUsers, setAdminUsers] = useState<User[]>(() => getStore().users);
 
   // Selected result for report / review
   const [currentResult, setCurrentResult] = useState<ExamResult | null>(null);
@@ -205,6 +206,35 @@ export default function HomePage() {
     }
     loadQuestionsFromDb();
   }, []);
+
+  // Load Admin Data (Users & Transactions from MySQL)
+  const loadAdminData = useCallback(async () => {
+    try {
+      const [usersRes, txRes] = await Promise.all([
+        fetch('/api/admin/users'),
+        fetch('/api/admin/transactions')
+      ]);
+      const [usersData, txData] = await Promise.all([
+        usersRes.json(),
+        txRes.json()
+      ]);
+      if (usersData.success && Array.isArray(usersData.users)) {
+        setAdminUsers(usersData.users);
+      }
+      if (txData.success && Array.isArray(txData.transactions)) {
+        setTransactions(txData.transactions);
+      }
+    } catch (err) {
+      console.warn('Failed to fetch admin users/transactions:', err);
+    }
+  }, []);
+
+  // When admin portal view opens, refresh users and transactions dynamically from DB
+  useEffect(() => {
+    if (view === 'admin' || currentUser?.role === 'admin') {
+      loadAdminData();
+    }
+  }, [view, currentUser?.role, loadAdminData]);
 
   // Single Session Lock Polling Heartbeat (Checks every 3 seconds)
   useEffect(() => {
@@ -362,28 +392,83 @@ export default function HomePage() {
     }
   };
 
-  // Admin Kick session
-  const handleKickSession = (userId: string) => {
-    const store = getStore();
-    const target = store.users.find((u: User) => u.id === userId);
-    if (target) {
-      target.activeSessionId = undefined;
-      setCurrentUser((prev) => (prev?.id === userId ? { ...prev, activeSessionId: undefined } : prev));
+  // Admin Kick session (persisted to MySQL)
+  const handleKickSession = async (userId: string) => {
+    // Optimistic UI update
+    setAdminUsers((prev) =>
+      prev.map((u) => (u.id === userId ? { ...u, activeSessionId: undefined } : u))
+    );
+    if (currentUser?.id === userId) {
+      setCurrentUser((prev) => (prev ? { ...prev, activeSessionId: undefined } : prev));
+    }
+
+    try {
+      await fetch('/api/admin/users', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'kick', userId })
+      });
+      loadAdminData();
+    } catch (err) {
+      console.warn('Failed to kick session in MySQL:', err);
     }
   };
 
-  // Admin Add Subscription Days
-  const handleAddCredit = (userId: string, count: number) => {
-    const store = getStore();
-    const target = store.users.find((u: User) => u.id === userId);
-    if (target) {
-      const baseTime = target.subscriptionExpiresAt && new Date(target.subscriptionExpiresAt).getTime() > Date.now()
-        ? new Date(target.subscriptionExpiresAt).getTime()
-        : Date.now();
-      target.subscriptionExpiresAt = new Date(baseTime + count * 86400000).toISOString();
-      if (currentUser?.id === userId) {
-        setCurrentUser({ ...target });
+  // Admin Add Subscription Days (persisted to MySQL)
+  const handleAddCredit = async (userId: string, count: number) => {
+    try {
+      const res = await fetch('/api/admin/users', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'add_subscription', userId, days: count })
+      });
+      const data = await res.json();
+      if (data.success && data.subscriptionExpiresAt) {
+        setAdminUsers((prev) =>
+          prev.map((u) => (u.id === userId ? { ...u, subscriptionExpiresAt: data.subscriptionExpiresAt } : u))
+        );
+        if (currentUser?.id === userId) {
+          setCurrentUser((prev) => (prev ? { ...prev, subscriptionExpiresAt: data.subscriptionExpiresAt } : prev));
+        }
       }
+      loadAdminData();
+    } catch (err) {
+      console.warn('Failed to add subscription days in MySQL:', err);
+    }
+  };
+
+  // Admin Change Role (persisted to MySQL)
+  const handleChangeRole = async (userId: string, newRole: 'user' | 'admin') => {
+    try {
+      await fetch('/api/admin/users', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'change_role', userId, role: newRole })
+      });
+      setAdminUsers((prev) =>
+        prev.map((u) => (u.id === userId ? { ...u, role: newRole } : u))
+      );
+      if (currentUser?.id === userId) {
+        setCurrentUser((prev) => (prev ? { ...prev, role: newRole } : prev));
+      }
+      loadAdminData();
+    } catch (err) {
+      console.warn('Failed to change user role in MySQL:', err);
+    }
+  };
+
+  // Admin Delete User (persisted to MySQL)
+  const handleDeleteUser = async (userId: string) => {
+    try {
+      await fetch('/api/admin/users', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'delete', userId })
+      });
+      setAdminUsers((prev) => prev.filter((u) => u.id !== userId));
+      loadAdminData();
+    } catch (err) {
+      console.warn('Failed to delete user in MySQL:', err);
     }
   };
 
@@ -642,12 +727,15 @@ export default function HomePage() {
         {/* VIEW: ADMIN PORTAL */}
         {view === 'admin' && (
           <AdminPortal
-            users={getStore().users}
+            users={adminUsers}
             questions={questions}
             transactions={transactions}
             pdfDrafts={pdfDrafts}
             onKickSession={handleKickSession}
             onAddCredit={handleAddCredit}
+            onChangeRole={handleChangeRole}
+            onDeleteUser={handleDeleteUser}
+            onRefreshData={loadAdminData}
             onImportPdfText={handleImportPdfText}
             onSaveQuestion={handleSaveQuestion}
             onDeleteQuestion={handleDeleteQuestion}

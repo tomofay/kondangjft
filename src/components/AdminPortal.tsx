@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { User, Question, Transaction, PDFQuestionDraft, SectionType } from '../types';
-import { Users, FileText, Lock, Upload, Layers, DollarSign, BookOpen, X, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Users, FileText, Lock, Upload, Layers, DollarSign, BookOpen, X, ChevronLeft, ChevronRight, RefreshCw, Trash2, Shield } from 'lucide-react';
 import { isSubscriptionActive, getRemainingDays, getRemainingSubscriptionText } from '../lib/dataStore';
 
 interface AdminPortalProps {
@@ -10,8 +10,11 @@ interface AdminPortalProps {
   questions: Question[];
   transactions: Transaction[];
   pdfDrafts: PDFQuestionDraft[];
-  onKickSession: (userId: string) => void;
-  onAddCredit: (userId: string, count: number) => void;
+  onKickSession: (userId: string) => Promise<void> | void;
+  onAddCredit: (userId: string, count: number) => Promise<void> | void;
+  onChangeRole?: (userId: string, newRole: 'user' | 'admin') => Promise<void> | void;
+  onDeleteUser?: (userId: string) => Promise<void> | void;
+  onRefreshData?: () => Promise<void> | void;
   onImportPdfText: (pdfText: string) => Promise<void>;
   onSaveQuestion?: (question: Question) => void;
   onDeleteQuestion?: (questionId: number) => void;
@@ -23,6 +26,9 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
   transactions,
   onKickSession,
   onAddCredit,
+  onChangeRole,
+  onDeleteUser,
+  onRefreshData,
   onImportPdfText,
   onSaveQuestion,
   onDeleteQuestion
@@ -31,6 +37,8 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
   const [pdfInputText, setPdfInputText] = useState('');
   const [isParsing, setIsParsing] = useState(false);
   const [parseMessage, setParseMessage] = useState('');
+  const [actionLoadingUserId, setActionLoadingUserId] = useState<string | null>(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   // Question Bank Editor Filters, Paging & Modal State
   const [selectedPkgFilter, setSelectedPkgFilter] = useState<number>(0); // 0 = Semua Paket
@@ -196,86 +204,213 @@ Pembahasan: Laki-laki mengusulkan 10:30.`);
       {/* Tab 1: Users & Single Session Lock Manager */}
       {activeTab === 'USERS' && (
         <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 shadow-xl border border-slate-200 dark:border-slate-800 space-y-6">
-          <div className="flex items-center justify-between border-b pb-4 border-slate-200 dark:border-slate-800">
+          <div className="flex flex-wrap items-center justify-between border-b pb-4 border-slate-200 dark:border-slate-800 gap-4">
             <div>
               <h2 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
                 <Lock className="w-5 h-5 text-indigo-500" />
-                Manajemen Sesi Tunggal & Peserta
+                Manajemen Pengguna & Sesi Tunggal ({users.length} Akun Terdaftar)
               </h2>
               <p className="text-xs text-slate-500 dark:text-slate-400">
-                Setiap akun hanya diizinkan 1 sesi aktif bersamaan. Anda dapat memantau atau mengakhiri sesi aktif di sini.
+                Data terhubung langsung ke Database MySQL. Setiap akun memiliki proteksi 1 sesi aktif (Single Device Lock).
               </p>
             </div>
+
+            {onRefreshData && (
+              <button
+                type="button"
+                onClick={async () => {
+                  setIsRefreshing(true);
+                  try {
+                    await onRefreshData();
+                  } finally {
+                    setIsRefreshing(false);
+                  }
+                }}
+                disabled={isRefreshing}
+                className="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold transition flex items-center gap-1.5 border border-slate-200 dark:border-slate-700 shadow-sm"
+              >
+                <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin text-indigo-500' : ''}`} />
+                {isRefreshing ? 'Memuat Ulang...' : 'Sinkronkan Data'}
+              </button>
+            )}
           </div>
 
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs border-collapse">
               <thead>
                 <tr className="border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/50 text-slate-500 dark:text-slate-400 uppercase tracking-wider font-bold">
-                  <th className="p-3">Nama & Email</th>
+                  <th className="p-3">Nama & No. Reg</th>
+                  <th className="p-3">Email Akun</th>
                   <th className="p-3">Role</th>
-                  <th className="p-3">Status Sesi Aktif (Single Lock)</th>
-                  <th className="p-3">Sisa Tryout</th>
-                  <th className="p-3 text-right">Aksi</th>
+                  <th className="p-3">Status Sesi Aktif</th>
+                  <th className="p-3">Masa Aktif Akses</th>
+                  <th className="p-3 text-right">Kelola Akun</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                {users.map((u) => {
-                  const hasActiveSession = !!u.activeSessionId;
+                {users.length === 0 ? (
+                  <tr>
+                    <td colSpan={6} className="text-center py-8 text-slate-400">
+                      Belum ada data pengguna terdaftar di database.
+                    </td>
+                  </tr>
+                ) : (
+                  users.map((u) => {
+                    const hasActiveSession = !!u.activeSessionId;
+                    const isBusy = actionLoadingUserId === u.id;
 
-                  return (
-                    <tr key={u.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition">
-                      <td className="p-3 font-semibold text-slate-900 dark:text-white">
-                        <div>{u.name}</div>
-                        <div className="text-[11px] text-slate-400 font-normal">{u.email}</div>
-                      </td>
+                    return (
+                      <tr key={u.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition">
+                        <td className="p-3 font-semibold text-slate-900 dark:text-white">
+                          <div className="flex items-center gap-2">
+                            {u.facePhotoUrl ? (
+                              <img src={u.facePhotoUrl} alt={u.name} className="w-7 h-7 rounded-full object-cover border border-slate-200 dark:border-slate-700" />
+                            ) : (
+                              <div className="w-7 h-7 rounded-full bg-indigo-100 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-400 flex items-center justify-center font-bold text-[10px]">
+                                {u.name ? u.name.charAt(0).toUpperCase() : 'U'}
+                              </div>
+                            )}
+                            <div>
+                              <div>{u.name}</div>
+                              <div className="text-[10px] text-slate-400 font-mono">{u.registrationNumber || u.id}</div>
+                            </div>
+                          </div>
+                        </td>
 
-                      <td className="p-3">
-                        <span
-                          className={`px-2.5 py-0.5 rounded-full font-bold text-[10px] uppercase ${
-                            u.role === 'admin'
-                              ? 'bg-indigo-100 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-400'
-                              : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300'
-                          }`}
-                        >
-                          {u.role}
-                        </span>
-                      </td>
+                        <td className="p-3 text-slate-600 dark:text-slate-300 font-mono text-[11px]">
+                          {u.email}
+                        </td>
 
-                      <td className="p-3">
-                        {hasActiveSession ? (
-                          <span className="px-2.5 py-1 rounded-lg bg-emerald-100 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-300 font-mono text-[11px] font-bold border border-emerald-300 dark:border-emerald-800 flex items-center gap-1.5 w-max">
-                            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
-                            Terunci (1 Device Active)
-                          </span>
-                        ) : (
-                          <span className="text-slate-400 text-[11px]">Tidak Ada Sesi Aktif</span>
-                        )}
-                      </td>
+                        <td className="p-3">
+                          <div className="flex items-center gap-1.5">
+                            <span
+                              className={`px-2.5 py-0.5 rounded-full font-bold text-[10px] uppercase ${
+                                u.role === 'admin'
+                                  ? 'bg-indigo-100 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800'
+                                  : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300'
+                              }`}
+                            >
+                              {u.role}
+                            </span>
+                            {onChangeRole && (
+                              <button
+                                type="button"
+                                title={`Ganti role menjadi ${u.role === 'admin' ? 'user' : 'admin'}`}
+                                onClick={async () => {
+                                  if (confirm(`Ubah role ${u.name} menjadi ${u.role === 'admin' ? 'user biasa' : 'superadmin'}?`)) {
+                                    setActionLoadingUserId(u.id);
+                                    try {
+                                      await onChangeRole(u.id, u.role === 'admin' ? 'user' : 'admin');
+                                    } finally {
+                                      setActionLoadingUserId(null);
+                                    }
+                                  }
+                                }}
+                                disabled={isBusy}
+                                className="text-slate-400 hover:text-indigo-600 p-0.5 transition"
+                              >
+                                <Shield className="w-3.5 h-3.5" />
+                              </button>
+                            )}
+                          </div>
+                        </td>
 
-                      <td className="p-3 font-bold text-slate-800 dark:text-slate-200">
-                        {isSubscriptionActive(u) ? `${getRemainingSubscriptionText(u)} (Unlimited)` : 'Kedaluwarsa'}
-                      </td>
+                        <td className="p-3">
+                          {hasActiveSession ? (
+                            <span className="px-2.5 py-1 rounded-lg bg-emerald-100 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-300 font-mono text-[11px] font-bold border border-emerald-300 dark:border-emerald-800 flex items-center gap-1.5 w-max">
+                              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
+                              Terkunci (1 Sesi)
+                            </span>
+                          ) : (
+                            <span className="text-slate-400 text-[11px]">Offline</span>
+                          )}
+                        </td>
 
-                      <td className="p-3 text-right space-x-2">
-                        {hasActiveSession && (
-                          <button
-                            onClick={() => onKickSession(u.id)}
-                            className="py-1 px-3 bg-red-100 hover:bg-red-200 dark:bg-red-950 dark:hover:bg-red-900 text-red-700 dark:text-red-300 rounded-xl font-semibold text-[11px] transition"
-                          >
-                            Kick Sesi Aktif
-                          </button>
-                        )}
-                        <button
-                          onClick={() => onAddCredit(u.id, 7)}
-                          className="py-1 px-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-semibold text-[11px] transition shadow"
-                        >
-                          +7 Hari Akses
-                        </button>
-                      </td>
-                    </tr>
-                  );
-                })}
+                        <td className="p-3 font-bold text-slate-800 dark:text-slate-200">
+                          {isSubscriptionActive(u) ? (
+                            <span className="text-emerald-600 dark:text-emerald-400">
+                              {getRemainingSubscriptionText(u)}
+                            </span>
+                          ) : (
+                            <span className="text-red-500 font-semibold text-[11px]">Kedaluwarsa</span>
+                          )}
+                        </td>
+
+                        <td className="p-3 text-right">
+                          <div className="flex items-center justify-end gap-1.5">
+                            {hasActiveSession && (
+                              <button
+                                type="button"
+                                disabled={isBusy}
+                                onClick={async () => {
+                                  setActionLoadingUserId(u.id);
+                                  try {
+                                    await onKickSession(u.id);
+                                  } finally {
+                                    setActionLoadingUserId(null);
+                                  }
+                                }}
+                                className="py-1 px-2.5 bg-red-100 hover:bg-red-200 dark:bg-red-950 dark:hover:bg-red-900 text-red-700 dark:text-red-300 rounded-lg font-semibold text-[11px] transition disabled:opacity-50"
+                              >
+                                {isBusy ? '...' : 'Kick Sesi'}
+                              </button>
+                            )}
+                            <button
+                              type="button"
+                              disabled={isBusy}
+                              onClick={async () => {
+                                setActionLoadingUserId(u.id);
+                                try {
+                                  await onAddCredit(u.id, 7);
+                                } finally {
+                                  setActionLoadingUserId(null);
+                                }
+                              }}
+                              className="py-1 px-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-semibold text-[11px] transition shadow disabled:opacity-50"
+                            >
+                              +7 Hari
+                            </button>
+                            <button
+                              type="button"
+                              disabled={isBusy}
+                              onClick={async () => {
+                                setActionLoadingUserId(u.id);
+                                try {
+                                  await onAddCredit(u.id, 30);
+                                } finally {
+                                  setActionLoadingUserId(null);
+                                }
+                              }}
+                              className="py-1 px-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg font-semibold text-[11px] transition border border-slate-700 disabled:opacity-50"
+                            >
+                              +30 Hari
+                            </button>
+                            {onDeleteUser && (
+                              <button
+                                type="button"
+                                title="Hapus pengguna ini dari database"
+                                disabled={isBusy}
+                                onClick={async () => {
+                                  if (confirm(`Yakin ingin menghapus peserta ${u.name} (${u.email}) secara permanen dari database?`)) {
+                                    setActionLoadingUserId(u.id);
+                                    try {
+                                      await onDeleteUser(u.id);
+                                    } finally {
+                                      setActionLoadingUserId(null);
+                                    }
+                                  }
+                                }}
+                                className="p-1.5 text-slate-400 hover:text-red-600 dark:hover:text-red-400 transition rounded-lg hover:bg-red-50 dark:hover:bg-red-950/50 disabled:opacity-50"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
               </tbody>
             </table>
           </div>
@@ -577,10 +712,34 @@ Pembahasan: Laki-laki mengusulkan 10:30.`);
       {/* Tab 4: Transactions */}
       {activeTab === 'TRANSACTIONS' && (
         <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 shadow-xl border border-slate-200 dark:border-slate-800 space-y-6">
-          <div className="border-b pb-4 border-slate-200 dark:border-slate-800">
-            <h2 className="text-lg font-bold text-slate-900 dark:text-white">
-              Riwayat Pembayaran & Transaksi Paket
-            </h2>
+          <div className="flex flex-wrap items-center justify-between border-b pb-4 border-slate-200 dark:border-slate-800 gap-4">
+            <div>
+              <h2 className="text-lg font-bold text-slate-900 dark:text-white">
+                Riwayat Pembayaran & Transaksi Paket ({transactions.length} Total Transaksi)
+              </h2>
+              <p className="text-xs text-slate-500 dark:text-slate-400">
+                Data transaksi pembayaran real-time dari database MySQL & DOKU Payment Gateway
+              </p>
+            </div>
+
+            {onRefreshData && (
+              <button
+                type="button"
+                onClick={async () => {
+                  setIsRefreshing(true);
+                  try {
+                    await onRefreshData();
+                  } finally {
+                    setIsRefreshing(false);
+                  }
+                }}
+                disabled={isRefreshing}
+                className="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold transition flex items-center gap-1.5 border border-slate-200 dark:border-slate-700 shadow-sm"
+              >
+                <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin text-indigo-500' : ''}`} />
+                {isRefreshing ? 'Memuat Ulang...' : 'Sinkronkan Transaksi'}
+              </button>
+            )}
           </div>
 
           <div className="overflow-x-auto">
@@ -588,6 +747,7 @@ Pembahasan: Laki-laki mengusulkan 10:30.`);
               <thead>
                 <tr className="border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/50 text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider">
                   <th className="p-3">ID Transaksi</th>
+                  <th className="p-3">Waktu</th>
                   <th className="p-3">Peserta</th>
                   <th className="p-3">Paket</th>
                   <th className="p-3">Nominal</th>
@@ -596,22 +756,39 @@ Pembahasan: Laki-laki mengusulkan 10:30.`);
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                {transactions.map((tx) => (
-                  <tr key={tx.id}>
-                    <td className="p-3 font-mono text-[11px] text-slate-500">{tx.id}</td>
-                    <td className="p-3 font-semibold text-slate-900 dark:text-white">{tx.userName}</td>
-                    <td className="p-3 text-slate-700 dark:text-slate-300">{tx.packageName}</td>
-                    <td className="p-3 font-bold text-indigo-600 dark:text-indigo-400">
-                      Rp {tx.amount.toLocaleString('id-ID')}
-                    </td>
-                    <td className="p-3 text-slate-500">{tx.paymentMethod}</td>
-                    <td className="p-3">
-                      <span className="px-2.5 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 font-bold text-[10px]">
-                        {tx.status}
-                      </span>
+                {transactions.length === 0 ? (
+                  <tr>
+                    <td colSpan={7} className="text-center py-8 text-slate-400">
+                      Belum ada transaksi di database.
                     </td>
                   </tr>
-                ))}
+                ) : (
+                  transactions.map((tx) => (
+                    <tr key={tx.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition">
+                      <td className="p-3 font-mono text-[11px] text-slate-500">{tx.id}</td>
+                      <td className="p-3 text-[11px] text-slate-400">
+                        {tx.createdAt ? new Date(tx.createdAt).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '-'}
+                      </td>
+                      <td className="p-3 font-semibold text-slate-900 dark:text-white">{tx.userName}</td>
+                      <td className="p-3 text-slate-700 dark:text-slate-300">{tx.packageName}</td>
+                      <td className="p-3 font-bold text-indigo-600 dark:text-indigo-400">
+                        Rp {tx.amount.toLocaleString('id-ID')}
+                      </td>
+                      <td className="p-3 text-slate-500">{tx.paymentMethod}</td>
+                      <td className="p-3">
+                        <span className={`px-2.5 py-0.5 rounded-full font-bold text-[10px] ${
+                          tx.status === 'PAID'
+                            ? 'bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300'
+                            : tx.status === 'PENDING'
+                            ? 'bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-300'
+                            : 'bg-red-100 dark:bg-red-950 text-red-700 dark:text-red-300'
+                        }`}>
+                          {tx.status}
+                        </span>
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>

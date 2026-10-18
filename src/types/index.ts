@@ -96,7 +96,7 @@ export interface Transaction {
   packageName: string;
   amount: number;
   paymentMethod: string; // e.g. "QRIS", "BCA Virtual Account", "Mandiri VA"
-  status: 'PENDING' | 'PAID' | 'FAILED';
+  status: 'PENDING' | 'PAID' | 'FAILED' | 'EXPIRED';
   createdAt: string;
   paymentCode?: string;
   howToPayUrl?: string;
