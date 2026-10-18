@@ -67,6 +67,7 @@ declare global {
     packages: TryoutPackage[];
     transactions: Transaction[];
     pdfDrafts: PDFQuestionDraft[];
+    examSets: ExamSet[];
   } | undefined;
 }
 
@@ -162,7 +163,9 @@ globalThis.__kondangStore = globalThis.__kondangStore || {
 
   transactions: [],
 
-  pdfDrafts: []
+  pdfDrafts: [],
+
+  examSets: [...EXAM_SETS]
 };
 
 export const DEFAULT_PACKAGES: TryoutPackage[] = [
@@ -208,6 +211,9 @@ export const getStore = () => {
   // Ensure default packages list is always up-to-date even if global was previously cached
   if (!store.packages || !store.packages.some(p => p.id === 'pkg_special_1h')) {
     store.packages = DEFAULT_PACKAGES;
+  }
+  if (!store.examSets || store.examSets.length === 0) {
+    store.examSets = [...EXAM_SETS];
   }
   return store;
 };
@@ -397,56 +403,54 @@ export function parsePdfTextToQuestions(
   const drafts: PDFQuestionDraft[] = [];
 
   // Check if Japanese Exam Sequential numbering (Q1-Q4 visual, Q5..N text)
-  const q5Match = text.search(/(?:^|\n)\s*5[\.．\:]\s*/);
+  const q5Match = text.search(/(?:^|\n)\s*5[\.．\:\・]\s*/);
   const visualDrafts: { q: number; opts: string[] }[] = [];
 
   if (q5Match !== -1) {
     const visualPart = text.substring(0, q5Match);
     text = text.substring(q5Match);
 
-    const cleanVisual = visualPart.replace(/お名前：[^\n]+/g, '').replace(/もじ・ごい/g, '');
-    const regex = /(?:^|\n)\s*(?:(1)[\.．]\s*(?:1[\.．]\s*)?|([2-4])[\.．]\s*1[\.．]\s*)/g;
-    let m;
-    const matches: { q: number; idx: number }[] = [];
-    while ((m = regex.exec(cleanVisual)) !== null) {
-      const qNum = parseInt(m[1] || m[2], 10);
-      if (matches.length === 0 && qNum === 1) {
-        matches.push({ q: 1, idx: m.index });
-      } else if (matches.length > 0 && qNum === matches[matches.length - 1].q + 1 && qNum <= 4) {
-        matches.push({ q: qNum, idx: m.index });
-      }
-    }
+    let t = visualPart
+      .replace(/[０-９]/g, (ch) => String.fromCharCode(ch.charCodeAt(0) - 0xfee0))
+      .replace(/[．・]/g, '.')
+      .replace(/\r\n/g, '\n');
 
-    for (let i = 0; i < matches.length; i++) {
-      const qNum = matches[i].q;
-      const start = matches[i].idx;
-      const end = i + 1 < matches.length ? matches[i + 1].idx : cleanVisual.length;
-      const block = cleanVisual.substring(start, end).trim();
+    t = t.replace(/(?:^|\n)\s*\d+\s*\n/g, '\n');
+    t = t.replace(/お名前：[^\n]+/g, '');
+    t = t.replace(/もじ[\.\s・]*ごい/g, '');
+    t = t.replace(/(?:^|\n)\s*[1-4]\.\s*(?=1\.)/g, '\n');
+    t = t.replace(/\t\s*[1-4]\.\s*/g, '\n');
+    t = t.replace(/(?:^|\n)\s*[1-4]\.\s*(?=\n)/g, '\n');
 
-      const lines = block.split('\n').map((l) => l.trim()).filter(Boolean);
+    const qBlocks = t.split(/(?:^|\n)\s*(?=1\.)/).filter((b) => b.trim());
+
+    qBlocks.forEach((block) => {
+      if (!block.includes('2.') || !block.includes('3.')) return;
+      if (visualDrafts.length >= 4) return;
+
+      const optParts = block.split(/(?:^|\n|\s{2,}|\s)(?=[1-3]\.)/).filter((p) => p.trim());
       const opts: string[] = [];
-
-      const firstLineOpt = lines[0].replace(/^[1-4][\.．]\s*(?:1[\.．]\s*)?/, '').trim();
-      if (firstLineOpt) {
-        opts.push(firstLineOpt);
-      }
-
-      for (let l = 1; l < lines.length; l++) {
-        const line = lines[l];
-        const optMatch = line.match(/^(?:[1-3][\.．]\s*)+(.*)$/);
-        if (optMatch) {
-          const val = optMatch[1].trim();
-          if (val) opts.push(val);
-        } else if (!line.match(/^[1-4][\.．]/) && !line.includes('年') && !line.includes('月')) {
-          if (opts.length > 0 && /^[ぁ-ん\s]+$/.test(line)) {
-            const furigana = line.replace(/\s+/g, '');
-            opts[opts.length - 1] = `${opts[opts.length - 1]} (${furigana})`;
+      optParts.forEach((part) => {
+        const clean = part.replace(/^[1-3]\.\s*/, '').trim();
+        const lines = clean.split('\n').map((l) => l.trim()).filter(Boolean);
+        let optText = lines[0] || '';
+        for (let l = 1; l < lines.length; l++) {
+          const line = lines[l];
+          if (/[\u4e00-\u9faf]/.test(optText) && /^[ぁ-ん\s]+$/.test(line)) {
+            optText += ` (${line.replace(/\s+/g, '')})`;
+          } else if (!line.match(/^[1-4]\./)) {
+            optText += ` ${line}`;
           }
         }
-      }
+        if (optText.trim() && optText.length < 60) {
+          opts.push(optText.trim());
+        }
+      });
 
-      visualDrafts.push({ q: qNum, opts });
-    }
+      if (opts.length >= 2) {
+        visualDrafts.push({ q: visualDrafts.length + 1, opts });
+      }
+    });
   }
 
   // Add visual questions 1..4
@@ -480,7 +484,7 @@ export function parsePdfTextToQuestions(
   });
 
   // Match each question header from 5. to 50.
-  const qRegex = /(?:^|\n)\s*(\d{1,2})[\.．\:]\s*/g;
+  const qRegex = /(?:^|\n)\s*(\d{1,2})[\.．\:\・]\s*/g;
   let match;
   const rawMatches: { index: number; length: number; num: number }[] = [];
   while ((match = qRegex.exec(text)) !== null) {
@@ -521,13 +525,13 @@ export function parsePdfTextToQuestions(
       }
 
       // Split options
-      const optParts = block.split(/(?:^|\n|\s{2,}|\s)(?=[1-4][\.．\)])/);
+      const optParts = block.split(/(?:^|\n|\s{2,}|\s)(?=[1-4][\.．\)\・])/);
       let qText = optParts[0]?.trim() || '';
       const options: { key: 'A' | 'B' | 'C' | 'D'; text: string }[] = [];
 
       if (optParts.length > 1) {
         for (let p = 1; p < optParts.length; p++) {
-          const item = optParts[p].replace(/^[1-4][\.．\)]\s*/, '').trim();
+          const item = optParts[p].replace(/^[1-4][\.．\)\・]\s*/, '').trim();
           if (item && options.length < 4) {
             options.push({
               key: String.fromCharCode(65 + options.length) as 'A' | 'B' | 'C' | 'D',

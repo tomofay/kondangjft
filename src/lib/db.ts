@@ -114,8 +114,21 @@ export async function initDatabase() {
         await connection.query(`ALTER TABLE transactions ADD COLUMN expiredAt VARCHAR(64) NULL AFTER howToPayUrl`);
       } catch {}
 
-      // 5. Auto Seed & Sync Bank Soal (Paket 1 - 4)
+      // 5. Exam Sets Table (Paket Bank Soal Dinamis)
+      await connection.query(`
+        CREATE TABLE IF NOT EXISTS exam_sets (
+          id INT PRIMARY KEY,
+          name VARCHAR(255) NOT NULL,
+          code VARCHAR(64) NOT NULL,
+          description TEXT NOT NULL,
+          totalQuestions INT NOT NULL DEFAULT 50,
+          createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+      `);
+
+      // 6. Auto Seed & Sync Bank Soal (Paket 1 - 4)
       await syncQuestionsToDatabase(connection);
+      await syncExamSetsToDatabase(connection);
 
       isInitialized = true;
       console.log('✅ MySQL database tables in db_kondangsensei verified/created successfully.');
@@ -124,6 +137,39 @@ export async function initDatabase() {
     }
   } catch (err) {
     console.warn('⚠️ Could not connect to MySQL server or initialize tables:', err instanceof Error ? err.message : err);
+  }
+}
+
+/**
+ * Synchronizes default Exam Sets (Paket 1 - 4) to MySQL database if empty.
+ */
+export async function syncExamSetsToDatabase(existingConn?: mysql.PoolConnection) {
+  const conn = existingConn || (await pool.getConnection());
+  try {
+    const [countRows] = await conn.query<any[]>('SELECT COUNT(*) as count FROM exam_sets');
+    const count = countRows?.[0]?.count || 0;
+    if (count === 0) {
+      const { EXAM_SETS } = await import('./dataStore');
+      for (const set of EXAM_SETS) {
+        await conn.query(
+          `INSERT INTO exam_sets (id, name, code, description, totalQuestions)
+           VALUES (?, ?, ?, ?, ?)
+           ON DUPLICATE KEY UPDATE
+             name = VALUES(name),
+             code = VALUES(code),
+             description = VALUES(description),
+             totalQuestions = VALUES(totalQuestions)`,
+          [set.id, set.name, set.code, set.description, set.totalQuestions]
+        );
+      }
+      console.log('✅ Berhasil menyinkronkan daftar paket awal (Paket 1 - 4) ke MySQL.');
+    }
+  } catch (err) {
+    console.warn('⚠️ Gagal menyinkronkan exam_sets ke MySQL:', err);
+  } finally {
+    if (!existingConn) {
+      conn.release();
+    }
   }
 }
 

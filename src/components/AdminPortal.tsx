@@ -11,6 +11,7 @@ interface AdminPortalProps {
   questions: Question[];
   transactions: Transaction[];
   pdfDrafts: PDFQuestionDraft[];
+  examSets?: import('../types').ExamSet[];
   onKickSession: (userId: string) => Promise<void> | void;
   onAddCredit: (userId: string, count: number) => Promise<void> | void;
   onChangeRole?: (userId: string, newRole: 'user' | 'admin') => Promise<void> | void;
@@ -28,6 +29,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
   questions,
   transactions,
   pdfDrafts,
+  examSets = [],
   onKickSession,
   onAddCredit,
   onChangeRole,
@@ -58,6 +60,26 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
   const pdfFileInputRef = useRef<HTMLInputElement | null>(null);
   const draftSpecificImageInputRef = useRef<HTMLInputElement | null>(null);
   const [activeDraftIdForImage, setActiveDraftIdForImage] = useState<string | null>(null);
+
+  const allExamSets = examSets && examSets.length > 0 ? examSets : [
+    { id: 1, name: 'Paket Ujian #1 (Simulasi Utama)', code: 'JFT-SET-A', description: '50 Soal standar asli JFT-Basic.', totalQuestions: 50 },
+    { id: 2, name: 'Paket Ujian #2 (Intensif Kosakata & Tata Bahasa)', code: 'JFT-SET-B', description: '50 Soal variasi tata bahasa A2.', totalQuestions: 50 },
+    { id: 3, name: 'Paket Ujian #3 (Master Chōkai Pendengaran)', code: 'JFT-SET-C', description: '50 Soal simulasi audio.', totalQuestions: 50 },
+    { id: 4, name: 'Paket Ujian #4 (Tryout Spesial Final Test)', code: 'JFT-SET-D', description: '50 Soal komprehensif.', totalQuestions: 50 }
+  ];
+
+  const nextPackageId = Math.max(...allExamSets.map((s) => s.id), 4) + 1;
+  const nextLetter = String.fromCharCode(64 + Math.min(nextPackageId, 26));
+
+  const [publishMode, setPublishMode] = useState<'new_package' | 'existing_package'>('new_package');
+  const [newPackageName, setNewPackageName] = useState(`Paket Ujian #${nextPackageId} (Simulasi JFT-Basic Baru)`);
+  const [newPackageCode, setNewPackageCode] = useState(`JFT-SET-${nextLetter}`);
+  const [newPackageDescription, setNewPackageDescription] = useState('Paket simulasi hasil impor dokumen PDF lengkap dengan gambar & pembahasan.');
+
+  useEffect(() => {
+    setNewPackageName(`Paket Ujian #${nextPackageId} (Simulasi JFT-Basic Baru)`);
+    setNewPackageCode(`JFT-SET-${nextLetter}`);
+  }, [nextPackageId, nextLetter]);
 
   // Sync local drafts when pdfDrafts prop updates
   useEffect(() => {
@@ -319,13 +341,40 @@ B：いえ、だいじょうぶですよ。
     }
   };
 
-  // Simpan Seluruh Draf Soal ke Paket Ujian (MySQL)
+  // Simpan Seluruh Draf Soal ke Paket Ujian Baru / Yang Ada (MySQL & Halaman Depan)
   const handleSaveAllDraftsToPackage = async () => {
     if (localDrafts.length === 0) return;
     setIsSavingBatch(true);
     setBatchSaveSuccess('');
 
     try {
+      let finalPkgId = targetPackageId;
+      let finalPkgName = `Paket #${targetPackageId}`;
+
+      if (publishMode === 'new_package') {
+        finalPkgId = nextPackageId;
+        finalPkgName = newPackageName.trim() || `Paket Ujian #${nextPackageId}`;
+        const finalCode = newPackageCode.trim() || `JFT-SET-${nextLetter}`;
+        const finalDesc = newPackageDescription.trim() || `Simulasi ${localDrafts.length} soal JFT-Basic hasil impor dokumen PDF.`;
+
+        // 1. Buat paket ujian baru via API
+        const setRes = await fetch('/api/exam-sets', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            id: finalPkgId,
+            name: finalPkgName,
+            code: finalCode,
+            description: finalDesc,
+            totalQuestions: localDrafts.length
+          })
+        });
+        const setData = await setRes.json();
+        if (!setData.success) {
+          throw new Error(setData.message || 'Gagal membuat paket ujian baru');
+        }
+      }
+
       const maxId = questions.length > 0 ? Math.max(...questions.map((q) => q.id)) : 0;
       const secTitles: Record<SectionType, string> = {
         S1: 'Seksi 1 - 文字と語彙 (Huruf & Kosakata)',
@@ -336,7 +385,7 @@ B：いえ、だいじょうぶですよ。
 
       const newQuestions: Question[] = localDrafts.map((d, idx) => ({
         id: maxId + idx + 1,
-        packageId: targetPackageId,
+        packageId: finalPkgId,
         section: d.section,
         sectionTitle: d.sectionTitle || secTitles[d.section] || d.section,
         number: d.number || idx + 1,
@@ -359,14 +408,15 @@ B：いえ、だいじょうぶですよ。
         });
         const data = await res.json();
         if (!data.success) throw new Error(data.message || 'Gagal menyimpan batch soal');
-        if (onRefreshData) await onRefreshData();
       }
 
-      setBatchSaveSuccess(`Alhamdulillah! Berhasil menyimpan ${newQuestions.length} soal lengkap ke Paket #${targetPackageId}!`);
+      if (onRefreshData) await onRefreshData();
+
+      setBatchSaveSuccess(`🎉 Alhamdulillah! Berhasil menerbitkan ${newQuestions.length} soal lengkap ke '${finalPkgName}'! Paket ujian ini langsung aktif dan dapat dikerjakan siswa di Halaman Depan.`);
       setLocalDrafts([]);
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
-      alert('Gagal menyimpan batch soal: ' + msg);
+      alert('Gagal menerbitkan paket soal: ' + msg);
     } finally {
       setIsSavingBatch(false);
     }
@@ -1157,39 +1207,132 @@ B：いえ、だいじょうぶですよ。
                   </p>
                 </div>
 
-                <div className="flex flex-wrap items-center gap-3">
-                  <div className="flex items-center gap-2 bg-slate-950 px-3 py-1.5 rounded-xl border border-slate-800 text-xs">
-                    <span className="font-bold text-slate-300">Simpan ke:</span>
-                    <select
-                      value={targetPackageId}
-                      onChange={(e) => setTargetPackageId(Number(e.target.value))}
-                      className="bg-transparent text-amber-400 font-bold focus:outline-none cursor-pointer"
-                    >
-                      <option value={1} className="bg-slate-900 text-white">Paket #1 (Simulasi Utama)</option>
-                      <option value={2} className="bg-slate-900 text-white">Paket #2 (Intensif)</option>
-                      <option value={3} className="bg-slate-900 text-white">Paket #3 (Master Chokai)</option>
-                      <option value={4} className="bg-slate-900 text-white">Paket #4 (Tryout Spesial)</option>
-                    </select>
+                {/* Panel Tujuan Penerbitan Paket Ujian (Baru vs Ada) */}
+                <div className="w-full p-4 rounded-2xl bg-indigo-950/40 border border-indigo-800/70 space-y-3">
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <div>
+                      <h4 className="text-xs font-black text-white flex items-center gap-1.5">
+                        <Sparkles className="w-4 h-4 text-amber-400" />
+                        Tujuan Penerbitan Soal Ujian
+                      </h4>
+                      <p className="text-[11px] text-slate-300">
+                        Pilih untuk membuat paket soal baru agar langsung muncul di Halaman Depan atau simpan ke paket lama
+                      </p>
+                    </div>
+
+                    {/* Mode Toggle Buttons */}
+                    <div className="flex p-1 bg-slate-950 rounded-xl border border-slate-800 text-xs">
+                      <button
+                        type="button"
+                        onClick={() => setPublishMode('new_package')}
+                        className={`px-3 py-1.5 rounded-lg font-bold transition flex items-center gap-1.5 ${
+                          publishMode === 'new_package'
+                            ? 'bg-gradient-to-r from-red-600 to-rose-600 text-white shadow'
+                            : 'text-slate-400 hover:text-white'
+                        }`}
+                      >
+                        <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+                        Buat Paket Ujian Baru (Halaman Depan)
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setPublishMode('existing_package')}
+                        className={`px-3 py-1.5 rounded-lg font-bold transition flex items-center gap-1.5 ${
+                          publishMode === 'existing_package'
+                            ? 'bg-slate-800 text-white shadow'
+                            : 'text-slate-400 hover:text-white'
+                        }`}
+                      >
+                        <Layers className="w-3.5 h-3.5 text-indigo-400" />
+                        Simpan ke Paket yang Ada
+                      </button>
+                    </div>
                   </div>
 
-                  <button
-                    type="button"
-                    onClick={handleSaveAllDraftsToPackage}
-                    disabled={isSavingBatch}
-                    className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-black text-xs transition flex items-center gap-2 shadow-lg shadow-emerald-900/30 disabled:opacity-50"
-                  >
-                    {isSavingBatch ? (
-                      <>
-                        <RefreshCw className="w-4 h-4 animate-spin text-white" />
-                        <span>Menyimpan ke Database...</span>
-                      </>
-                    ) : (
-                      <>
-                        <Check className="w-4 h-4 text-emerald-200" />
-                        <span>Simpan Semua {localDrafts.length} Soal ke Paket #{targetPackageId}</span>
-                      </>
-                    )}
-                  </button>
+                  {publishMode === 'new_package' ? (
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1 text-xs">
+                      <div className="space-y-1">
+                        <label className="font-bold text-slate-200 flex items-center gap-1">
+                          Nama Paket Ujian Baru:
+                        </label>
+                        <input
+                          type="text"
+                          value={newPackageName}
+                          onChange={(e) => setNewPackageName(e.target.value)}
+                          placeholder={`Paket Ujian #${nextPackageId} (Simulasi Baru)`}
+                          className="w-full p-2.5 bg-slate-950 border border-slate-800 rounded-xl text-white font-bold text-xs focus:ring-2 focus:ring-red-500 focus:outline-none"
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="font-bold text-slate-200 flex items-center gap-1">
+                          Kode Paket:
+                        </label>
+                        <input
+                          type="text"
+                          value={newPackageCode}
+                          onChange={(e) => setNewPackageCode(e.target.value)}
+                          placeholder={`JFT-SET-${nextLetter}`}
+                          className="w-full p-2.5 bg-slate-950 border border-slate-800 rounded-xl text-amber-400 font-mono font-bold text-xs focus:ring-2 focus:ring-red-500 focus:outline-none"
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="font-bold text-slate-200 flex items-center gap-1">
+                          Deskripsi Paket:
+                        </label>
+                        <input
+                          type="text"
+                          value={newPackageDescription}
+                          onChange={(e) => setNewPackageDescription(e.target.value)}
+                          placeholder={`Simulasi ${localDrafts.length} soal JFT-Basic hasil impor PDF.`}
+                          className="w-full p-2.5 bg-slate-950 border border-slate-800 rounded-xl text-slate-300 text-xs focus:ring-2 focus:ring-red-500 focus:outline-none"
+                        />
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2 bg-slate-950 p-2.5 rounded-xl border border-slate-800 text-xs max-w-sm">
+                      <span className="font-bold text-slate-300">Pilih Paket:</span>
+                      <select
+                        value={targetPackageId}
+                        onChange={(e) => setTargetPackageId(Number(e.target.value))}
+                        className="bg-transparent text-amber-400 font-bold focus:outline-none cursor-pointer flex-1"
+                      >
+                        {allExamSets.map((s) => (
+                          <option key={s.id} value={s.id} className="bg-slate-900 text-white">
+                            Paket #{s.id} - {s.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
+
+                  <div className="pt-2 flex flex-wrap items-center justify-between border-t border-indigo-900/60 gap-3">
+                    <div className="text-[11px] text-slate-300">
+                      Total Draf: <strong className="text-white font-mono">{localDrafts.length} soal</strong> • Gambar terpasang: <strong className="text-emerald-400 font-mono">{localDrafts.filter((d) => d.imageUrl).length} gambar</strong>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={handleSaveAllDraftsToPackage}
+                      disabled={isSavingBatch}
+                      className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-red-600 via-rose-600 to-amber-600 hover:from-red-700 hover:to-amber-700 text-white font-black text-xs transition flex items-center gap-2 shadow-xl shadow-red-600/30 disabled:opacity-50"
+                    >
+                      {isSavingBatch ? (
+                        <>
+                          <RefreshCw className="w-4 h-4 animate-spin text-white" />
+                          <span>Menerbitkan Paket Baru...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles className="w-4 h-4 text-amber-300" />
+                          <span>
+                            {publishMode === 'new_package'
+                              ? `Terbitkan Paket Ujian Baru (#${nextPackageId}) Langsung ke Halaman Depan`
+                              : `Simpan Semua ${localDrafts.length} Soal ke Paket #${targetPackageId}`}
+                          </span>
+                        </>
+                      )}
+                    </button>
+                  </div>
                 </div>
               </div>
 

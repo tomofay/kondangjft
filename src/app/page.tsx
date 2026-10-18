@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { User, Question, ExamResult, TryoutPackage, Transaction, UserAnswer, PDFQuestionDraft } from '../types';
+import { User, Question, ExamResult, TryoutPackage, Transaction, UserAnswer, PDFQuestionDraft, ExamSet } from '../types';
 import { getStore, isSubscriptionActive, getRemainingDays, getRemainingSubscriptionText, EXAM_SETS } from '../lib/dataStore';
 import { Navbar } from '../components/Navbar';
 import { SingleSessionLockModal } from '../components/SingleSessionLockModal';
@@ -54,8 +54,9 @@ export default function HomePage() {
   // Active view: 'dashboard' | 'exam' | 'report' | 'review' | 'admin'
   const [view, setView] = useState<'dashboard' | 'exam' | 'report' | 'review' | 'admin'>('dashboard');
 
-  // App Data & Selected Question Package (1, 2, 3, 4)
+  // App Data & Selected Question Package (1, 2, 3, 4, 5, ...)
   const [questions, setQuestions] = useState<Question[]>(() => getStore().questions);
+  const [examSets, setExamSets] = useState<ExamSet[]>(() => getStore().examSets || EXAM_SETS);
   const [selectedPackageId, setSelectedPackageId] = useState<number>(1);
   const [examResults, setExamResults] = useState<ExamResult[]>(() => getStore().examResults);
   const [packages] = useState<TryoutPackage[]>(() => getStore().packages);
@@ -247,19 +248,41 @@ export default function HomePage() {
   }, [currentUser?.id]);
 
   // Load questions from MySQL database on initial mount
+  // Load questions and dynamic exam sets from MySQL
+  const loadExamSets = useCallback(async () => {
+    try {
+      const res = await fetch('/api/exam-sets');
+      const data = await res.json();
+      if (data.success && Array.isArray(data.examSets) && data.examSets.length > 0) {
+        setExamSets(data.examSets);
+      }
+    } catch (err) {
+      console.warn('Failed to load examSets from API:', err);
+    }
+  }, []);
+
   useEffect(() => {
-    async function loadQuestionsFromDb() {
+    async function loadInitialData() {
       try {
-        const res = await fetch('/api/questions');
-        const data = await res.json();
-        if (data.success && Array.isArray(data.questions) && data.questions.length > 0) {
-          setQuestions(data.questions);
+        const [qRes, setsRes] = await Promise.all([
+          fetch('/api/questions'),
+          fetch('/api/exam-sets')
+        ]);
+        const [qData, setsData] = await Promise.all([
+          qRes.json(),
+          setsRes.json()
+        ]);
+        if (qData.success && Array.isArray(qData.questions) && qData.questions.length > 0) {
+          setQuestions(qData.questions);
+        }
+        if (setsData.success && Array.isArray(setsData.examSets) && setsData.examSets.length > 0) {
+          setExamSets(setsData.examSets);
         }
       } catch (err) {
-        console.warn('Failed to load questions from API:', err);
+        console.warn('Failed to load initial questions/examSets:', err);
       }
     }
-    loadQuestionsFromDb();
+    loadInitialData();
   }, []);
 
   // Load Admin Data (Users & Transactions from MySQL)
@@ -833,11 +856,20 @@ export default function HomePage() {
             questions={questions}
             transactions={transactions}
             pdfDrafts={pdfDrafts}
+            examSets={examSets}
             onKickSession={handleKickSession}
             onAddCredit={handleAddCredit}
             onChangeRole={handleChangeRole}
             onDeleteUser={handleDeleteUser}
-            onRefreshData={loadAdminData}
+            onRefreshData={async () => {
+              await Promise.all([
+                loadAdminData(),
+                loadExamSets(),
+                fetch('/api/questions').then((r) => r.json()).then((d) => {
+                  if (d.success && Array.isArray(d.questions)) setQuestions(d.questions);
+                })
+              ]);
+            }}
             onImportPdfText={handleImportPdfText}
             onImportPdfFile={handleImportPdfFile}
             onSaveBatchQuestions={handleSaveBatchQuestions}
@@ -949,20 +981,20 @@ export default function HomePage() {
               </div>
             </div>
 
-            {/* Question Packages Selection Grid (Pilihan Paket 1 - 4) */}
+            {/* Question Packages Selection Grid (Pilihan Paket Soal Dinamis) */}
             <div className="bg-slate-900 rounded-3xl p-6 border border-slate-800 space-y-4 shadow-xl">
               <div className="flex flex-wrap items-center justify-between border-b pb-4 border-slate-800 gap-2">
                 <div>
                   <h2 className="text-lg font-bold text-white flex items-center gap-2">
                     <Layers className="w-5 h-5 text-indigo-400" />
-                    Pilihan Paket Bank Soal Ujian JFT-Basic ({EXAM_SETS.length} Paket Soal Tersedia)
+                    Pilihan Paket Bank Soal Ujian JFT-Basic ({examSets.length} Paket Soal Tersedia)
                   </h2>
-                  <p className="text-xs text-slate-400">Pilih salah satu dari 4 paket simulasi 50 soal yang ingin Anda kerjakan hari ini</p>
+                  <p className="text-xs text-slate-400">Pilih salah satu dari {examSets.length} paket simulasi soal yang ingin Anda kerjakan hari ini</p>
                 </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {EXAM_SETS.map((set) => {
+                {examSets.map((set) => {
                   const setQuestionCount = questions.filter((q) => (q.packageId || 1) === set.id).length;
                   const isSelected = selectedPackageId === set.id;
                   return (
@@ -980,7 +1012,7 @@ export default function HomePage() {
                             {set.code}
                           </span>
                           <span className="text-[11px] font-semibold text-emerald-400 bg-emerald-950/60 px-2 py-0.5 rounded border border-emerald-800">
-                            {setQuestionCount} Soal Aktif
+                            {setQuestionCount > 0 ? `${setQuestionCount} Soal Aktif` : `${set.totalQuestions} Soal Terjadwal`}
                           </span>
                         </div>
                         <h3 className="text-base font-bold text-white">{set.name}</h3>
@@ -991,7 +1023,7 @@ export default function HomePage() {
                         <span className="text-[11px] text-slate-500">Seksi S1, S2, S3, S4</span>
                         <button
                           onClick={() => handleStartExam(set.id)}
-                          className="py-2.5 px-4 bg-indigo-600 hover:bg-indigo-500 text-white font-extrabold text-xs rounded-xl shadow transition flex items-center gap-1.5"
+                          className="py-2.5 px-4 bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 text-white font-extrabold text-xs rounded-xl shadow transition flex items-center gap-1.5"
                         >
                           <Play className="w-3.5 h-3.5 fill-white" />
                           Kerjakan Paket #{set.id}
