@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Question, UserAnswer } from '../types';
-import { CheckCircle2, XCircle, HelpCircle, ArrowLeft, Filter, BookOpen } from 'lucide-react';
+import { CheckCircle2, XCircle, HelpCircle, ArrowLeft, Filter, BookOpen, ZoomIn, ZoomOut, RotateCcw, X } from 'lucide-react';
 
 interface QuestionReviewProps {
   questions: Question[];
@@ -17,6 +17,18 @@ export const QuestionReview: React.FC<QuestionReviewProps> = ({
 }) => {
   const [filter, setFilter] = useState<'ALL' | 'WRONG' | 'CORRECT' | 'FLAGGED'>('ALL');
   const [selectedSection, setSelectedSection] = useState<'ALL' | 'S1' | 'S2' | 'S3' | 'S4'>('ALL');
+  const [zoomedImageUrl, setZoomedImageUrl] = useState<string | null>(null);
+  const [zoomScale, setZoomScale] = useState(1);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setZoomedImageUrl(null);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   // Helper map for answers
   const answerMap = new Map<number, UserAnswer>();
@@ -191,14 +203,27 @@ export const QuestionReview: React.FC<QuestionReviewProps> = ({
                   {q.questionText}
                 </div>
 
-                {/* Question Image if any */}
+                {/* Question Image if any (Clickable to zoom) */}
                 {q.imageUrl && (
-                  <div className="my-3 flex justify-center bg-slate-50 dark:bg-slate-950 p-2.5 rounded-xl border border-slate-200 dark:border-slate-800">
-                    <img
-                      src={q.imageUrl}
-                      alt={`Gambar Soal #${q.number}`}
-                      className="max-h-64 max-w-full rounded-lg object-contain shadow-sm"
-                    />
+                  <div className="my-3 flex justify-center">
+                    <div
+                      onClick={() => {
+                        setZoomedImageUrl(q.imageUrl!);
+                        setZoomScale(1);
+                      }}
+                      className="relative inline-block group cursor-zoom-in rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 p-1.5 shadow-sm hover:border-indigo-500 transition"
+                      title="Klik untuk memperbesar gambar"
+                    >
+                      <img
+                        src={q.imageUrl}
+                        alt={`Gambar Soal #${q.number}`}
+                        className="max-h-64 max-w-full rounded-lg object-contain transition transform group-hover:scale-[1.02]"
+                      />
+                      <div className="absolute bottom-2.5 right-2.5 px-2.5 py-1 bg-slate-900/90 text-white rounded-lg text-[11px] font-bold flex items-center gap-1.5 shadow backdrop-blur-md border border-slate-700 pointer-events-none">
+                        <ZoomIn className="w-3.5 h-3.5 text-indigo-400" />
+                        <span>Perbesar</span>
+                      </div>
+                    </div>
                   </div>
                 )}
 
@@ -271,6 +296,79 @@ export const QuestionReview: React.FC<QuestionReviewProps> = ({
           })
         )}
       </div>
+
+      {/* Image Zoom Lightbox Modal */}
+      {zoomedImageUrl && (
+        <div
+          className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-950/90 backdrop-blur-md p-4 animate-in fade-in duration-200"
+          onClick={() => setZoomedImageUrl(null)}
+        >
+          {/* Floating Controls Bar */}
+          <div
+            className="fixed top-4 z-50 flex items-center gap-2 p-1.5 bg-slate-900/90 border border-slate-700 rounded-2xl shadow-2xl backdrop-blur-md"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              type="button"
+              onClick={() => setZoomScale((s) => Math.min(3, s + 0.25))}
+              className="p-2 text-slate-300 hover:text-white hover:bg-slate-800 rounded-xl transition flex items-center gap-1 text-xs font-bold"
+              title="Perbesar"
+            >
+              <ZoomIn className="w-4 h-4" />
+              <span className="hidden sm:inline">Perbesar</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setZoomScale((s) => Math.max(0.5, s - 0.25))}
+              className="p-2 text-slate-300 hover:text-white hover:bg-slate-800 rounded-xl transition flex items-center gap-1 text-xs font-bold"
+              title="Perkecil"
+            >
+              <ZoomOut className="w-4 h-4" />
+              <span className="hidden sm:inline">Perkecil</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setZoomScale(1)}
+              className="p-2 text-slate-300 hover:text-white hover:bg-slate-800 rounded-xl transition flex items-center gap-1 text-xs font-bold"
+              title="Reset Ukuran (100%)"
+            >
+              <RotateCcw className="w-4 h-4" />
+              <span className="hidden sm:inline">{Math.round(zoomScale * 100)}%</span>
+            </button>
+
+            <div className="w-px h-5 bg-slate-700 mx-1"></div>
+
+            <button
+              type="button"
+              onClick={() => setZoomedImageUrl(null)}
+              className="p-2 text-rose-400 hover:text-white hover:bg-rose-600 rounded-xl transition flex items-center gap-1 text-xs font-bold"
+              title="Tutup (ESC)"
+            >
+              <X className="w-4 h-4" />
+              <span className="hidden sm:inline">Tutup</span>
+            </button>
+          </div>
+
+          {/* Scaled Image Container */}
+          <div
+            className="max-w-[95vw] max-h-[85vh] overflow-auto flex items-center justify-center p-2"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <img
+              src={zoomedImageUrl}
+              alt="Zoomed Review Question"
+              style={{ transform: `scale(${zoomScale})`, transformOrigin: 'center center' }}
+              className="max-w-full max-h-[80vh] rounded-2xl shadow-2xl object-contain border border-slate-700 transition-transform duration-200"
+            />
+          </div>
+
+          <p className="fixed bottom-4 text-xs text-slate-400 font-medium text-center">
+            Klik di mana saja atau tekan <kbd className="px-1.5 py-0.5 bg-slate-800 rounded border border-slate-700 font-mono text-[10px]">ESC</kbd> untuk menutup
+          </p>
+        </div>
+      )}
     </div>
   );
 };

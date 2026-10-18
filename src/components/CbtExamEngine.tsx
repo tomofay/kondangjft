@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Question, UserAnswer, User } from '../types';
-import { Clock, Bookmark, ChevronLeft, ChevronRight, Send, Volume2, AlertTriangle, BookOpen, Check } from 'lucide-react';
+import { Clock, Bookmark, ChevronLeft, ChevronRight, Send, Volume2, AlertTriangle, BookOpen, Check, ZoomIn, ZoomOut, RotateCcw, X } from 'lucide-react';
 
 interface CbtExamEngineProps {
   questions: Question[];
@@ -26,6 +26,18 @@ export const CbtExamEngine: React.FC<CbtExamEngineProps> = ({
   });
 
   const [confirmModalOpen, setConfirmModalOpen] = useState(false);
+  const [zoomedImageUrl, setZoomedImageUrl] = useState<string | null>(null);
+  const [zoomScale, setZoomScale] = useState(1);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setZoomedImageUrl(null);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   const handleFinishExam = useCallback(() => {
     const timeSpent = TOTAL_TIME - timeLeft;
@@ -260,14 +272,27 @@ export const CbtExamEngine: React.FC<CbtExamEngineProps> = ({
               </div>
             )}
 
-            {/* Image attachment if any */}
+            {/* Image attachment if any (Clickable to zoom) */}
             {currentQ.imageUrl && (
-              <div className="my-3">
-                <img
-                  src={currentQ.imageUrl}
-                  alt="Attachment"
-                  className="max-h-60 rounded-xl border border-slate-700 object-contain mx-auto"
-                />
+              <div className="my-3 text-center">
+                <div
+                  onClick={() => {
+                    setZoomedImageUrl(currentQ.imageUrl!);
+                    setZoomScale(1);
+                  }}
+                  className="relative inline-block group cursor-zoom-in rounded-2xl overflow-hidden border border-slate-700 bg-slate-950/60 p-1.5 shadow-lg hover:border-indigo-500 transition"
+                  title="Klik untuk memperbesar gambar"
+                >
+                  <img
+                    src={currentQ.imageUrl}
+                    alt="Attachment Soal"
+                    className="max-h-60 sm:max-h-72 rounded-xl object-contain mx-auto transition transform group-hover:scale-[1.02]"
+                  />
+                  <div className="absolute bottom-3 right-3 px-3 py-1.5 bg-slate-900/90 hover:bg-slate-900 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-xl backdrop-blur-md border border-slate-700 pointer-events-none group-hover:border-indigo-500">
+                    <ZoomIn className="w-3.5 h-3.5 text-indigo-400" />
+                    <span>Klik untuk Perbesar</span>
+                  </div>
+                </div>
               </div>
             )}
           </div>
@@ -457,6 +482,79 @@ export const CbtExamEngine: React.FC<CbtExamEngineProps> = ({
               </button>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Image Zoom Lightbox Modal */}
+      {zoomedImageUrl && (
+        <div
+          className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-950/90 backdrop-blur-md p-4 animate-in fade-in duration-200"
+          onClick={() => setZoomedImageUrl(null)}
+        >
+          {/* Floating Controls Bar */}
+          <div
+            className="fixed top-4 z-50 flex items-center gap-2 p-1.5 bg-slate-900/90 border border-slate-700 rounded-2xl shadow-2xl backdrop-blur-md"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              type="button"
+              onClick={() => setZoomScale((s) => Math.min(3, s + 0.25))}
+              className="p-2 text-slate-300 hover:text-white hover:bg-slate-800 rounded-xl transition flex items-center gap-1 text-xs font-bold"
+              title="Perbesar"
+            >
+              <ZoomIn className="w-4 h-4" />
+              <span className="hidden sm:inline">Perbesar</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setZoomScale((s) => Math.max(0.5, s - 0.25))}
+              className="p-2 text-slate-300 hover:text-white hover:bg-slate-800 rounded-xl transition flex items-center gap-1 text-xs font-bold"
+              title="Perkecil"
+            >
+              <ZoomOut className="w-4 h-4" />
+              <span className="hidden sm:inline">Perkecil</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setZoomScale(1)}
+              className="p-2 text-slate-300 hover:text-white hover:bg-slate-800 rounded-xl transition flex items-center gap-1 text-xs font-bold"
+              title="Reset Ukuran (100%)"
+            >
+              <RotateCcw className="w-4 h-4" />
+              <span className="hidden sm:inline">{Math.round(zoomScale * 100)}%</span>
+            </button>
+
+            <div className="w-px h-5 bg-slate-700 mx-1"></div>
+
+            <button
+              type="button"
+              onClick={() => setZoomedImageUrl(null)}
+              className="p-2 text-rose-400 hover:text-white hover:bg-rose-600 rounded-xl transition flex items-center gap-1 text-xs font-bold"
+              title="Tutup (ESC)"
+            >
+              <X className="w-4 h-4" />
+              <span className="hidden sm:inline">Tutup</span>
+            </button>
+          </div>
+
+          {/* Scaled Image Container */}
+          <div
+            className="max-w-[95vw] max-h-[85vh] overflow-auto flex items-center justify-center p-2"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <img
+              src={zoomedImageUrl}
+              alt="Zoomed Question"
+              style={{ transform: `scale(${zoomScale})`, transformOrigin: 'center center' }}
+              className="max-w-full max-h-[80vh] rounded-2xl shadow-2xl object-contain border border-slate-700 transition-transform duration-200"
+            />
+          </div>
+
+          <p className="fixed bottom-4 text-xs text-slate-400 font-medium text-center">
+            Klik di mana saja atau tekan <kbd className="px-1.5 py-0.5 bg-slate-800 rounded border border-slate-700 font-mono text-[10px]">ESC</kbd> untuk menutup
+          </p>
         </div>
       )}
     </div>
