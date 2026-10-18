@@ -100,6 +100,11 @@ export async function POST(request: Request) {
   }
 }
 
+// PUT: Update Paket Ujian (alias to POST)
+export async function PUT(request: Request) {
+  return POST(request);
+}
+
 // DELETE: Hapus Paket Ujian & Soal Terkait
 export async function DELETE(request: Request) {
   try {
@@ -107,9 +112,9 @@ export async function DELETE(request: Request) {
     const { searchParams } = new URL(request.url);
     const id = Number(searchParams.get('id'));
 
-    if (!id || id <= 4) {
+    if (!id || isNaN(id)) {
       return NextResponse.json(
-        { success: false, message: 'Paket bawaan sistem (#1 s/d #4) tidak dapat dihapus.' },
+        { success: false, message: 'ID paket ujian tidak valid.' },
         { status: 400 }
       );
     }
@@ -123,12 +128,12 @@ export async function DELETE(request: Request) {
 
     const store = getStore();
     store.examSets = store.examSets.filter((s) => s.id !== id);
-    store.questions = store.questions.filter((q) => q.packageId !== id);
+    store.questions = store.questions.filter((q) => (q.packageId || 1) !== id);
 
     return NextResponse.json({
       success: true,
       examSets: store.examSets,
-      message: `Paket #${id} beserta seluruh bank soalnya berhasil dihapus.`
+      message: `Paket #${id} beserta seluruh soal di dalamnya berhasil dihapus.`
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);

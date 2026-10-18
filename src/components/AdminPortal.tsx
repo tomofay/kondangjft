@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { User, Question, Transaction, PDFQuestionDraft, SectionType } from '../types';
-import { Users, FileText, Lock, Upload, Layers, DollarSign, BookOpen, X, ChevronLeft, ChevronRight, RefreshCw, Trash2, Shield, Image as ImageIcon, Link as LinkIcon, UploadCloud, Check, Volume2, Headphones, Sparkles, Eye, ZoomIn, AlertCircle, FileUp, FolderUp } from 'lucide-react';
+import { Users, FileText, Lock, Upload, Layers, DollarSign, BookOpen, X, ChevronLeft, ChevronRight, RefreshCw, Trash2, Shield, Image as ImageIcon, Link as LinkIcon, UploadCloud, Check, Volume2, Headphones, Sparkles, Eye, ZoomIn, AlertCircle, FileUp, FolderUp, Folder, FolderPlus, ArrowLeft, Edit3, Plus } from 'lucide-react';
 import { isSubscriptionActive, getRemainingDays, getRemainingSubscriptionText } from '../lib/dataStore';
 import { renderFormattedQuestion } from '../lib/formatQuestion';
 
@@ -96,6 +96,15 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [editingQuestion, setEditingQuestion] = useState<Question | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+
+  // Bank Soal: Tampilan Per Paket (null = Daftar Paket, number = Detail Soal Paket)
+  const [openedPackageId, setOpenedPackageId] = useState<number | null>(null);
+
+  // Package CRUD Modal State
+  const [isPackageModalOpen, setIsPackageModalOpen] = useState(false);
+  const [packageModalMode, setPackageModalMode] = useState<'create' | 'edit'>('create');
+  const [editingPackage, setEditingPackage] = useState<import('../types').ExamSet | null>(null);
+  const [isSavingPackage, setIsSavingPackage] = useState(false);
 
   // Question Image Upload State
   const fileInputRef = React.useRef<HTMLInputElement | null>(null);
@@ -461,6 +470,79 @@ B：いえ、だいじょうぶですよ。
     setLocalDrafts((prev) => prev.filter((d) => d.id !== draftId));
   };
 
+  // Paket Ujian CRUD Handlers
+  const handleOpenCreatePackage = () => {
+    setPackageModalMode('create');
+    setEditingPackage({
+      id: nextPackageId,
+      name: `Paket Ujian #${nextPackageId} (Simulasi JFT-Basic Baru)`,
+      code: `JFT-SET-${nextLetter}`,
+      description: `Paket simulasi latihan soal JFT-Basic lengkap.`,
+      totalQuestions: 50
+    });
+    setIsPackageModalOpen(true);
+  };
+
+  const handleOpenEditPackage = (pkg: import('../types').ExamSet, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    setPackageModalMode('edit');
+    setEditingPackage({ ...pkg });
+    setIsPackageModalOpen(true);
+  };
+
+  const handleSavePackage = async () => {
+    if (!editingPackage) return;
+    if (!editingPackage.name.trim()) {
+      alert('Nama paket ujian tidak boleh kosong!');
+      return;
+    }
+    setIsSavingPackage(true);
+    try {
+      const res = await fetch('/api/exam-sets', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(editingPackage)
+      });
+      const data = await res.json();
+      if (!data.success) {
+        throw new Error(data.message || 'Gagal menyimpan paket ujian');
+      }
+      if (onRefreshData) await onRefreshData();
+      setIsPackageModalOpen(false);
+      setEditingPackage(null);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      alert('Gagal menyimpan paket ujian: ' + msg);
+    } finally {
+      setIsSavingPackage(false);
+    }
+  };
+
+  const handleDeletePackage = async (pkg: import('../types').ExamSet, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    const pkgQuestions = questions.filter((q) => (q.packageId || 1) === pkg.id);
+    const confirmText = `Apakah Anda yakin ingin menghapus '${pkg.name}' (${pkg.code})?\n\nPerhatian: ${pkgQuestions.length} soal di dalam paket ini akan ikut dihapus secara permanen dari database!`;
+    if (!window.confirm(confirmText)) return;
+
+    try {
+      const res = await fetch(`/api/exam-sets?id=${pkg.id}`, {
+        method: 'DELETE'
+      });
+      const data = await res.json();
+      if (!data.success) {
+        throw new Error(data.message || 'Gagal menghapus paket ujian');
+      }
+      if (openedPackageId === pkg.id) {
+        setOpenedPackageId(null);
+      }
+      if (onRefreshData) await onRefreshData();
+      alert(`Paket '${pkg.name}' berhasil dihapus.`);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      alert('Gagal menghapus paket: ' + msg);
+    }
+  };
+
   const handleOpenEdit = (q: Question) => {
     setEditingQuestion({ ...q, options: q.options.map(o => ({ ...o })) });
     setIsEditModalOpen(true);
@@ -468,13 +550,16 @@ B：いえ、だいじょうぶですよ。
 
   const handleOpenAdd = () => {
     const nextId = questions.length > 0 ? Math.max(...questions.map((q) => q.id)) + 1 : 1;
-    const targetPkg = selectedPkgFilter > 0 ? selectedPkgFilter : 1;
+    const targetPkg = openedPackageId !== null ? openedPackageId : (selectedPkgFilter > 0 ? selectedPkgFilter : 1);
+    const pkgQuestions = questions.filter((q) => (q.packageId || 1) === targetPkg);
+    const nextNumber = pkgQuestions.length > 0 ? Math.max(...pkgQuestions.map((q) => q.number)) + 1 : 1;
+
     setEditingQuestion({
       id: nextId,
       packageId: targetPkg,
       section: 'S1',
       sectionTitle: 'Seksi 1 - 文字と語彙 (Huruf & Kosakata)',
-      number: 1,
+      number: nextNumber,
       questionText: '',
       options: [
         { key: 'A', text: '' },
@@ -499,10 +584,14 @@ B：いえ、だいじょうぶですよ。
     setEditingQuestion(null);
   };
 
-  // Filter questions list
+  // Filter questions list (jika membuka paket tertentu, filter khusus paket tersebut)
   const filteredQuestions = questions.filter((q) => {
     const pkg = q.packageId || 1;
-    if (selectedPkgFilter > 0 && pkg !== selectedPkgFilter) return false;
+    if (openedPackageId !== null) {
+      if (pkg !== openedPackageId) return false;
+    } else if (selectedPkgFilter > 0 && pkg !== selectedPkgFilter) {
+      return false;
+    }
     if (selectedSecFilter !== 'ALL' && q.section !== selectedSecFilter) return false;
     if (searchQuery.trim()) {
       const qText = (q.questionText + ' ' + q.explanation).toLowerCase();
@@ -783,96 +872,277 @@ B：いえ、だいじょうぶですよ。
         </div>
       )}
 
-      {/* Tab 2: Questions Bank */}
+      {/* Tab 2: Questions Bank & Package Management */}
       {activeTab === 'QUESTIONS' && (
         <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 shadow-xl border border-slate-200 dark:border-slate-800 space-y-6">
-          <div className="flex flex-wrap items-center justify-between gap-4 border-b pb-4 border-slate-200 dark:border-slate-800">
-            <div>
-              <h2 className="text-lg font-bold text-slate-900 dark:text-white">
-                Bank Soal JFT-Basic ({questions.length} Total Soal Dikelola)
-              </h2>
-              <p className="text-xs text-slate-500 dark:text-slate-400">
-                Edit teks soal, opsi A-D, kunci jawaban, seksi (S1-S4), dan alokasi Paket (Paket 1, 2, 3, 4)
-              </p>
-            </div>
+          {openedPackageId === null ? (
+            /* ======================================================== */
+            /* LEVEL 1: OVERVIEW DAFTAR PAKET SOAL (MANAJEMEN PAKET)   */
+            /* ======================================================== */
+            <div className="space-y-6">
+              <div className="flex flex-wrap items-center justify-between gap-4 border-b pb-4 border-slate-200 dark:border-slate-800">
+                <div>
+                  <h2 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                    <Folder className="w-5 h-5 text-indigo-500" />
+                    Bank Soal & Manajemen Paket Ujian JFT-Basic ({allExamSets.length} Paket Tersedia)
+                  </h2>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                    Klik salah satu kartu paket di bawah untuk melihat & mengelola soal di dalamnya, atau buat paket baru.
+                  </p>
+                </div>
 
-            <button
-              onClick={handleOpenAdd}
-              className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl shadow transition flex items-center gap-1.5"
-            >
-              + Tambah Soal Baru
-            </button>
-          </div>
-
-          {/* Filters: Paket & Seksi */}
-          <div className="flex flex-wrap items-center justify-between gap-3 bg-slate-50 dark:bg-slate-950 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 text-xs">
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="font-bold text-slate-700 dark:text-slate-300">Filter Paket:</span>
-              {[0, 1, 2, 3, 4].map((pkgNum) => (
                 <button
-                  key={pkgNum}
-                  onClick={() => setSelectedPkgFilter(pkgNum)}
-                  className={`px-3 py-1.5 rounded-xl font-bold transition ${
-                    selectedPkgFilter === pkgNum
-                      ? 'bg-indigo-600 text-white shadow'
-                      : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700'
-                  }`}
+                  type="button"
+                  onClick={handleOpenCreatePackage}
+                  className="px-4 py-2.5 bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-700 hover:to-indigo-600 text-white font-bold text-xs rounded-xl shadow-lg shadow-indigo-600/20 transition flex items-center gap-2"
                 >
-                  {pkgNum === 0 ? 'Semua Paket' : `Paket #${pkgNum}`}
+                  <Plus className="w-4 h-4" />
+                  Tambah Paket Soal Baru
                 </button>
-              ))}
-            </div>
-
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="font-bold text-slate-700 dark:text-slate-300">Filter Seksi:</span>
-              {['ALL', 'S1', 'S2', 'S3', 'S4'].map((sec) => (
-                <button
-                  key={sec}
-                  onClick={() => setSelectedSecFilter(sec)}
-                  className={`px-3 py-1.5 rounded-xl font-bold transition ${
-                    selectedSecFilter === sec
-                      ? 'bg-slate-800 dark:bg-slate-200 text-white dark:text-slate-900 shadow'
-                      : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700'
-                  }`}
-                >
-                  {sec === 'ALL' ? 'Semua Seksi' : sec}
-                </button>
-              ))}
-            </div>
-
-            <div className="flex items-center gap-3">
-              <div className="flex items-center gap-1.5">
-                <span className="text-slate-500 font-semibold">Tampilkan:</span>
-                <select
-                  value={pageSize}
-                  onChange={(e) => {
-                    setPageSize(Number(e.target.value));
-                    setCurrentPage(1);
-                  }}
-                  className="px-2.5 py-1.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-800 dark:text-slate-200 font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                >
-                  <option value={5}>5 Soal</option>
-                  <option value={10}>10 Soal</option>
-                  <option value={20}>20 Soal</option>
-                  <option value={50}>50 Soal</option>
-                  <option value={100}>100 Soal</option>
-                </select>
               </div>
 
-              <div className="w-full sm:w-64">
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => {
-                    setSearchQuery(e.target.value);
-                    setCurrentPage(1);
-                  }}
-                  placeholder="Cari kata kunci soal..."
-                  className="w-full px-3 py-1.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                />
+              {/* Stat Summary */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+                <div className="p-4 bg-slate-50 dark:bg-slate-950 rounded-2xl border border-slate-200 dark:border-slate-800">
+                  <div className="text-slate-500 dark:text-slate-400 font-semibold">Total Paket Ujian</div>
+                  <div className="text-2xl font-black text-slate-900 dark:text-white mt-1">
+                    {allExamSets.length} <span className="text-xs font-normal text-slate-400">Paket Aktif</span>
+                  </div>
+                </div>
+                <div className="p-4 bg-slate-50 dark:bg-slate-950 rounded-2xl border border-slate-200 dark:border-slate-800">
+                  <div className="text-slate-500 dark:text-slate-400 font-semibold">Total Seluruh Soal</div>
+                  <div className="text-2xl font-black text-indigo-600 dark:text-indigo-400 mt-1">
+                    {questions.length} <span className="text-xs font-normal text-slate-400">Soal Terdaftar</span>
+                  </div>
+                </div>
+                <div className="p-4 bg-slate-50 dark:bg-slate-950 rounded-2xl border border-slate-200 dark:border-slate-800">
+                  <div className="text-slate-500 dark:text-slate-400 font-semibold">Rata-rata per Paket</div>
+                  <div className="text-2xl font-black text-emerald-600 dark:text-emerald-400 mt-1">
+                    ~{allExamSets.length > 0 ? Math.round(questions.length / allExamSets.length) : 0}{' '}
+                    <span className="text-xs font-normal text-slate-400">Soal/Paket</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Grid of Package Cards */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {allExamSets.map((pkg) => {
+                  const pkgQuestions = questions.filter((q) => (q.packageId || 1) === pkg.id);
+                  const s1Count = pkgQuestions.filter((q) => q.section === 'S1').length;
+                  const s2Count = pkgQuestions.filter((q) => q.section === 'S2').length;
+                  const s3Count = pkgQuestions.filter((q) => q.section === 'S3').length;
+                  const s4Count = pkgQuestions.filter((q) => q.section === 'S4').length;
+
+                  return (
+                    <div
+                      key={pkg.id}
+                      onClick={() => {
+                        setOpenedPackageId(pkg.id);
+                        setSelectedSecFilter('ALL');
+                        setSearchQuery('');
+                        setCurrentPage(1);
+                      }}
+                      className="p-5 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 hover:border-indigo-500 dark:hover:border-indigo-500 hover:shadow-xl hover:shadow-indigo-500/5 transition cursor-pointer flex flex-col justify-between gap-4 group"
+                    >
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between">
+                          <span className="px-2.5 py-1 rounded-lg bg-indigo-100 dark:bg-indigo-950 border border-indigo-200 dark:border-indigo-800 text-indigo-700 dark:text-indigo-300 font-mono text-[11px] font-bold">
+                            {pkg.code}
+                          </span>
+                          <span className="px-2 py-0.5 rounded text-[11px] font-semibold bg-emerald-100 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-400 border border-emerald-300 dark:border-emerald-800">
+                            {pkgQuestions.length > 0 ? `${pkgQuestions.length} Soal Aktif` : `${pkg.totalQuestions} Target Soal`}
+                          </span>
+                        </div>
+
+                        <div>
+                          <h3 className="text-base font-bold text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition flex items-center gap-1.5">
+                            <Folder className="w-4 h-4 text-indigo-500 shrink-0" />
+                            {pkg.name}
+                          </h3>
+                          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 line-clamp-2 leading-relaxed">
+                            {pkg.description || 'Tidak ada deskripsi paket.'}
+                          </p>
+                        </div>
+
+                        {/* Section Pills */}
+                        <div className="grid grid-cols-4 gap-1 text-[10px] text-center pt-1 font-semibold">
+                          <div className="bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 p-1.5 rounded-lg border border-amber-200 dark:border-amber-800">
+                            S1: {s1Count}
+                          </div>
+                          <div className="bg-blue-100 dark:bg-blue-950/60 text-blue-800 dark:text-blue-300 p-1.5 rounded-lg border border-blue-200 dark:border-blue-800">
+                            S2: {s2Count}
+                          </div>
+                          <div className="bg-purple-100 dark:bg-purple-950/60 text-purple-800 dark:text-purple-300 p-1.5 rounded-lg border border-purple-200 dark:border-purple-800">
+                            S3: {s3Count}
+                          </div>
+                          <div className="bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 p-1.5 rounded-lg border border-emerald-200 dark:border-emerald-800">
+                            S4: {s4Count}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Card Footer Actions */}
+                      <div className="pt-3 flex items-center justify-between border-t border-slate-200 dark:border-slate-800/80 gap-2">
+                        <span className="text-xs font-bold text-indigo-600 dark:text-indigo-400 flex items-center gap-1 group-hover:underline">
+                          Buka Soal ({pkgQuestions.length}) →
+                        </span>
+
+                        <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+                          <button
+                            type="button"
+                            onClick={(e) => handleOpenEditPackage(pkg, e)}
+                            className="p-1.5 rounded-lg text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-slate-200 dark:hover:bg-slate-800 transition"
+                            title="Edit Info Paket"
+                          >
+                            <Edit3 className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={(e) => handleDeletePackage(pkg, e)}
+                            className="p-1.5 rounded-lg text-slate-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/40 transition"
+                            title="Hapus Paket Ini"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </div>
-          </div>
+          ) : (
+            /* ======================================================== */
+            /* LEVEL 2: DETAIL & SOAL KHUSUS PAKET TERPILIH             */
+            /* ======================================================== */
+            (() => {
+              const currentPackage =
+                allExamSets.find((s) => s.id === openedPackageId) || {
+                  id: openedPackageId,
+                  name: `Paket #${openedPackageId}`,
+                  code: `JFT-SET-${openedPackageId}`,
+                  description: '',
+                  totalQuestions: 50
+                };
+              const currentPackageQuestions = questions.filter((q) => (q.packageId || 1) === openedPackageId);
+
+              return (
+                <div className="space-y-6">
+                  {/* Top Bar with Back Button & Package Header */}
+                  <div className="flex flex-wrap items-center justify-between gap-4 border-b pb-4 border-slate-200 dark:border-slate-800">
+                    <div className="flex items-start gap-3">
+                      <button
+                        type="button"
+                        onClick={() => setOpenedPackageId(null)}
+                        className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 transition shrink-0"
+                        title="Kembali ke Daftar Semua Paket"
+                      >
+                        <ArrowLeft className="w-5 h-5" />
+                      </button>
+                      <div>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="px-2.5 py-0.5 rounded-lg bg-indigo-100 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 font-mono text-xs font-bold border border-indigo-200 dark:border-indigo-800">
+                            {currentPackage.code}
+                          </span>
+                          <h2 className="text-lg font-bold text-slate-900 dark:text-white">
+                            {currentPackage.name}
+                          </h2>
+                          <span className="px-2 py-0.5 rounded text-[11px] font-semibold bg-emerald-100 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-400 border border-emerald-300 dark:border-emerald-800">
+                            {currentPackageQuestions.length} Soal Terdaftar
+                          </span>
+                        </div>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                          {currentPackage.description || 'Kelola dan modifikasi soal-soal khusus untuk paket simulasi ini.'}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <button
+                        type="button"
+                        onClick={() => handleOpenEditPackage(currentPackage)}
+                        className="px-3.5 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold text-xs rounded-xl transition flex items-center gap-1.5"
+                      >
+                        <Edit3 className="w-3.5 h-3.5" />
+                        Edit Info Paket
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => handleDeletePackage(currentPackage)}
+                        className="px-3.5 py-2 bg-red-100 dark:bg-red-950/50 hover:bg-red-200 dark:hover:bg-red-900/60 text-red-700 dark:text-red-300 font-bold text-xs rounded-xl transition flex items-center gap-1.5 border border-red-200 dark:border-red-800"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                        Hapus Paket
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={handleOpenAdd}
+                        className="px-4 py-2 bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-700 hover:to-indigo-600 text-white font-bold text-xs rounded-xl shadow transition flex items-center gap-1.5"
+                      >
+                        <Plus className="w-4 h-4" />
+                        Tambah Soal ke Paket Ini
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Filters: Seksi, Tampilkan, dan Cari */}
+                  <div className="flex flex-wrap items-center justify-between gap-3 bg-slate-50 dark:bg-slate-950 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 text-xs">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="font-bold text-slate-700 dark:text-slate-300">Filter Seksi:</span>
+                      {['ALL', 'S1', 'S2', 'S3', 'S4'].map((sec) => (
+                        <button
+                          key={sec}
+                          type="button"
+                          onClick={() => {
+                            setSelectedSecFilter(sec);
+                            setCurrentPage(1);
+                          }}
+                          className={`px-3 py-1.5 rounded-xl font-bold transition ${
+                            selectedSecFilter === sec
+                              ? 'bg-slate-800 dark:bg-slate-200 text-white dark:text-slate-900 shadow'
+                              : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700'
+                          }`}
+                        >
+                          {sec === 'ALL' ? 'Semua Seksi' : sec}
+                        </button>
+                      ))}
+                    </div>
+
+                    <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-slate-500 font-semibold">Tampilkan:</span>
+                        <select
+                          value={pageSize}
+                          onChange={(e) => {
+                            setPageSize(Number(e.target.value));
+                            setCurrentPage(1);
+                          }}
+                          className="px-2.5 py-1.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-800 dark:text-slate-200 font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        >
+                          <option value={5}>5 Soal</option>
+                          <option value={10}>10 Soal</option>
+                          <option value={20}>20 Soal</option>
+                          <option value={50}>50 Soal</option>
+                          <option value={100}>100 Soal</option>
+                        </select>
+                      </div>
+
+                      <div className="w-full sm:w-64">
+                        <input
+                          type="text"
+                          value={searchQuery}
+                          onChange={(e) => {
+                            setSearchQuery(e.target.value);
+                            setCurrentPage(1);
+                          }}
+                          placeholder="Cari kata kunci soal..."
+                          className="w-full px-3 py-1.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        />
+                      </div>
+                    </div>
+                  </div>
 
           {/* Question List */}
           <div className="grid grid-cols-1 gap-4">
@@ -1042,7 +1312,11 @@ B：いえ、だいじょうぶですよ。
             )}
           </div>
         </div>
-      )}
+      );
+    })()
+  )}
+</div>
+)}
 
       {/* Tab 3: PDF Question Parser (Cara 2: Unggah PDF Berkas & Otomatisasi Gambar Soal) */}
       {activeTab === 'PDF_PARSER' && (
@@ -1687,10 +1961,11 @@ B：いえ、だいじょうぶですよ。
                   }
                   className="w-full p-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-slate-100 font-bold"
                 >
-                  <option value={1}>Paket #1 (Simulasi Utama)</option>
-                  <option value={2}>Paket #2 (Intensif)</option>
-                  <option value={3}>Paket #3 (Master Chokai)</option>
-                  <option value={4}>Paket #4 (Tryout Spesial)</option>
+                  {allExamSets.map((s) => (
+                    <option key={s.id} value={s.id}>
+                      Paket #{s.id} - {s.name}
+                    </option>
+                  ))}
                 </select>
               </div>
 
@@ -1992,6 +2267,115 @@ B：いえ、だいじょうぶですよ。
                 className="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-xs transition shadow-lg"
               >
                 Simpan Perubahan Soal
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal CRUD Paket Ujian */}
+      {isPackageModalOpen && editingPackage && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-md p-4 overflow-y-auto">
+          <div className="bg-white dark:bg-slate-900 max-w-lg w-full rounded-3xl p-6 shadow-2xl border border-slate-200 dark:border-slate-800 space-y-5 my-8">
+            <div className="flex items-center justify-between border-b pb-3 border-slate-200 dark:border-slate-800">
+              <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                <Folder className="w-5 h-5 text-indigo-500" />
+                {packageModalMode === 'create' ? 'Tambah Paket Ujian Baru' : `Edit Info Paket #${editingPackage.id}`}
+              </h3>
+              <button
+                type="button"
+                onClick={() => setIsPackageModalOpen(false)}
+                className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="space-y-4 text-xs">
+              <div className="space-y-1">
+                <label className="font-bold text-slate-700 dark:text-slate-300">
+                  Nama Paket Ujian:
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={editingPackage.name}
+                  onChange={(e) => setEditingPackage({ ...editingPackage, name: e.target.value })}
+                  placeholder="Contoh: Paket Ujian #5 (Simulasi Mandiri)"
+                  className="w-full p-3 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-slate-100 font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <label className="font-bold text-slate-700 dark:text-slate-300">
+                    Kode Paket:
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={editingPackage.code}
+                    onChange={(e) => setEditingPackage({ ...editingPackage, code: e.target.value.toUpperCase() })}
+                    placeholder="Contoh: JFT-SET-E"
+                    className="w-full p-3 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-amber-600 dark:text-amber-400 font-mono font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="font-bold text-slate-700 dark:text-slate-300">
+                    Target Total Soal:
+                  </label>
+                  <input
+                    type="number"
+                    min={1}
+                    max={100}
+                    value={editingPackage.totalQuestions || 50}
+                    onChange={(e) => setEditingPackage({ ...editingPackage, totalQuestions: Number(e.target.value) || 50 })}
+                    placeholder="50"
+                    className="w-full p-3 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-slate-100 font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-1">
+                <label className="font-bold text-slate-700 dark:text-slate-300">
+                  Deskripsi Paket:
+                </label>
+                <textarea
+                  rows={3}
+                  value={editingPackage.description}
+                  onChange={(e) => setEditingPackage({ ...editingPackage, description: e.target.value })}
+                  placeholder="Keterangan materi soal, fokus bahasan, atau tipe simulasi..."
+                  className="w-full p-3 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-slate-100 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                ></textarea>
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-3 pt-2 border-t border-slate-200 dark:border-slate-800">
+              <button
+                type="button"
+                onClick={() => setIsPackageModalOpen(false)}
+                className="px-4 py-2.5 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold rounded-xl text-xs transition"
+              >
+                Batal
+              </button>
+              <button
+                type="button"
+                disabled={isSavingPackage}
+                onClick={handleSavePackage}
+                className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-xs transition shadow-lg shadow-indigo-600/30 flex items-center gap-2 disabled:opacity-50"
+              >
+                {isSavingPackage ? (
+                  <>
+                    <RefreshCw className="w-4 h-4 animate-spin text-white" />
+                    <span>Menyimpan...</span>
+                  </>
+                ) : (
+                  <>
+                    <Check className="w-4 h-4" />
+                    <span>{packageModalMode === 'create' ? 'Buat Paket Sekarang' : 'Simpan Perubahan Paket'}</span>
+                  </>
+                )}
               </button>
             </div>
           </div>
