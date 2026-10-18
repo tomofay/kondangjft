@@ -357,17 +357,81 @@ export function parsePdfTextToQuestions(
 
   const drafts: PDFQuestionDraft[] = [];
 
-  // Check if Japanese Exam Sequential numbering (1., 2., 3., ... 40.)
-  const qRegex = /(?:^|\n)\s*(\d{1,2})\.\s*/g;
+  // Check if Japanese Exam Sequential numbering (Q1-Q4 visual, Q5..N text)
+  const q5Match = text.search(/(?:^|\n)\s*5[\.．\:]\s*/);
+  const visualDrafts: { q: number; opts: string[] }[] = [];
+
+  if (q5Match !== -1) {
+    const visualPart = text.substring(0, q5Match);
+    text = text.substring(q5Match);
+
+    const lines = visualPart.split('\n').map((l) => l.trim()).filter(Boolean);
+    let currentQ = 0;
+    let currentOpts: string[] = [];
+
+    for (const line of lines) {
+      const qStart = line.match(/^([1-4])\.\s+(?:1\.\s*)?(.*)$/) || (currentQ === 0 && line.match(/^1\.\s*(?:1\.\s*)?(.*)$/));
+      if (qStart && parseInt(qStart[1], 10) === currentQ + 1) {
+        if (currentQ > 0) {
+          visualDrafts.push({ q: currentQ, opts: currentOpts });
+        }
+        currentQ = parseInt(qStart[1], 10);
+        currentOpts = [];
+        const rem = qStart[2]?.trim();
+        if (rem) currentOpts.push(rem);
+      } else if (currentQ > 0) {
+        const optMatch = line.match(/^[2-3]\.\s*(.*)$/);
+        if (optMatch) {
+          currentOpts.push(optMatch[1].trim());
+        }
+      }
+    }
+    if (currentQ > 0) {
+      visualDrafts.push({ q: currentQ, opts: currentOpts });
+    }
+  }
+
+  // Add visual questions 1..4
+  visualDrafts.forEach((vd) => {
+    const options = vd.opts.map((t, idx) => ({
+      key: String.fromCharCode(65 + idx) as 'A' | 'B' | 'C' | 'D',
+      text: t
+    }));
+
+    if (options.length === 0) {
+      options.push(
+        { key: 'A', text: 'Opsi A' },
+        { key: 'B', text: 'Opsi B' },
+        { key: 'C', text: 'Opsi C' }
+      );
+    }
+
+    drafts.push({
+      id: 'draft_' + vd.q + '_' + Math.random().toString(36).substring(2, 7),
+      number: vd.q,
+      rawText: vd.opts.join('\n'),
+      section: 'S1',
+      sectionTitle: 'Seksi 1 - 文字と語彙 (Huruf & Kosakata)',
+      questionText: '画像が表す正しい言葉を選んでください。(Pilih kata yang sesuai dengan gambar)',
+      imageUrl: imageMap[vd.q] || undefined,
+      options,
+      correctAnswer: 'A',
+      explanation: `Draf soal nomor ${vd.q} (Seksi 1 - Huruf & Kosakata).`,
+      status: 'DRAFT'
+    });
+  });
+
+  // Match each question header from 5. to 50.
+  const qRegex = /(?:^|\n)\s*(\d{1,2})[\.．\:]\s*/g;
   let match;
   const rawMatches: { index: number; length: number; num: number }[] = [];
   while ((match = qRegex.exec(text)) !== null) {
     rawMatches.push({ index: match.index, length: match[0].length, num: parseInt(match[1], 10) });
   }
 
-  // Filter sequential questions 1..N
+  // Filter sequential questions 5..N
   const seq: { index: number; length: number; num: number }[] = [];
-  let curr = 1;
+  let curr = 5;
   for (const m of rawMatches) {
     if (m.num === curr) {
       seq.push(m);
@@ -375,8 +439,7 @@ export function parsePdfTextToQuestions(
     }
   }
 
-  // If detected sequential Japanese exam (at least 5 sequential numbered questions)
-  if (seq.length >= 5) {
+  if (seq.length >= 2) {
     for (let i = 0; i < seq.length; i++) {
       const qNum = seq[i].num;
       const start = seq[i].index + seq[i].length;
@@ -385,7 +448,7 @@ export function parsePdfTextToQuestions(
 
       let section: Question['section'] = 'S1';
       let sectionTitle = 'Seksi 1 - 文字と語彙 (Huruf & Kosakata)';
-      if (qNum >= 32) {
+      if (qNum >= 31) {
         section = 'S4';
         sectionTitle = 'Seksi 4 - 読解 (Pemahaman Bacaan)';
       } else if (qNum >= 16) {
@@ -414,41 +477,6 @@ export function parsePdfTextToQuestions(
             });
           }
         }
-      }
-
-      // Special handling for visual Q1-Q4 if options layout in PDF is visual
-      if (qNum === 1) {
-        qText = '画像が表す正しい言葉を選んでください。(Pilih kata yang sesuai dengan gambar)';
-        options.length = 0;
-        options.push(
-          { key: 'A', text: '絵本 (えほん)' },
-          { key: 'B', text: 'えはがき (Kartu pos)' },
-          { key: 'C', text: 'きって (Perangko)' }
-        );
-      } else if (qNum === 2) {
-        qText = '画像が表す正しい言葉を選んでください。(Pilih kata yang sesuai dengan gambar)';
-        options.length = 0;
-        options.push(
-          { key: 'A', text: 'バッグ (Tas)' },
-          { key: 'B', text: 'ズボン (Celana)' },
-          { key: 'C', text: 'スカーフ (Syal)' }
-        );
-      } else if (qNum === 3) {
-        qText = '画像が表す正しい言葉を選んでください。(Pilih kata yang sesuai dengan gambar)';
-        options.length = 0;
-        options.push(
-          { key: 'A', text: 'おさけ (Sake)' },
-          { key: 'B', text: 'ワイン (Anggur)' },
-          { key: 'C', text: 'ちょうみりょう (Bumbu masak)' }
-        );
-      } else if (qNum === 4) {
-        qText = '画像が表す正しい言葉を選んでください。(Pilih kata yang sesuai dengan gambar)';
-        options.length = 0;
-        options.push(
-          { key: 'A', text: 'とかい (Kota metropolitan)' },
-          { key: 'B', text: 'うみ (Laut)' },
-          { key: 'C', text: 'いなか (Pedesaan)' }
-        );
       }
 
       if (options.length === 0) {
