@@ -25,6 +25,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
+    volumes:
+      - kondang_uploads:/app/public/uploads
     networks:
       - kondang_net
 
@@ -57,4 +59,6 @@ networks:
 
 volumes:
   kondang_mysql_data:
+    driver: local
+  kondang_uploads:
     driver: local
