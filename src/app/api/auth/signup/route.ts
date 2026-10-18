@@ -113,6 +113,16 @@ export async function POST(request: Request) {
     const { sessionId } = registerUserSession(newUser.id);
     newUser.activeSessionId = sessionId;
 
+    try {
+      await pool.query('UPDATE users SET activeSessionId = ?, lastActiveAt = ? WHERE id = ?', [
+        sessionId,
+        new Date().toISOString(),
+        newUser.id
+      ]);
+    } catch (err) {
+      console.warn('MySQL update activeSessionId on signup fallback:', err);
+    }
+
     return NextResponse.json({
       success: true,
       user: newUser,

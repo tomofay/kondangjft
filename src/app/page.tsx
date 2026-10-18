@@ -40,6 +40,7 @@ export default function HomePage() {
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [isSessionLocked, setIsSessionLocked] = useState(false);
   const [sessionLockMessage, setSessionLockMessage] = useState('');
+  const [isRestoringAuth, setIsRestoringAuth] = useState(true);
 
   // Auth mode: 'login' | 'signup'
   const [authMode, setAuthMode] = useState<'login' | 'signup'>('login');
@@ -98,6 +99,10 @@ export default function HomePage() {
         setCurrentUser(data.user);
         setSessionId(data.sessionId);
         setIsSessionLocked(false);
+        try {
+          localStorage.setItem('kondang_user_id', data.user.id);
+          localStorage.setItem('kondang_session_id', data.sessionId);
+        } catch {}
         // If admin, open admin portal, if regular user default to dashboard
         if (data.user.role === 'admin') {
           setView('admin');
@@ -130,6 +135,10 @@ export default function HomePage() {
         setCurrentUser(data.user);
         setSessionId(data.sessionId);
         setIsSessionLocked(false);
+        try {
+          localStorage.setItem('kondang_user_id', data.user.id);
+          localStorage.setItem('kondang_session_id', data.sessionId);
+        } catch {}
         setView('dashboard');
         // Akun baru memiliki 0 hari masa aktif, otomatis tawarkan modal paket
         setPaymentModalOpen(true);
@@ -146,6 +155,11 @@ export default function HomePage() {
 
   // Logout handler
   const handleLogout = useCallback(async () => {
+    try {
+      localStorage.removeItem('kondang_user_id');
+      localStorage.removeItem('kondang_session_id');
+    } catch {}
+
     if (currentUser?.id) {
       try {
         await fetch('/api/auth/logout', {
@@ -165,6 +179,47 @@ export default function HomePage() {
     setLoginPassword('');
     setLoginError('');
   }, [currentUser]);
+
+  // Restore authenticated session from localStorage on initial page load (prevents logout on refresh)
+  useEffect(() => {
+    async function restoreSession() {
+      try {
+        const savedUserId = localStorage.getItem('kondang_user_id');
+        const savedSessionId = localStorage.getItem('kondang_session_id');
+
+        if (savedUserId && savedSessionId) {
+          const res = await fetch('/api/auth/restore', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ userId: savedUserId, sessionId: savedSessionId })
+          });
+          const data = await res.json();
+          if (data.success && data.user) {
+            setCurrentUser(data.user);
+            setSessionId(data.sessionId);
+            setIsSessionLocked(false);
+            if (data.user.role === 'admin') {
+              setView('admin');
+            }
+          } else {
+            // Invalid or locked elsewhere, clean up
+            localStorage.removeItem('kondang_user_id');
+            localStorage.removeItem('kondang_session_id');
+            if (data.locked) {
+              setIsSessionLocked(true);
+              setSessionLockMessage(data.message || 'Akun Anda telah diakses di perangkat lain.');
+            }
+          }
+        }
+      } catch (err) {
+        console.warn('Failed to restore session from localStorage:', err);
+      } finally {
+        setIsRestoringAuth(false);
+      }
+    }
+
+    restoreSession();
+  }, []);
 
   // Load user exam history from database
   const loadExamHistory = useCallback(async (userId: string) => {
@@ -471,6 +526,17 @@ export default function HomePage() {
       console.warn('Failed to delete user in MySQL:', err);
     }
   };
+
+  if (isRestoringAuth) {
+    return (
+      <div className="min-h-screen bg-slate-950 text-white flex flex-col items-center justify-center p-4 space-y-4">
+        <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-red-500 via-rose-600 to-amber-500 flex items-center justify-center text-white shadow-xl shadow-red-500/20 animate-pulse">
+          <GraduationCap className="w-8 h-8" />
+        </div>
+        <p className="text-xs text-slate-400 font-semibold tracking-wide animate-pulse">Memulihkan sesi ujian...</p>
+      </div>
+    );
+  }
 
   if (!currentUser) {
     return (
