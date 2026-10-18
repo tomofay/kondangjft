@@ -441,9 +441,45 @@ export default function HomePage() {
       body: JSON.stringify({ pdfText })
     });
     const data = await res.json();
+    if (data.success && Array.isArray(data.drafts)) {
+      setPdfDrafts(data.drafts);
+    }
+  };
+
+  // PDF import file handler (Cara 2: Unggah Berkas PDF dengan Ekstraksi Gambar Otomatis)
+  const handleImportPdfFile = async (file: File) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    const res = await fetch('/api/admin/parse-pdf', {
+      method: 'POST',
+      body: formData
+    });
+    const data = await res.json();
+    if (data.success && Array.isArray(data.drafts)) {
+      setPdfDrafts(data.drafts);
+      return data;
+    }
+    throw new Error(data.message || 'Gagal mengekstrak berkas PDF');
+  };
+
+  // Simpan Batch Draf Soal ke Paket Soal (MySQL)
+  const handleSaveBatchQuestions = async (newQuestions: Question[]) => {
+    const res = await fetch('/api/questions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ questions: newQuestions })
+    });
+    const data = await res.json();
     if (data.success) {
-      const store = getStore();
-      setPdfDrafts([...store.pdfDrafts]);
+      // Refresh daftar soal dari MySQL
+      const qRes = await fetch('/api/questions');
+      const qData = await qRes.json();
+      if (qData.success && Array.isArray(qData.questions)) {
+        setQuestions(qData.questions);
+      }
+      setPdfDrafts([]);
+    } else {
+      throw new Error(data.message || 'Gagal menyimpan batch soal ke database');
     }
   };
 
@@ -803,6 +839,8 @@ export default function HomePage() {
             onDeleteUser={handleDeleteUser}
             onRefreshData={loadAdminData}
             onImportPdfText={handleImportPdfText}
+            onImportPdfFile={handleImportPdfFile}
+            onSaveBatchQuestions={handleSaveBatchQuestions}
             onSaveQuestion={handleSaveQuestion}
             onDeleteQuestion={handleDeleteQuestion}
           />

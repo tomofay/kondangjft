@@ -105,10 +105,14 @@ export interface Transaction {
 
 export interface PDFQuestionDraft {
   id: string;
+  number?: number;
   rawText: string;
   section: SectionType;
+  sectionTitle?: string;
   questionText: string;
   passageText?: string;
+  imageUrl?: string;
+  audioUrl?: string;
   options: { key: 'A' | 'B' | 'C' | 'D'; text: string }[];
   correctAnswer: 'A' | 'B' | 'C' | 'D';
   explanation: string;

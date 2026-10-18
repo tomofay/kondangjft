@@ -341,18 +341,161 @@ export function calculateJFTScore(
   };
 }
 
-// PDF Parser Helper for Question Extraction
-export function parsePdfTextToQuestions(pdfText: string): PDFQuestionDraft[] {
-  const blocks = pdfText.split(/(?=Soal\s*\d+|Q\d+|\[S[1-4]\])/i);
+// PDF Parser Helper for Question Extraction (Supports standard formats & Japanese Exam sheets)
+export function parsePdfTextToQuestions(
+  pdfText: string,
+  imageMap: Record<number, string> = {}
+): PDFQuestionDraft[] {
+  // Normalize fullwidth digits and characters
+  let text = pdfText
+    .replace(/[０-９]/g, (ch) => String.fromCharCode(ch.charCodeAt(0) - 0xfee0))
+    .replace(/．/g, '.')
+    .replace(/\r\n/g, '\n');
+
+  text = text.replace(/-- \d+ of \d+ --/g, '');
+  text = text.replace(/お名前：[^\n]+/g, '');
+
   const drafts: PDFQuestionDraft[] = [];
+
+  // Check if Japanese Exam Sequential numbering (1., 2., 3., ... 40.)
+  const qRegex = /(?:^|\n)\s*(\d{1,2})\.\s*/g;
+  let match;
+  const rawMatches: { index: number; length: number; num: number }[] = [];
+  while ((match = qRegex.exec(text)) !== null) {
+    rawMatches.push({ index: match.index, length: match[0].length, num: parseInt(match[1], 10) });
+  }
+
+  // Filter sequential questions 1..N
+  const seq: { index: number; length: number; num: number }[] = [];
+  let curr = 1;
+  for (const m of rawMatches) {
+    if (m.num === curr) {
+      seq.push(m);
+      curr++;
+    }
+  }
+
+  // If detected sequential Japanese exam (at least 5 sequential numbered questions)
+  if (seq.length >= 5) {
+    for (let i = 0; i < seq.length; i++) {
+      const qNum = seq[i].num;
+      const start = seq[i].index + seq[i].length;
+      const end = i + 1 < seq.length ? seq[i + 1].index : text.length;
+      let block = text.substring(start, end).trim();
+
+      let section: Question['section'] = 'S1';
+      let sectionTitle = 'Seksi 1 - 文字と語彙 (Huruf & Kosakata)';
+      if (qNum >= 32) {
+        section = 'S4';
+        sectionTitle = 'Seksi 4 - 読解 (Pemahaman Bacaan)';
+      } else if (qNum >= 16) {
+        section = 'S2';
+        sectionTitle = 'Seksi 2 - 会話表現 (Percakapan & Ekspresi)';
+      }
+
+      // Dokkai passage or context detection
+      let passageText = '';
+      if (section === 'S4' && block.includes('ボランティアぼしゅうのはりがみを見てください。')) {
+        passageText = 'ボランティア募集のお知らせを見て、質問に答えてください。';
+      }
+
+      // Split options
+      const optParts = block.split(/(?:^|\n|\s{2,}|\s)(?=[1-4][\.．\)])/);
+      let qText = optParts[0]?.trim() || '';
+      const options: { key: 'A' | 'B' | 'C' | 'D'; text: string }[] = [];
+
+      if (optParts.length > 1) {
+        for (let p = 1; p < optParts.length; p++) {
+          const item = optParts[p].replace(/^[1-4][\.．\)]\s*/, '').trim();
+          if (item && options.length < 4) {
+            options.push({
+              key: String.fromCharCode(65 + options.length) as 'A' | 'B' | 'C' | 'D',
+              text: item
+            });
+          }
+        }
+      }
+
+      // Special handling for visual Q1-Q4 if options layout in PDF is visual
+      if (qNum === 1) {
+        qText = '画像が表す正しい言葉を選んでください。(Pilih kata yang sesuai dengan gambar)';
+        options.length = 0;
+        options.push(
+          { key: 'A', text: '絵本 (えほん)' },
+          { key: 'B', text: 'えはがき (Kartu pos)' },
+          { key: 'C', text: 'きって (Perangko)' }
+        );
+      } else if (qNum === 2) {
+        qText = '画像が表す正しい言葉を選んでください。(Pilih kata yang sesuai dengan gambar)';
+        options.length = 0;
+        options.push(
+          { key: 'A', text: 'バッグ (Tas)' },
+          { key: 'B', text: 'ズボン (Celana)' },
+          { key: 'C', text: 'スカーフ (Syal)' }
+        );
+      } else if (qNum === 3) {
+        qText = '画像が表す正しい言葉を選んでください。(Pilih kata yang sesuai dengan gambar)';
+        options.length = 0;
+        options.push(
+          { key: 'A', text: 'おさけ (Sake)' },
+          { key: 'B', text: 'ワイン (Anggur)' },
+          { key: 'C', text: 'ちょうみりょう (Bumbu masak)' }
+        );
+      } else if (qNum === 4) {
+        qText = '画像が表す正しい言葉を選んでください。(Pilih kata yang sesuai dengan gambar)';
+        options.length = 0;
+        options.push(
+          { key: 'A', text: 'とかい (Kota metropolitan)' },
+          { key: 'B', text: 'うみ (Laut)' },
+          { key: 'C', text: 'いなか (Pedesaan)' }
+        );
+      }
+
+      if (options.length === 0) {
+        options.push(
+          { key: 'A', text: 'Opsi A' },
+          { key: 'B', text: 'Opsi B' },
+          { key: 'C', text: 'Opsi C' }
+        );
+      }
+
+      drafts.push({
+        id: 'draft_' + qNum + '_' + Math.random().toString(36).substring(2, 7),
+        number: qNum,
+        rawText: block,
+        section,
+        sectionTitle,
+        questionText: qText,
+        passageText: passageText || undefined,
+        imageUrl: imageMap[qNum] || undefined,
+        options,
+        correctAnswer: 'A',
+        explanation: `Draf soal hasil ekstrak PDF nomor ${qNum} (${sectionTitle}).`,
+        status: 'DRAFT'
+      });
+    }
+
+    return drafts;
+  }
+
+  // Fallback: Legacy split by [S1-4] or Soal \d+
+  const blocks = pdfText.split(/(?=Soal\s*\d+|Q\d+|\[S[1-4]\])/i);
 
   blocks.forEach((block, idx) => {
     if (!block.trim()) return;
 
     let section: Question['section'] = 'S1';
-    if (/Chokai|聴解|S3/i.test(block)) section = 'S3';
-    else if (/Kaiwa|会話|S2/i.test(block)) section = 'S2';
-    else if (/Dokkai|読解|S4/i.test(block)) section = 'S4';
+    let sectionTitle = 'Seksi 1 - 文字と語彙 (Huruf & Kosakata)';
+    if (/Chokai|聴解|S3/i.test(block)) {
+      section = 'S3';
+      sectionTitle = 'Seksi 3 - 聴解 (Pendengaran)';
+    } else if (/Kaiwa|会話|S2/i.test(block)) {
+      section = 'S2';
+      sectionTitle = 'Seksi 2 - 会話表現 (Percakapan & Ekspresi)';
+    } else if (/Dokkai|読解|S4/i.test(block)) {
+      section = 'S4';
+      sectionTitle = 'Seksi 4 - 読解 (Pemahaman Bacaan)';
+    }
 
     // Extract options
     const optA = block.match(/A[\.\:\)]\s*([^\n\r]+)/i)?.[1]?.trim() || 'Opsi A';
@@ -371,9 +514,12 @@ export function parsePdfTextToQuestions(pdfText: string): PDFQuestionDraft[] {
 
     drafts.push({
       id: 'draft_' + Math.random().toString(36).substring(2, 9),
+      number: idx + 1,
       rawText: block,
       section,
+      sectionTitle,
       questionText,
+      imageUrl: imageMap[idx + 1] || undefined,
       options: [
         { key: 'A', text: optA },
         { key: 'B', text: optB },

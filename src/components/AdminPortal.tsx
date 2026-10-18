@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { User, Question, Transaction, PDFQuestionDraft, SectionType } from '../types';
-import { Users, FileText, Lock, Upload, Layers, DollarSign, BookOpen, X, ChevronLeft, ChevronRight, RefreshCw, Trash2, Shield, Image as ImageIcon, Link as LinkIcon, UploadCloud, Check, Volume2, Headphones } from 'lucide-react';
+import { Users, FileText, Lock, Upload, Layers, DollarSign, BookOpen, X, ChevronLeft, ChevronRight, RefreshCw, Trash2, Shield, Image as ImageIcon, Link as LinkIcon, UploadCloud, Check, Volume2, Headphones, Sparkles, Eye, ZoomIn, AlertCircle, FileUp, FolderUp } from 'lucide-react';
 import { isSubscriptionActive, getRemainingDays, getRemainingSubscriptionText } from '../lib/dataStore';
 
 interface AdminPortalProps {
@@ -16,6 +16,8 @@ interface AdminPortalProps {
   onDeleteUser?: (userId: string) => Promise<void> | void;
   onRefreshData?: () => Promise<void> | void;
   onImportPdfText: (pdfText: string) => Promise<void>;
+  onImportPdfFile?: (file: File) => Promise<{ success: boolean; draftsCount: number; imagesExtractedCount?: number; message: string }>;
+  onSaveBatchQuestions?: (questions: Question[]) => Promise<void>;
   onSaveQuestion?: (question: Question) => void;
   onDeleteQuestion?: (questionId: number) => void;
 }
@@ -24,12 +26,15 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
   users,
   questions,
   transactions,
+  pdfDrafts,
   onKickSession,
   onAddCredit,
   onChangeRole,
   onDeleteUser,
   onRefreshData,
   onImportPdfText,
+  onImportPdfFile,
+  onSaveBatchQuestions,
   onSaveQuestion,
   onDeleteQuestion
 }) => {
@@ -39,6 +44,26 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
   const [parseMessage, setParseMessage] = useState('');
   const [actionLoadingUserId, setActionLoadingUserId] = useState<string | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
+
+  // PDF Parsing & Batch Import States (Cara 2 Otomatisasi dengan Gambar)
+  const [localDrafts, setLocalDrafts] = useState<PDFQuestionDraft[]>(pdfDrafts || []);
+  const [selectedPdfFile, setSelectedPdfFile] = useState<File | null>(null);
+  const [isUploadingPdf, setIsUploadingPdf] = useState(false);
+  const [targetPackageId, setTargetPackageId] = useState<number>(1);
+  const [isSavingBatch, setIsSavingBatch] = useState(false);
+  const [batchSaveSuccess, setBatchSaveSuccess] = useState('');
+  const [zoomPreviewImage, setZoomPreviewImage] = useState<string | null>(null);
+  const [isManualTextOpen, setIsManualTextOpen] = useState(false);
+  const pdfFileInputRef = useRef<HTMLInputElement | null>(null);
+  const draftSpecificImageInputRef = useRef<HTMLInputElement | null>(null);
+  const [activeDraftIdForImage, setActiveDraftIdForImage] = useState<string | null>(null);
+
+  // Sync local drafts when pdfDrafts prop updates
+  useEffect(() => {
+    if (pdfDrafts && pdfDrafts.length > 0) {
+      setLocalDrafts(pdfDrafts);
+    }
+  }, [pdfDrafts]);
 
   // Question Bank Editor Filters, Paging & Modal State
   const [selectedPkgFilter, setSelectedPkgFilter] = useState<number>(0); // 0 = Semua Paket
@@ -165,6 +190,132 @@ Pembahasan: Laki-laki mengusulkan 10:30.`);
     } finally {
       setIsParsing(false);
     }
+  };
+
+  // Handler Upload Berkas PDF (Cara 2 Otomatisasi dengan Ekstraksi Gambar)
+  const handleUploadPdfFile = async () => {
+    if (!selectedPdfFile) return;
+    setIsUploadingPdf(true);
+    setParseMessage('');
+    setBatchSaveSuccess('');
+
+    try {
+      if (onImportPdfFile) {
+        const res = await onImportPdfFile(selectedPdfFile);
+        setParseMessage(res.message || `Berhasil mengekstrak ${res.draftsCount} draf soal beserta gambar otomatis!`);
+      } else {
+        const formData = new FormData();
+        formData.append('file', selectedPdfFile);
+        const res = await fetch('/api/admin/parse-pdf', {
+          method: 'POST',
+          body: formData
+        });
+        const data = await res.json();
+        if (data.success && Array.isArray(data.drafts)) {
+          setLocalDrafts(data.drafts);
+          setParseMessage(data.message || `Berhasil mengekstrak ${data.drafts.length} draf soal!`);
+        } else {
+          setParseMessage(data.message || 'Gagal mengekstrak berkas PDF.');
+        }
+      }
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      setParseMessage('Gagal mengurai berkas PDF: ' + msg);
+    } finally {
+      setIsUploadingPdf(false);
+    }
+  };
+
+  // Simpan Seluruh Draf Soal ke Paket Ujian (MySQL)
+  const handleSaveAllDraftsToPackage = async () => {
+    if (localDrafts.length === 0) return;
+    setIsSavingBatch(true);
+    setBatchSaveSuccess('');
+
+    try {
+      const maxId = questions.length > 0 ? Math.max(...questions.map((q) => q.id)) : 0;
+      const secTitles: Record<SectionType, string> = {
+        S1: 'Seksi 1 - 文字と語彙 (Huruf & Kosakata)',
+        S2: 'Seksi 2 - 会話表現 (Percakapan & Ekspresi)',
+        S3: 'Seksi 3 - 聴解 (Pendengaran)',
+        S4: 'Seksi 4 - 読解 (Pemahaman Bacaan)'
+      };
+
+      const newQuestions: Question[] = localDrafts.map((d, idx) => ({
+        id: maxId + idx + 1,
+        packageId: targetPackageId,
+        section: d.section,
+        sectionTitle: d.sectionTitle || secTitles[d.section] || d.section,
+        number: d.number || idx + 1,
+        questionText: d.questionText,
+        readingPassage: d.passageText || undefined,
+        imageUrl: d.imageUrl || undefined,
+        audioUrl: d.audioUrl || undefined,
+        options: d.options,
+        correctAnswer: d.correctAnswer,
+        explanation: d.explanation
+      }));
+
+      if (onSaveBatchQuestions) {
+        await onSaveBatchQuestions(newQuestions);
+      } else {
+        const res = await fetch('/api/questions', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ questions: newQuestions })
+        });
+        const data = await res.json();
+        if (!data.success) throw new Error(data.message || 'Gagal menyimpan batch soal');
+        if (onRefreshData) await onRefreshData();
+      }
+
+      setBatchSaveSuccess(`Alhamdulillah! Berhasil menyimpan ${newQuestions.length} soal lengkap ke Paket #${targetPackageId}!`);
+      setLocalDrafts([]);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      alert('Gagal menyimpan batch soal: ' + msg);
+    } finally {
+      setIsSavingBatch(false);
+    }
+  };
+
+  const handleUploadDraftSpecificImage = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !activeDraftIdForImage) return;
+
+    try {
+      const formData = new FormData();
+      formData.append('image', file);
+      const res = await fetch('/api/admin/upload-image', {
+        method: 'POST',
+        body: formData
+      });
+      const data = await res.json();
+      if (data.success && data.url) {
+        setLocalDrafts((prev) =>
+          prev.map((d) => (d.id === activeDraftIdForImage ? { ...d, imageUrl: data.url } : d))
+        );
+      } else {
+        alert(data.message || 'Gagal mengunggah gambar');
+      }
+    } catch (err) {
+      alert('Gagal mengunggah: ' + err);
+    } finally {
+      setActiveDraftIdForImage(null);
+      if (e.target) e.target.value = '';
+    }
+  };
+
+  const handleRemoveDraftImage = (draftId: string) => {
+    setLocalDrafts((prev) => prev.map((d) => (d.id === draftId ? { ...d, imageUrl: undefined } : d)));
+  };
+
+  const handleUpdateDraftAnswer = (draftId: string, ans: 'A' | 'B' | 'C' | 'D') => {
+    setLocalDrafts((prev) => prev.map((d) => (d.id === draftId ? { ...d, correctAnswer: ans } : d)));
+  };
+
+  const handleDeleteSingleDraft = (draftId: string) => {
+    setLocalDrafts((prev) => prev.filter((d) => d.id !== draftId));
   };
 
   const handleOpenEdit = (q: Question) => {
@@ -750,54 +901,440 @@ Pembahasan: Laki-laki mengusulkan 10:30.`);
         </div>
       )}
 
-      {/* Tab 3: PDF Question Parser */}
+      {/* Tab 3: PDF Question Parser (Cara 2: Unggah PDF Berkas & Otomatisasi Gambar Soal) */}
       {activeTab === 'PDF_PARSER' && (
         <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 shadow-xl border border-slate-200 dark:border-slate-800 space-y-6">
-          <div className="border-b pb-4 border-slate-200 dark:border-slate-800 space-y-1">
-            <h2 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
-              <FileText className="w-5 h-5 text-indigo-500" />
-              Sistem Impor & Parser PDF Cerdas
-            </h2>
-            <p className="text-xs text-slate-500 dark:text-slate-400">
-              Admin dapat menempelkan teks hasil ekstraksi berkas PDF soal JFT. Parser akan otomatis memisahkan seksi, pertanyaan, opsi jawaban A-D, kunci, dan pembahasan.
-            </p>
-          </div>
-
-          <div className="space-y-4">
-            <div className="flex justify-between items-center text-xs">
-              <label className="font-bold text-slate-700 dark:text-slate-300">
-                Teks PDF Ujian JFT-Basic:
-              </label>
-              <button
-                onClick={fillSamplePdfText}
-                className="text-indigo-600 dark:text-indigo-400 hover:underline text-xs font-semibold"
-              >
-                + Isi Contoh Format Teks PDF Demo
-              </button>
+          {/* Header Tab */}
+          <div className="border-b pb-4 border-slate-200 dark:border-slate-800 flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="px-2.5 py-0.5 rounded-full bg-amber-100 dark:bg-amber-950/80 border border-amber-300 dark:border-amber-800 text-amber-700 dark:text-amber-300 text-[10px] font-black uppercase tracking-wider flex items-center gap-1">
+                  <Sparkles className="w-3 h-3 text-amber-500" /> Cara 2: Ekstraksi Otomatis
+                </span>
+                <h2 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                  <FileText className="w-5 h-5 text-indigo-500" />
+                  Sistem Impor & Parser PDF Cerdas
+                </h2>
+              </div>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                Unggah langsung berkas PDF soal JFT. Sistem otomatis mengekstrak seluruh nomor soal, seksi S1-S4, opsi jawaban, serta <strong>memotong & memasang gambar soal secara otomatis</strong> ke setiap nomor soal yang sesuai!
+              </p>
             </div>
 
-            <textarea
-              rows={8}
-              value={pdfInputText}
-              onChange={(e) => setPdfInputText(e.target.value)}
-              placeholder="Tempel teks PDF soal di sini (misal: [S1] Soal 1... A) ほん B) はん... Kunci: A...)"
-              className="w-full p-4 bg-slate-50 dark:bg-slate-950 rounded-2xl border border-slate-200 dark:border-slate-800 text-xs font-mono text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            ></textarea>
+            {localDrafts.length > 0 && (
+              <button
+                type="button"
+                onClick={() => {
+                  if (confirm('Yakin ingin membersihkan semua draf soal hasil ekstraksi PDF?')) {
+                    setLocalDrafts([]);
+                    setParseMessage('');
+                    setBatchSaveSuccess('');
+                  }
+                }}
+                className="px-3 py-1.5 rounded-xl text-xs font-bold text-red-600 hover:text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-950/50 hover:bg-red-100 dark:hover:bg-red-900/50 border border-red-200 dark:border-red-900 transition flex items-center gap-1"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                Hapus Semua Draf ({localDrafts.length})
+              </button>
+            )}
+          </div>
 
-            {parseMessage && (
-              <div className="p-3 bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 rounded-xl text-xs font-semibold">
-                {parseMessage}
+          {/* Alert Messages */}
+          {parseMessage && (
+            <div className="p-4 bg-emerald-50 dark:bg-emerald-950/70 border border-emerald-200 dark:border-emerald-800 text-emerald-900 dark:text-emerald-200 rounded-2xl text-xs font-semibold flex items-center justify-between gap-3 shadow-sm animate-in fade-in">
+              <div className="flex items-center gap-2">
+                <Check className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                <span>{parseMessage}</span>
+              </div>
+              <button onClick={() => setParseMessage('')} className="text-slate-400 hover:text-slate-600">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          )}
+
+          {batchSaveSuccess && (
+            <div className="p-4 bg-indigo-50 dark:bg-indigo-950/70 border border-indigo-200 dark:border-indigo-800 text-indigo-900 dark:text-indigo-200 rounded-2xl text-xs font-bold flex items-center justify-between gap-3 shadow-sm animate-in fade-in">
+              <div className="flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-indigo-500 shrink-0" />
+                <span>{batchSaveSuccess}</span>
+              </div>
+              <button onClick={() => setBatchSaveSuccess('')} className="text-slate-400 hover:text-slate-600">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          )}
+
+          {/* CARA 2: Upload File PDF Ujian Box */}
+          <div className="p-6 rounded-3xl bg-gradient-to-br from-indigo-50/50 via-white to-slate-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 border-2 border-dashed border-indigo-200 dark:border-indigo-900/60 shadow-inner flex flex-col items-center justify-center text-center space-y-4">
+            <input
+              type="file"
+              ref={pdfFileInputRef}
+              accept=".pdf"
+              className="hidden"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) {
+                  setSelectedPdfFile(file);
+                  setParseMessage('');
+                }
+              }}
+            />
+
+            <div className="w-14 h-14 rounded-2xl bg-indigo-600/10 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shadow-sm">
+              <FileUp className="w-7 h-7" />
+            </div>
+
+            <div className="space-y-1 max-w-lg">
+              <h3 className="text-base font-black text-slate-900 dark:text-white">
+                Unggah Berkas PDF Soal JFT (Cara 2 Otomatis)
+              </h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400">
+                Pilih berkas PDF soal ujian Anda. Teks, nomor soal, opsi, dan potongan gambar soal akan langsung diekstrak dan dipasangkan otomatis.
+              </p>
+            </div>
+
+            {selectedPdfFile ? (
+              <div className="flex flex-wrap items-center justify-center gap-3 bg-white dark:bg-slate-800 px-4 py-2.5 rounded-2xl border border-indigo-200 dark:border-indigo-800 shadow-sm text-xs">
+                <FileText className="w-4 h-4 text-indigo-500" />
+                <span className="font-bold text-slate-800 dark:text-slate-200">{selectedPdfFile.name}</span>
+                <span className="text-[11px] text-slate-400">({(selectedPdfFile.size / (1024 * 1024)).toFixed(2)} MB)</span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedPdfFile(null);
+                    if (pdfFileInputRef.current) pdfFileInputRef.current.value = '';
+                  }}
+                  className="text-slate-400 hover:text-red-500 transition ml-1"
+                  title="Batalkan pilihan"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            ) : null}
+
+            <div className="flex flex-wrap items-center justify-center gap-3 pt-1">
+              <button
+                type="button"
+                onClick={() => pdfFileInputRef.current?.click()}
+                disabled={isUploadingPdf}
+                className="px-5 py-2.5 rounded-xl bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 text-xs font-bold border border-slate-300 dark:border-slate-700 transition flex items-center gap-2 shadow-sm disabled:opacity-50"
+              >
+                <FolderUp className="w-4 h-4 text-indigo-500" />
+                {selectedPdfFile ? 'Ganti File PDF...' : 'Pilih File PDF (.pdf)'}
+              </button>
+
+              <button
+                type="button"
+                onClick={handleUploadPdfFile}
+                disabled={isUploadingPdf || !selectedPdfFile}
+                className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 text-white text-xs font-black transition flex items-center gap-2 shadow-lg shadow-indigo-600/25 disabled:opacity-50"
+              >
+                {isUploadingPdf ? (
+                  <>
+                    <RefreshCw className="w-4 h-4 animate-spin text-white" />
+                    <span>Mengekstrak Teks & Gambar PDF...</span>
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="w-4 h-4 text-amber-300" />
+                    <span>Mulai Ekstraksi Berkas PDF & Potong Gambar Otomatis</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+
+          {/* DRAFT QUESTIONS LIST & BATCH SAVE CONTROL */}
+          {localDrafts.length > 0 && (
+            <div className="space-y-4 pt-2">
+              {/* Batch Action Bar */}
+              <div className="bg-slate-900 text-white p-4 sm:p-5 rounded-2xl shadow-xl border border-slate-800 flex flex-wrap items-center justify-between gap-4">
+                <div className="space-y-1">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="px-2.5 py-0.5 rounded-full bg-emerald-950 border border-emerald-700 text-emerald-400 text-xs font-black">
+                      {localDrafts.length} Soal Berhasil Diekstrak
+                    </span>
+                    <span className="px-2.5 py-0.5 rounded-full bg-indigo-950 border border-indigo-700 text-indigo-400 text-xs font-black flex items-center gap-1">
+                      <ImageIcon className="w-3 h-3" />
+                      {localDrafts.filter((d) => d.imageUrl).length} Gambar Soal Otomatis Terhubung
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-400">
+                    Periksa pratinjau draf soal di bawah. Setelah sesuai, pilih target paket dan klik tombol simpan di sebelah kanan.
+                  </p>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-3">
+                  <div className="flex items-center gap-2 bg-slate-950 px-3 py-1.5 rounded-xl border border-slate-800 text-xs">
+                    <span className="font-bold text-slate-300">Simpan ke:</span>
+                    <select
+                      value={targetPackageId}
+                      onChange={(e) => setTargetPackageId(Number(e.target.value))}
+                      className="bg-transparent text-amber-400 font-bold focus:outline-none cursor-pointer"
+                    >
+                      <option value={1} className="bg-slate-900 text-white">Paket #1 (Simulasi Utama)</option>
+                      <option value={2} className="bg-slate-900 text-white">Paket #2 (Intensif)</option>
+                      <option value={3} className="bg-slate-900 text-white">Paket #3 (Master Chokai)</option>
+                      <option value={4} className="bg-slate-900 text-white">Paket #4 (Tryout Spesial)</option>
+                    </select>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={handleSaveAllDraftsToPackage}
+                    disabled={isSavingBatch}
+                    className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-black text-xs transition flex items-center gap-2 shadow-lg shadow-emerald-900/30 disabled:opacity-50"
+                  >
+                    {isSavingBatch ? (
+                      <>
+                        <RefreshCw className="w-4 h-4 animate-spin text-white" />
+                        <span>Menyimpan ke Database...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Check className="w-4 h-4 text-emerald-200" />
+                        <span>Simpan Semua {localDrafts.length} Soal ke Paket #{targetPackageId}</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              {/* Draft Cards Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {localDrafts.map((draft, idx) => (
+                  <div
+                    key={draft.id}
+                    className="p-4 rounded-2xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 shadow-sm space-y-3 flex flex-col justify-between"
+                  >
+                    <div className="space-y-2.5">
+                      {/* Card Header: Number & Section */}
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <span className="w-7 h-7 rounded-lg bg-indigo-100 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-400 font-black text-xs flex items-center justify-center">
+                            #{draft.number || idx + 1}
+                          </span>
+                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                            draft.section === 'S1'
+                              ? 'bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300'
+                              : draft.section === 'S2'
+                              ? 'bg-purple-100 dark:bg-purple-950 text-purple-700 dark:text-purple-300'
+                              : draft.section === 'S3'
+                              ? 'bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-300'
+                              : 'bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300'
+                          }`}>
+                            {draft.sectionTitle || draft.section}
+                          </span>
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteSingleDraft(draft.id)}
+                          className="p-1 text-slate-400 hover:text-red-500 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition"
+                          title="Hapus draf soal ini"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+
+                      {/* Question Text */}
+                      <p className="text-xs font-semibold text-slate-900 dark:text-slate-100 font-japanese leading-relaxed whitespace-pre-line">
+                        {draft.questionText}
+                      </p>
+
+                      {/* Image Preview & Controls (Auto-extracted from PDF) */}
+                      {draft.imageUrl ? (
+                        <div className="space-y-1.5 p-2 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+                          <div className="relative group overflow-hidden rounded-lg bg-white dark:bg-slate-950 flex items-center justify-center p-2 border border-slate-200 dark:border-slate-800">
+                            <img
+                              src={draft.imageUrl}
+                              alt={`Soal #${draft.number}`}
+                              className="max-h-36 object-contain rounded cursor-pointer transition hover:scale-105"
+                              onClick={() => setZoomPreviewImage(draft.imageUrl || null)}
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setZoomPreviewImage(draft.imageUrl || null)}
+                              className="absolute inset-0 bg-slate-950/40 text-white opacity-0 group-hover:opacity-100 transition flex items-center justify-center gap-1.5 text-xs font-bold"
+                            >
+                              <ZoomIn className="w-4 h-4" /> Perbesar Gambar
+                            </button>
+                          </div>
+                          <div className="flex items-center justify-between text-[11px]">
+                            <span className="text-emerald-600 dark:text-emerald-400 font-bold flex items-center gap-1">
+                              <Check className="w-3 h-3" /> Gambar Otomatis Terhubung
+                            </span>
+                            <div className="flex items-center gap-1.5">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setActiveDraftIdForImage(draft.id);
+                                  draftSpecificImageInputRef.current?.click();
+                                }}
+                                className="text-indigo-600 dark:text-indigo-400 hover:underline font-semibold"
+                              >
+                                Ganti
+                              </button>
+                              <span className="text-slate-300">•</span>
+                              <button
+                                type="button"
+                                onClick={() => handleRemoveDraftImage(draft.id)}
+                                className="text-red-500 hover:underline font-semibold"
+                              >
+                                Hapus
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="pt-1">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setActiveDraftIdForImage(draft.id);
+                              draftSpecificImageInputRef.current?.click();
+                            }}
+                            className="text-[11px] font-bold text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 flex items-center gap-1 border border-dashed border-slate-200 dark:border-slate-800 px-2.5 py-1.5 rounded-xl hover:border-indigo-400 transition"
+                          >
+                            <ImageIcon className="w-3 h-3" /> + Tambah Gambar untuk Soal Ini
+                          </button>
+                        </div>
+                      )}
+
+                      {/* Options List */}
+                      <div className="space-y-1 pt-1 text-xs font-japanese">
+                        {draft.options.map((opt) => (
+                          <div
+                            key={opt.key}
+                            className={`p-1.5 rounded-lg border flex items-center gap-2 text-xs transition ${
+                              draft.correctAnswer === opt.key
+                                ? 'bg-emerald-50 dark:bg-emerald-950/50 border-emerald-300 dark:border-emerald-800 font-bold text-emerald-900 dark:text-emerald-300'
+                                : 'bg-slate-50/60 dark:bg-slate-900/60 border-slate-100 dark:border-slate-800 text-slate-700 dark:text-slate-300'
+                            }`}
+                          >
+                            <span className="font-bold font-mono text-[11px] w-4">{opt.key})</span>
+                            <span className="flex-1">{opt.text}</span>
+                            {draft.correctAnswer === opt.key && (
+                              <span className="text-[10px] uppercase tracking-wider font-extrabold text-emerald-600 dark:text-emerald-400">
+                                Kunci
+                              </span>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Card Footer: Correct Answer Selector */}
+                    <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs">
+                      <span className="text-slate-500 text-[11px] font-semibold">Kunci Jawaban:</span>
+                      <select
+                        value={draft.correctAnswer}
+                        onChange={(e) =>
+                          handleUpdateDraftAnswer(draft.id, e.target.value as 'A' | 'B' | 'C' | 'D')
+                        }
+                        className="p-1 px-2.5 rounded-lg bg-emerald-50 dark:bg-emerald-950 border border-emerald-300 dark:border-emerald-800 font-bold text-emerald-900 dark:text-emerald-300 text-xs focus:outline-none"
+                      >
+                        {draft.options.map((opt) => (
+                          <option key={opt.key} value={opt.key}>
+                            Opsi {opt.key}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* CARA 1: Fallback Tempel Teks Manual (Collapsible) */}
+          <div className="border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden">
+            <button
+              type="button"
+              onClick={() => setIsManualTextOpen((prev) => !prev)}
+              className="w-full p-4 bg-slate-50 dark:bg-slate-950 hover:bg-slate-100 dark:hover:bg-slate-900 flex items-center justify-between text-left text-xs font-bold text-slate-700 dark:text-slate-300 transition"
+            >
+              <span className="flex items-center gap-2">
+                <FileText className="w-4 h-4 text-slate-400" />
+                Cara 1: Tempel Teks PDF Manual (Alternatif / Cadangan)
+              </span>
+              <span className="text-[11px] text-slate-400 font-normal">
+                {isManualTextOpen ? 'Sembunyikan' : 'Tampilkan Form Teks'}
+              </span>
+            </button>
+
+            {isManualTextOpen && (
+              <div className="p-4 bg-white dark:bg-slate-900 space-y-3 border-t border-slate-200 dark:border-slate-800">
+                <div className="flex justify-between items-center text-xs">
+                  <label className="font-bold text-slate-700 dark:text-slate-300">
+                    Tempel Teks Soal:
+                  </label>
+                  <button
+                    onClick={fillSamplePdfText}
+                    className="text-indigo-600 dark:text-indigo-400 hover:underline text-xs font-semibold"
+                  >
+                    + Isi Contoh Teks Demo
+                  </button>
+                </div>
+
+                <textarea
+                  rows={6}
+                  value={pdfInputText}
+                  onChange={(e) => setPdfInputText(e.target.value)}
+                  placeholder="Tempel teks PDF soal di sini (misal: [S1] Soal 1... A) ほん B) はん... Kunci: A...)"
+                  className="w-full p-3 bg-slate-50 dark:bg-slate-950 rounded-xl border border-slate-200 dark:border-slate-800 text-xs font-mono text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                ></textarea>
+
+                <button
+                  type="button"
+                  onClick={handleRunPdfParse}
+                  disabled={isParsing || !pdfInputText.trim()}
+                  className="py-2.5 px-5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl shadow transition flex items-center gap-2 disabled:opacity-50"
+                >
+                  <Upload className="w-3.5 h-3.5" />
+                  {isParsing ? 'Mengurai Teks PDF...' : 'Ekstrak Draf dari Teks Manual'}
+                </button>
               </div>
             )}
+          </div>
+        </div>
+      )}
 
+      {/* Hidden file input for uploading specific draft image */}
+      <input
+        type="file"
+        ref={draftSpecificImageInputRef}
+        accept="image/*"
+        className="hidden"
+        onChange={handleUploadDraftSpecificImage}
+      />
+
+      {/* CLICK-TO-ZOOM LIGHTBOX MODAL FOR DRAFT IMAGES */}
+      {zoomPreviewImage && (
+        <div
+          onClick={() => setZoomPreviewImage(null)}
+          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/85 backdrop-blur-md p-4 animate-in fade-in cursor-zoom-out"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="relative max-w-4xl max-h-[90vh] bg-slate-900 rounded-3xl p-4 border border-slate-700 shadow-2xl overflow-hidden flex flex-col items-center cursor-default"
+          >
             <button
-              onClick={handleRunPdfParse}
-              disabled={isParsing || !pdfInputText.trim()}
-              className="py-3 px-6 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl shadow-lg transition flex items-center gap-2 disabled:opacity-50"
+              onClick={() => setZoomPreviewImage(null)}
+              className="absolute top-4 right-4 p-2 rounded-full bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700 z-10 transition shadow-lg"
+              title="Tutup Pratinjau (ESC)"
             >
-              <Upload className="w-4 h-4" />
-              {isParsing ? 'Mengurai Teks PDF...' : 'Ekstrak & Simpan Draf Soal ke Bank Soal'}
+              <X className="w-5 h-5" />
             </button>
+            <div className="text-xs text-slate-400 font-bold mb-2 flex items-center gap-1.5">
+              <Eye className="w-4 h-4 text-indigo-400" />
+              Pratinjau Resolusi Penuh Gambar Soal JFT
+            </div>
+            <img
+              src={zoomPreviewImage}
+              alt="Pratinjau Gambar Soal"
+              className="max-w-full max-h-[80vh] object-contain rounded-2xl shadow-md border border-slate-800 bg-white dark:bg-slate-950 p-2"
+            />
           </div>
         </div>
       )}

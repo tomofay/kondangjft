@@ -86,66 +86,84 @@ export async function GET(request: Request) {
   }
 }
 
-// POST: Simpan / Perbarui / Tambah Soal ke MySQL & Memory Store
+// POST: Simpan / Perbarui / Tambah Soal (Tunggal atau Batch) ke MySQL & Memory Store
 export async function POST(request: Request) {
   try {
     await initDatabase();
-    const question: Question = await request.json();
+    const body = await request.json();
 
-    if (!question || !question.id || !question.questionText || !question.correctAnswer) {
+    // Check if batch questions array
+    const questionsToSave: Question[] = Array.isArray(body)
+      ? body
+      : Array.isArray(body?.questions)
+      ? body.questions
+      : body && body.id
+      ? [body]
+      : [];
+
+    if (questionsToSave.length === 0) {
       return NextResponse.json(
-        { success: false, message: 'Data soal tidak lengkap (id, questionText, correctAnswer diperlukan).' },
+        { success: false, message: 'Data soal tidak valid atau kosong.' },
         { status: 400 }
       );
     }
 
-    // 1. Simpan ke MySQL
-    try {
-      await pool.query(
-        `INSERT INTO questions 
-         (id, packageId, section, sectionTitle, number, questionText, readingPassage, imageUrl, audioUrl, options, correctAnswer, explanation)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-         ON DUPLICATE KEY UPDATE
-           packageId = VALUES(packageId),
-           section = VALUES(section),
-           sectionTitle = VALUES(sectionTitle),
-           number = VALUES(number),
-           questionText = VALUES(questionText),
-           readingPassage = VALUES(readingPassage),
-           imageUrl = VALUES(imageUrl),
-           audioUrl = VALUES(audioUrl),
-           options = VALUES(options),
-           correctAnswer = VALUES(correctAnswer),
-           explanation = VALUES(explanation)`,
-        [
-          question.id,
-          question.packageId || 1,
-          question.section,
-          question.sectionTitle,
-          question.number,
-          question.questionText,
-          question.readingPassage || null,
-          question.imageUrl || null,
-          question.audioUrl || null,
-          JSON.stringify(question.options),
-          question.correctAnswer,
-          question.explanation
-        ]
-      );
-    } catch (dbErr) {
-      console.warn('MySQL save question error:', dbErr);
-    }
-
-    // 2. Simpan ke memory store
     const store = getStore();
-    const idx = store.questions.findIndex((q) => q.id === question.id);
-    if (idx !== -1) {
-      store.questions[idx] = question;
-    } else {
-      store.questions.push(question);
+
+    // 1. Simpan ke MySQL (bisa single atau batch)
+    try {
+      for (const question of questionsToSave) {
+        if (!question.id || !question.questionText || !question.correctAnswer) continue;
+
+        await pool.query(
+          `INSERT INTO questions 
+           (id, packageId, section, sectionTitle, number, questionText, readingPassage, imageUrl, audioUrl, options, correctAnswer, explanation)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+           ON DUPLICATE KEY UPDATE
+             packageId = VALUES(packageId),
+             section = VALUES(section),
+             sectionTitle = VALUES(sectionTitle),
+             number = VALUES(number),
+             questionText = VALUES(questionText),
+             readingPassage = VALUES(readingPassage),
+             imageUrl = VALUES(imageUrl),
+             audioUrl = VALUES(audioUrl),
+             options = VALUES(options),
+             correctAnswer = VALUES(correctAnswer),
+             explanation = VALUES(explanation)`,
+          [
+            question.id,
+            question.packageId || 1,
+            question.section,
+            question.sectionTitle,
+            question.number,
+            question.questionText,
+            question.readingPassage || null,
+            question.imageUrl || null,
+            question.audioUrl || null,
+            JSON.stringify(question.options),
+            question.correctAnswer,
+            question.explanation
+          ]
+        );
+
+        // Update memory store
+        const idx = store.questions.findIndex((q) => q.id === question.id);
+        if (idx !== -1) {
+          store.questions[idx] = question;
+        } else {
+          store.questions.push(question);
+        }
+      }
+    } catch (dbErr) {
+      console.warn('MySQL save questions batch error:', dbErr);
     }
 
-    return NextResponse.json({ success: true, question, message: 'Soal berhasil disimpan ke database MySQL.' });
+    return NextResponse.json({
+      success: true,
+      count: questionsToSave.length,
+      message: `Berhasil menyimpan ${questionsToSave.length} soal ke database MySQL.`
+    });
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     return NextResponse.json({ success: false, message }, { status: 500 });
