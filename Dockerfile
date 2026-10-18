@@ -36,6 +36,10 @@ COPY --from=builder /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
+# Ensure external modules and worker files (pdf-parse and @napi-rs) are fully present in standalone container
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules/pdf-parse ./node_modules/pdf-parse
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules/@napi-rs ./node_modules/@napi-rs
+
 # Ensure persistent uploads directories exist with proper permissions
 RUN mkdir -p ./public/uploads/avatars ./public/uploads/questions ./public/uploads/audio && chown -R nextjs:nodejs ./public/uploads
 

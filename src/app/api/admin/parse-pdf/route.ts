@@ -256,6 +256,29 @@ export async function POST(request: Request) {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     const { PDFParse } = require('pdf-parse');
 
+    // Ensure worker path is set to the real file if present to prevent fake worker missing error
+    try {
+      const candidates = [
+        path.join(process.cwd(), 'node_modules', 'pdf-parse', 'dist', 'pdf-parse', 'cjs', 'pdf.worker.mjs'),
+        path.join(process.cwd(), '.next', 'standalone', 'node_modules', 'pdf-parse', 'dist', 'pdf-parse', 'cjs', 'pdf.worker.mjs'),
+        '/app/node_modules/pdf-parse/dist/pdf-parse/cjs/pdf.worker.mjs',
+        '/app/node_modules/pdf-parse/dist/pdf-parse/web/pdf.worker.min.mjs'
+      ];
+      let workerConfigured = false;
+      for (const p of candidates) {
+        if (fs.existsSync(p)) {
+          PDFParse.setWorker(p);
+          workerConfigured = true;
+          break;
+        }
+      }
+      if (!workerConfigured && PDFParse.setWorker) {
+        PDFParse.setWorker('https://cdn.jsdelivr.net/npm/pdf-parse@2.4.5/dist/pdf-parse/web/pdf.worker.min.mjs');
+      }
+    } catch {
+      // ignore
+    }
+
     const contentType = request.headers.get('content-type') || '';
     let pdfText = '';
     const imageMap: Record<number, string> = {};
