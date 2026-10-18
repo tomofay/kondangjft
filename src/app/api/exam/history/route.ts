@@ -17,6 +17,7 @@ interface ExamResultRow extends RowDataPacket {
   sectionScores: string | object;
   answers: string | object;
   totalTimeSpentSeconds: number;
+  packageId?: number | null;
 }
 
 export async function GET(request: Request) {
@@ -24,20 +25,16 @@ export async function GET(request: Request) {
     await initDatabase();
     const { searchParams } = new URL(request.url);
     const userId = searchParams.get('userId');
-
-    if (!userId) {
-      return NextResponse.json(
-        { success: false, message: 'Parameter userId wajib disertakan.' },
-        { status: 400 }
-      );
-    }
+    const isAll = !userId || userId === 'all';
 
     // 1. Try fetching from MySQL
     try {
-      const [rows] = await pool.query<ExamResultRow[]>(
-        'SELECT * FROM exam_results WHERE userId = ? ORDER BY createdAt DESC',
-        [userId]
-      );
+      const query = isAll
+        ? 'SELECT * FROM exam_results ORDER BY createdAt DESC'
+        : 'SELECT * FROM exam_results WHERE userId = ? ORDER BY createdAt DESC';
+      const params = isAll ? [] : [userId];
+
+      const [rows] = await pool.query<ExamResultRow[]>(query, params);
 
       if (rows && rows.length > 0) {
         const results: ExamResult[] = rows.map((r) => {
@@ -83,6 +80,7 @@ export async function GET(request: Request) {
             userId: r.userId,
             userName: r.userName,
             registrationNumber: r.registrationNumber,
+            packageId: r.packageId || undefined,
             testDate: r.testDate,
             testLocation: r.testLocation,
             totalScore,
@@ -104,9 +102,11 @@ export async function GET(request: Request) {
       console.warn('MySQL exam history fetch fallback to store:', dbErr);
     }
 
-    // 2. Fallback to in-memory store filtered by userId
+    // 2. Fallback to in-memory store
     const store = getStore();
-    const userResults = store.examResults.filter((r) => r.userId === userId);
+    const userResults = isAll
+      ? store.examResults
+      : store.examResults.filter((r) => r.userId === userId);
 
     return NextResponse.json({
       success: true,

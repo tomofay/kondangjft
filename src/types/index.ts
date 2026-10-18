@@ -61,6 +61,9 @@ export interface ExamResult {
   dateOfBirth?: string;
   sex?: string;
   facePhotoUrl?: string;
+  packageId?: number;
+  packageName?: string;
+  packageCode?: string;
   testDate: string;
   testLocation: string;
   totalScore: number; // 10 - 250

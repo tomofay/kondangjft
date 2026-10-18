@@ -78,9 +78,15 @@ export async function initDatabase() {
           sectionScores JSON NOT NULL,
           answers JSON NOT NULL,
           totalTimeSpentSeconds INT NOT NULL,
+          packageId INT NULL,
           createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
       `);
+
+      // Migration: Ensure packageId column exists in exam_results
+      try {
+        await connection.query(`ALTER TABLE exam_results ADD COLUMN packageId INT NULL AFTER totalTimeSpentSeconds`);
+      } catch {}
 
       // 4. Transactions Table
       await connection.query(`

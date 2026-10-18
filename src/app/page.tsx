@@ -63,6 +63,7 @@ export default function HomePage() {
   const [transactions, setTransactions] = useState<Transaction[]>(() => getStore().transactions);
   const [pdfDrafts, setPdfDrafts] = useState<PDFQuestionDraft[]>(() => getStore().pdfDrafts);
   const [adminUsers, setAdminUsers] = useState<User[]>(() => getStore().users);
+  const [adminExamResults, setAdminExamResults] = useState<ExamResult[]>([]);
 
   // Selected result for report / review
   const [currentResult, setCurrentResult] = useState<ExamResult | null>(null);
@@ -285,16 +286,18 @@ export default function HomePage() {
     loadInitialData();
   }, []);
 
-  // Load Admin Data (Users & Transactions from MySQL)
+  // Load Admin Data (Users, Transactions, and Exam Results from MySQL)
   const loadAdminData = useCallback(async () => {
     try {
-      const [usersRes, txRes] = await Promise.all([
+      const [usersRes, txRes, historyRes] = await Promise.all([
         fetch('/api/admin/users'),
-        fetch('/api/admin/transactions')
+        fetch('/api/admin/transactions'),
+        fetch('/api/exam/history?userId=all')
       ]);
-      const [usersData, txData] = await Promise.all([
+      const [usersData, txData, historyData] = await Promise.all([
         usersRes.json(),
-        txRes.json()
+        txRes.json(),
+        historyRes.json()
       ]);
       if (usersData.success && Array.isArray(usersData.users)) {
         setAdminUsers(usersData.users);
@@ -302,8 +305,11 @@ export default function HomePage() {
       if (txData.success && Array.isArray(txData.transactions)) {
         setTransactions(txData.transactions);
       }
+      if (historyData.success && Array.isArray(historyData.results)) {
+        setAdminExamResults(historyData.results);
+      }
     } catch (err) {
-      console.warn('Failed to fetch admin users/transactions:', err);
+      console.warn('Failed to fetch admin users/transactions/history:', err);
     }
   }, []);
 
@@ -410,7 +416,8 @@ export default function HomePage() {
         body: JSON.stringify({
           userId: currentUser.id,
           answers,
-          timeSpentSeconds
+          timeSpentSeconds,
+          packageId: selectedPackageId
         })
       });
       const data = await res.json();
@@ -857,6 +864,7 @@ export default function HomePage() {
             transactions={transactions}
             pdfDrafts={pdfDrafts}
             examSets={examSets}
+            examResults={adminExamResults}
             onKickSession={handleKickSession}
             onAddCredit={handleAddCredit}
             onChangeRole={handleChangeRole}

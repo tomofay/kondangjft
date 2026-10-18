@@ -1,10 +1,11 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { User, Question, Transaction, PDFQuestionDraft, SectionType } from '../types';
-import { Users, FileText, Lock, Upload, Layers, DollarSign, BookOpen, X, ChevronLeft, ChevronRight, RefreshCw, Trash2, Shield, Image as ImageIcon, Link as LinkIcon, UploadCloud, Check, Volume2, Headphones, Sparkles, Eye, ZoomIn, AlertCircle, FileUp, FolderUp, Folder, FolderPlus, ArrowLeft, Edit3, Plus } from 'lucide-react';
+import { User, Question, Transaction, PDFQuestionDraft, SectionType, ExamResult } from '../types';
+import { Users, FileText, Lock, Upload, Layers, DollarSign, BookOpen, X, ChevronLeft, ChevronRight, RefreshCw, Trash2, Shield, Image as ImageIcon, Link as LinkIcon, UploadCloud, Check, Volume2, Headphones, Sparkles, Eye, ZoomIn, AlertCircle, FileUp, FolderUp, Folder, FolderPlus, ArrowLeft, Edit3, Plus, Award, CheckCircle2, XCircle, Calendar, Clock, TrendingUp, BarChart3 } from 'lucide-react';
 import { isSubscriptionActive, getRemainingDays, getRemainingSubscriptionText } from '../lib/dataStore';
 import { renderFormattedQuestion } from '../lib/formatQuestion';
+import { JftResultReport } from './JftResultReport';
 
 interface AdminPortalProps {
   users: User[];
@@ -12,6 +13,7 @@ interface AdminPortalProps {
   transactions: Transaction[];
   pdfDrafts: PDFQuestionDraft[];
   examSets?: import('../types').ExamSet[];
+  examResults?: ExamResult[];
   onKickSession: (userId: string) => Promise<void> | void;
   onAddCredit: (userId: string, count: number) => Promise<void> | void;
   onChangeRole?: (userId: string, newRole: 'user' | 'admin') => Promise<void> | void;
@@ -30,6 +32,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
   transactions,
   pdfDrafts,
   examSets = [],
+  examResults = [],
   onKickSession,
   onAddCredit,
   onChangeRole,
@@ -105,6 +108,28 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
   const [packageModalMode, setPackageModalMode] = useState<'create' | 'edit'>('create');
   const [editingPackage, setEditingPackage] = useState<import('../types').ExamSet | null>(null);
   const [isSavingPackage, setIsSavingPackage] = useState(false);
+
+  // Student Exam History & Progress Modal State
+  const [selectedUserForHistory, setSelectedUserForHistory] = useState<User | null>(null);
+  const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
+  const [previewingExamResult, setPreviewingExamResult] = useState<ExamResult | null>(null);
+
+  // Helper to determine package name & code for any exam result
+  const getPackageInfoForResult = (result: ExamResult) => {
+    let pkgId = result.packageId;
+    if (!pkgId && result.answers && result.answers.length > 0) {
+      const q = questions.find((item) => item.id === result.answers[0]?.questionId);
+      if (q?.packageId) {
+        pkgId = q.packageId;
+      }
+    }
+    const set = allExamSets.find((s) => s.id === (pkgId || 1));
+    return {
+      id: pkgId || 1,
+      name: set?.name || `Paket Ujian #${pkgId || 1}`,
+      code: set?.code || `JFT-SET-${pkgId || 1}`
+    };
+  };
 
   // Question Image Upload State
   const fileInputRef = React.useRef<HTMLInputElement | null>(null);
@@ -699,13 +724,14 @@ B：いえ、だいじょうぶですよ。
                   <th className="p-3">Role</th>
                   <th className="p-3">Status Sesi Aktif</th>
                   <th className="p-3">Masa Aktif Akses</th>
+                  <th className="p-3">Progres & Riwayat Tes</th>
                   <th className="p-3 text-right">Kelola Akun</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                 {users.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="text-center py-8 text-slate-400">
+                    <td colSpan={7} className="text-center py-8 text-slate-400">
                       Belum ada data pengguna terdaftar di database.
                     </td>
                   </tr>
@@ -789,6 +815,57 @@ B：いえ、だいじょうぶですよ。
                           ) : (
                             <span className="text-red-500 font-semibold text-[11px]">Kedaluwarsa</span>
                           )}
+                        </td>
+
+                        {/* Progres & Riwayat Tes */}
+                        <td className="p-3">
+                          {(() => {
+                            const userAttempts = (examResults || []).filter((r) => r.userId === u.id);
+                            if (userAttempts.length === 0) {
+                              return (
+                                <span className="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-400 text-[11px] font-medium flex items-center gap-1 w-max">
+                                  Belum ada tes
+                                </span>
+                              );
+                            }
+
+                            const highestScore = Math.max(...userAttempts.map((r) => r.totalScore));
+                            const passedCount = userAttempts.filter((r) => r.isPassed).length;
+                            const latestAttempt = userAttempts[0];
+                            const latestPkg = getPackageInfoForResult(latestAttempt);
+
+                            return (
+                              <div className="space-y-1">
+                                <div className="flex items-center gap-1.5 flex-wrap">
+                                  <span className="px-2 py-0.5 rounded-md bg-indigo-50 dark:bg-indigo-950/80 text-indigo-700 dark:text-indigo-300 font-bold text-[10px] border border-indigo-200 dark:border-indigo-800">
+                                    {userAttempts.length}x Tes
+                                  </span>
+                                  <span className="text-[11px] font-extrabold text-slate-900 dark:text-white">
+                                    Max: <span className="text-indigo-600 dark:text-indigo-400">{highestScore}</span><span className="text-[10px] text-slate-400 font-normal">/250</span>
+                                  </span>
+                                  {passedCount > 0 && (
+                                    <span className="px-1.5 py-0.5 rounded text-[9px] font-extrabold bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300">
+                                      {passedCount} Lulus
+                                    </span>
+                                  )}
+                                </div>
+                                <div className="text-[10px] text-slate-500 dark:text-slate-400 truncate max-w-[170px]" title={latestPkg.name}>
+                                  Terakhir: {latestPkg.name}
+                                </div>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setSelectedUserForHistory(u);
+                                    setIsHistoryModalOpen(true);
+                                  }}
+                                  className="px-2.5 py-1 rounded-lg bg-indigo-600/10 hover:bg-indigo-600 text-indigo-600 hover:text-white dark:text-indigo-400 dark:hover:text-white text-[11px] font-bold transition flex items-center gap-1.5 border border-indigo-200 dark:border-indigo-800 shadow-xs"
+                                >
+                                  <Award className="w-3.5 h-3.5" />
+                                  Lihat Progres & Rapor ({userAttempts.length})
+                                </button>
+                              </div>
+                            );
+                          })()}
                         </td>
 
                         <td className="p-3 text-right">
@@ -2376,6 +2453,332 @@ B：いえ、だいじょうぶですよ。
                     <span>{packageModalMode === 'create' ? 'Buat Paket Sekarang' : 'Simpan Perubahan Paket'}</span>
                   </>
                 )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: RIWAYAT & PROGRES UJIAN PESERTA */}
+      {isHistoryModalOpen && selectedUserForHistory && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-md animate-in fade-in">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-4xl w-full max-h-[90vh] shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95">
+            {/* Modal Header */}
+            <div className="p-6 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/50 flex items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                {selectedUserForHistory.facePhotoUrl ? (
+                  <img
+                    src={selectedUserForHistory.facePhotoUrl}
+                    alt={selectedUserForHistory.name}
+                    className="w-12 h-12 rounded-2xl object-cover border-2 border-indigo-500 shadow-sm"
+                  />
+                ) : (
+                  <div className="w-12 h-12 rounded-2xl bg-indigo-600 text-white flex items-center justify-center font-black text-lg shadow-md">
+                    {selectedUserForHistory.name ? selectedUserForHistory.name.charAt(0).toUpperCase() : 'U'}
+                  </div>
+                )}
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h2 className="text-lg font-black text-slate-900 dark:text-white">
+                      {selectedUserForHistory.name}
+                    </h2>
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-indigo-100 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800">
+                      {selectedUserForHistory.role}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 mt-0.5 font-mono">
+                    <span>{selectedUserForHistory.registrationNumber || selectedUserForHistory.id}</span>
+                    <span>•</span>
+                    <span>{selectedUserForHistory.email}</span>
+                  </div>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setIsHistoryModalOpen(false);
+                  setSelectedUserForHistory(null);
+                }}
+                className="w-9 h-9 rounded-2xl bg-slate-200/60 dark:bg-slate-800 text-slate-500 hover:text-slate-900 dark:hover:text-white flex items-center justify-center transition"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-6 overflow-y-auto space-y-6">
+              {(() => {
+                const userAttempts = (examResults || []).filter(
+                  (r) => r.userId === selectedUserForHistory.id
+                );
+                const highestScore = userAttempts.length > 0 ? Math.max(...userAttempts.map((r) => r.totalScore)) : 0;
+                const avgScore =
+                  userAttempts.length > 0
+                    ? Math.round(userAttempts.reduce((acc, r) => acc + r.totalScore, 0) / userAttempts.length)
+                    : 0;
+                const passedAttempts = userAttempts.filter((r) => r.isPassed).length;
+
+                return (
+                  <>
+                    {/* Summary KPI Cards */}
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                      <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800">
+                        <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400 text-xs font-semibold">
+                          <BookOpen className="w-4 h-4 text-indigo-500" />
+                          <span>Total Dikerjakan</span>
+                        </div>
+                        <div className="text-2xl font-black text-slate-900 dark:text-white mt-1">
+                          {userAttempts.length} <span className="text-xs font-normal text-slate-400">Kali</span>
+                        </div>
+                      </div>
+
+                      <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800">
+                        <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400 text-xs font-semibold">
+                          <TrendingUp className="w-4 h-4 text-emerald-500" />
+                          <span>Skor Tertinggi</span>
+                        </div>
+                        <div className="text-2xl font-black text-emerald-600 dark:text-emerald-400 mt-1">
+                          {highestScore} <span className="text-xs font-normal text-slate-400">/ 250</span>
+                        </div>
+                      </div>
+
+                      <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800">
+                        <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400 text-xs font-semibold">
+                          <BarChart3 className="w-4 h-4 text-amber-500" />
+                          <span>Rata-rata Skor</span>
+                        </div>
+                        <div className="text-2xl font-black text-amber-600 dark:text-amber-400 mt-1">
+                          {avgScore} <span className="text-xs font-normal text-slate-400">/ 250</span>
+                        </div>
+                      </div>
+
+                      <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800">
+                        <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400 text-xs font-semibold">
+                          <CheckCircle2 className="w-4 h-4 text-indigo-500" />
+                          <span>Kelulusan</span>
+                        </div>
+                        <div className="text-2xl font-black text-indigo-600 dark:text-indigo-400 mt-1">
+                          {passedAttempts} <span className="text-xs font-normal text-slate-400">/ {userAttempts.length}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Riwayat Tes List */}
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <h3 className="text-sm font-black text-slate-900 dark:text-white flex items-center gap-2">
+                          <Clock className="w-4 h-4 text-indigo-500" />
+                          Daftar Riwayat Tes Paket & Nilai Lengkap
+                        </h3>
+                        <span className="text-xs text-slate-400 font-semibold">
+                          {userAttempts.length} Catatan Riwayat
+                        </span>
+                      </div>
+
+                      {userAttempts.length === 0 ? (
+                        <div className="p-8 text-center bg-slate-50 dark:bg-slate-950/50 rounded-2xl border border-dashed border-slate-200 dark:border-slate-800 space-y-2">
+                          <div className="w-12 h-12 mx-auto rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400">
+                            <BookOpen className="w-6 h-6" />
+                          </div>
+                          <p className="text-sm font-bold text-slate-700 dark:text-slate-300">
+                            Peserta belum pernah mengerjakan ujian
+                          </p>
+                          <p className="text-xs text-slate-500 dark:text-slate-400 max-w-sm mx-auto">
+                            Hasil simulasi CBT dan lembar sertifikat akan otomatis terekam dan muncul di sini saat peserta menyelesaikan paket ujian.
+                          </p>
+                        </div>
+                      ) : (
+                        <div className="space-y-3">
+                          {userAttempts.map((attempt, index) => {
+                            const pkgInfo = getPackageInfoForResult(attempt);
+                            const spentMin = Math.floor((attempt.totalTimeSpentSeconds || 0) / 60);
+                            const spentSec = (attempt.totalTimeSpentSeconds || 0) % 60;
+
+                            return (
+                              <div
+                                key={attempt.id || index}
+                                className="p-4 rounded-2xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 hover:border-indigo-300 dark:hover:border-indigo-700 transition shadow-sm space-y-3"
+                              >
+                                <div className="flex flex-wrap items-start justify-between gap-3">
+                                  <div className="space-y-1">
+                                    <div className="flex items-center gap-2 flex-wrap">
+                                      <span className="px-2.5 py-1 rounded-xl text-xs font-black bg-indigo-50 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800">
+                                        {pkgInfo.code}
+                                      </span>
+                                      <h4 className="text-sm font-black text-slate-900 dark:text-white">
+                                        {pkgInfo.name}
+                                      </h4>
+                                    </div>
+                                    <div className="flex items-center gap-3 text-xs text-slate-400">
+                                      <span className="flex items-center gap-1">
+                                        <Calendar className="w-3.5 h-3.5" />
+                                        {attempt.testDate}
+                                      </span>
+                                      <span>•</span>
+                                      <span className="flex items-center gap-1">
+                                        <Clock className="w-3.5 h-3.5" />
+                                        {spentMin}m {spentSec}s
+                                      </span>
+                                    </div>
+                                  </div>
+
+                                  <div className="flex items-center gap-3">
+                                    <div className="text-right">
+                                      <div className="text-xl font-black text-slate-900 dark:text-white">
+                                        {attempt.totalScore}
+                                        <span className="text-xs font-normal text-slate-400"> / 250</span>
+                                      </div>
+                                      <div>
+                                        {attempt.isPassed ? (
+                                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-black bg-emerald-100 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800">
+                                            <CheckCircle2 className="w-3 h-3" />
+                                            Lulus ({attempt.assessmentResult})
+                                          </span>
+                                        ) : (
+                                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-black bg-red-100 dark:bg-red-950/80 text-red-700 dark:text-red-300 border border-red-300 dark:border-red-800">
+                                            <XCircle className="w-3 h-3" />
+                                            {attempt.assessmentResult || 'Tidak Lulus'}
+                                          </span>
+                                        )}
+                                      </div>
+                                    </div>
+
+                                    <button
+                                      type="button"
+                                      onClick={() => setPreviewingExamResult(attempt)}
+                                      className="px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold transition shadow-sm flex items-center gap-1.5"
+                                    >
+                                      <Eye className="w-4 h-4" />
+                                      <span>Lihat Rapor Resmi</span>
+                                    </button>
+                                  </div>
+                                </div>
+
+                                {/* Section Breakdown Grid */}
+                                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-2 border-t border-slate-100 dark:border-slate-800/80 text-xs">
+                                  <div className="p-2 rounded-xl bg-slate-50 dark:bg-slate-900/50">
+                                    <div className="text-[10px] text-slate-400 font-semibold truncate">
+                                      Seksi 1 (Huruf & Kosakata)
+                                    </div>
+                                    <div className="font-bold text-slate-800 dark:text-slate-200 mt-0.5">
+                                      {attempt.sectionScores?.S1?.score || 0} / {attempt.sectionScores?.S1?.maxScore || 12}
+                                      <span className="text-[10px] text-slate-400 font-normal ml-1">
+                                        ({attempt.sectionScores?.S1?.percentage || 0}%)
+                                      </span>
+                                    </div>
+                                  </div>
+
+                                  <div className="p-2 rounded-xl bg-slate-50 dark:bg-slate-900/50">
+                                    <div className="text-[10px] text-slate-400 font-semibold truncate">
+                                      Seksi 2 (Percakapan & Ekspresi)
+                                    </div>
+                                    <div className="font-bold text-slate-800 dark:text-slate-200 mt-0.5">
+                                      {attempt.sectionScores?.S2?.score || 0} / {attempt.sectionScores?.S2?.maxScore || 12}
+                                      <span className="text-[10px] text-slate-400 font-normal ml-1">
+                                        ({attempt.sectionScores?.S2?.percentage || 0}%)
+                                      </span>
+                                    </div>
+                                  </div>
+
+                                  <div className="p-2 rounded-xl bg-slate-50 dark:bg-slate-900/50">
+                                    <div className="text-[10px] text-slate-400 font-semibold truncate">
+                                      Seksi 3 (Pendengaran / Chōkai)
+                                    </div>
+                                    <div className="font-bold text-slate-800 dark:text-slate-200 mt-0.5">
+                                      {attempt.sectionScores?.S3?.score || 0} / {attempt.sectionScores?.S3?.maxScore || 13}
+                                      <span className="text-[10px] text-slate-400 font-normal ml-1">
+                                        ({attempt.sectionScores?.S3?.percentage || 0}%)
+                                      </span>
+                                    </div>
+                                  </div>
+
+                                  <div className="p-2 rounded-xl bg-slate-50 dark:bg-slate-900/50">
+                                    <div className="text-[10px] text-slate-400 font-semibold truncate">
+                                      Seksi 4 (Bacaan / Dokkai)
+                                    </div>
+                                    <div className="font-bold text-slate-800 dark:text-slate-200 mt-0.5">
+                                      {attempt.sectionScores?.S4?.score || 0} / {attempt.sectionScores?.S4?.maxScore || 13}
+                                      <span className="text-[10px] text-slate-400 font-normal ml-1">
+                                        ({attempt.sectionScores?.S4?.percentage || 0}%)
+                                      </span>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  </>
+                );
+              })()}
+            </div>
+
+            {/* Modal Footer */}
+            <div className="p-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 flex justify-end">
+              <button
+                type="button"
+                onClick={() => {
+                  setIsHistoryModalOpen(false);
+                  setSelectedUserForHistory(null);
+                }}
+                className="px-5 py-2.5 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold rounded-xl text-xs transition"
+              >
+                Tutup
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: PRATINJAU RAPOR RESMI JFT */}
+      {previewingExamResult && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-in fade-in overflow-y-auto">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-5xl w-full max-h-[92vh] shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 my-auto">
+            {/* Header */}
+            <div className="p-4 sm:p-5 border-b border-slate-200 dark:border-slate-800 bg-slate-900 text-white flex items-center justify-between gap-4">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-xl bg-indigo-600/30 text-indigo-400 flex items-center justify-center">
+                  <Award className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-sm sm:text-base font-black">
+                    Lembar Hasil Ujian Resmi JFT-Basic — {previewingExamResult.userName}
+                  </h3>
+                  <p className="text-xs text-slate-400">
+                    {getPackageInfoForResult(previewingExamResult).name} • Tanggal: {previewingExamResult.testDate}
+                  </p>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setPreviewingExamResult(null)}
+                className="w-8 h-8 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white flex items-center justify-center transition"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Certificate Body */}
+            <div className="p-4 sm:p-6 overflow-y-auto bg-slate-100 dark:bg-slate-950">
+              <JftResultReport
+                result={previewingExamResult}
+                onOpenReview={() => {}}
+                onRetake={() => {}}
+              />
+            </div>
+
+            {/* Footer */}
+            <div className="p-4 border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 flex justify-end">
+              <button
+                type="button"
+                onClick={() => setPreviewingExamResult(null)}
+                className="px-5 py-2.5 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold rounded-xl text-xs transition"
+              >
+                Kembali ke Riwayat Peserta
               </button>
             </div>
           </div>
