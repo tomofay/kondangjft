@@ -2,6 +2,20 @@ export type Role = 'user' | 'admin';
 
 export type SectionType = 'S1' | 'S2' | 'S3' | 'S4';
 
+export interface UserActivity {
+  view: 'dashboard' | 'exam' | 'report' | 'review' | 'admin' | string;
+  packageId?: number;
+  packageName?: string;
+  packageCode?: string;
+  currentNumber?: number;
+  currentSection?: SectionType | string;
+  sectionTitle?: string;
+  answeredCount?: number;
+  totalQuestions?: number;
+  timeLeftSeconds?: number;
+  updatedAt?: number;
+}
+
 export interface User {
   id: string;
   name: string;
@@ -17,6 +31,7 @@ export interface User {
   sex: 'Male' | 'Female' | 'MALE' | 'FEMALE' | string;
   activeSessionId?: string; // Single session token
   lastActiveAt?: string;
+  currentActivity?: UserActivity | null;
 }
 
 export interface Question {

@@ -18,6 +18,7 @@ interface UserRow extends RowDataPacket {
   sex: string;
   activeSessionId: string | null;
   lastActiveAt: string | null;
+  currentActivity: string | object | null;
   createdAt: string;
 }
 
@@ -30,24 +31,36 @@ export async function GET() {
     let dbUsers: User[] = [];
     try {
       const [rows] = await pool.query<UserRow[]>(
-        'SELECT id, name, email, role, subscriptionExpiresAt, credits, facePhotoUrl, registrationNumber, nationality, dateOfBirth, sex, activeSessionId, lastActiveAt, createdAt FROM users ORDER BY createdAt DESC'
+        'SELECT id, name, email, role, subscriptionExpiresAt, credits, facePhotoUrl, registrationNumber, nationality, dateOfBirth, sex, activeSessionId, lastActiveAt, currentActivity, createdAt FROM users ORDER BY createdAt DESC'
       );
       if (rows && rows.length > 0) {
-        dbUsers = rows.map((u) => ({
-          id: u.id,
-          name: u.name,
-          email: u.email,
-          role: u.role,
-          subscriptionExpiresAt: u.subscriptionExpiresAt,
-          credits: u.credits,
-          facePhotoUrl: u.facePhotoUrl || undefined,
-          registrationNumber: u.registrationNumber,
-          nationality: u.nationality,
-          dateOfBirth: u.dateOfBirth,
-          sex: u.sex,
-          activeSessionId: u.activeSessionId || undefined,
-          lastActiveAt: u.lastActiveAt || undefined
-        }));
+        dbUsers = rows.map((u) => {
+          let activity = u.currentActivity as any;
+          if (typeof activity === 'string') {
+            try {
+              activity = JSON.parse(activity);
+            } catch {
+              activity = null;
+            }
+          }
+
+          return {
+            id: u.id,
+            name: u.name,
+            email: u.email,
+            role: u.role,
+            subscriptionExpiresAt: u.subscriptionExpiresAt,
+            credits: u.credits,
+            facePhotoUrl: u.facePhotoUrl || undefined,
+            registrationNumber: u.registrationNumber,
+            nationality: u.nationality,
+            dateOfBirth: u.dateOfBirth,
+            sex: u.sex,
+            activeSessionId: u.activeSessionId || undefined,
+            lastActiveAt: u.lastActiveAt || undefined,
+            currentActivity: activity || undefined
+          };
+        });
 
         // Keep in-memory store synchronized with DB users
         for (const dbUser of dbUsers) {

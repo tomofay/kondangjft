@@ -64,6 +64,15 @@ export default function HomePage() {
   const [pdfDrafts, setPdfDrafts] = useState<PDFQuestionDraft[]>(() => getStore().pdfDrafts);
   const [adminUsers, setAdminUsers] = useState<User[]>(() => getStore().users);
   const [adminExamResults, setAdminExamResults] = useState<ExamResult[]>([]);
+  const [examLiveProgress, setExamLiveProgress] = useState<{
+    currentIndex: number;
+    currentNumber: number;
+    currentSection: string;
+    sectionTitle?: string;
+    answeredCount: number;
+    totalQuestions: number;
+    timeLeftSeconds: number;
+  } | null>(null);
 
   // Selected result for report / review
   const [currentResult, setCurrentResult] = useState<ExamResult | null>(null);
@@ -313,23 +322,42 @@ export default function HomePage() {
     }
   }, []);
 
-  // When admin portal view opens, refresh users and transactions dynamically from DB
+  // When admin portal view opens, auto-refresh users and live activity every 2 seconds dynamically from DB (Realtime - no manual refresh needed)
   useEffect(() => {
-    if (view === 'admin' || currentUser?.role === 'admin') {
+    if (view !== 'admin' && currentUser?.role !== 'admin') return;
+
+    loadAdminData();
+    const interval = setInterval(() => {
       loadAdminData();
-    }
+    }, 2000);
+
+    return () => clearInterval(interval);
   }, [view, currentUser?.role, loadAdminData]);
 
-  // Single Session Lock Polling Heartbeat (Checks every 3 seconds)
+  // Single Session Lock & Live Activity Polling Heartbeat (Pings every 2 seconds)
   useEffect(() => {
     if (!currentUser || !sessionId) return;
 
-    const interval = setInterval(async () => {
+    const sendHeartbeat = async () => {
       try {
+        const curPkg = examSets.find((s) => s.id === selectedPackageId);
+        const activityPayload = {
+          view,
+          packageId: selectedPackageId,
+          packageName: curPkg?.name || `Paket Ujian #${selectedPackageId}`,
+          packageCode: curPkg?.code || `JFT-SET-${selectedPackageId}`,
+          ...(view === 'exam' && examLiveProgress ? examLiveProgress : {}),
+          updatedAt: Date.now()
+        };
+
         const res = await fetch('/api/auth/session-check', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ userId: currentUser.id, sessionId })
+          body: JSON.stringify({
+            userId: currentUser.id,
+            sessionId,
+            activity: activityPayload
+          })
         });
         const data = await res.json();
         if (data.valid === false) {
@@ -339,10 +367,13 @@ export default function HomePage() {
       } catch {
         // Ignore network errors during heartbeat
       }
-    }, 3000);
+    };
+
+    sendHeartbeat();
+    const interval = setInterval(sendHeartbeat, 2000);
 
     return () => clearInterval(interval);
-  }, [currentUser, sessionId]);
+  }, [currentUser, sessionId, view, selectedPackageId, examLiveProgress, examSets]);
 
   // Start CBT Exam for a specific Question Package (1, 2, 3, 4)
   const handleStartExam = (pkgId?: number) => {
@@ -829,6 +860,7 @@ export default function HomePage() {
             questions={questions.filter((q) => (q.packageId || 1) === selectedPackageId)}
             onSubmitExam={handleSubmitExam}
             user={currentUser}
+            onProgressUpdate={setExamLiveProgress}
           />
         )}
 

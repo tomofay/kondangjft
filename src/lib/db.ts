@@ -39,10 +39,16 @@ export async function initDatabase() {
           sex VARCHAR(16) NOT NULL DEFAULT 'MALE',
           activeSessionId VARCHAR(128) NULL,
           lastActiveAt VARCHAR(64) NULL,
+          currentActivity JSON NULL,
           createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
           updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
       `);
+
+      // Migration: Ensure currentActivity column exists in users
+      try {
+        await connection.query(`ALTER TABLE users ADD COLUMN currentActivity JSON NULL AFTER lastActiveAt`);
+      } catch {}
 
       // 2. Questions Table
       await connection.query(`

@@ -12,11 +12,13 @@ interface UserRow extends RowDataPacket {
 
 export async function POST(request: Request) {
   try {
-    const { userId, sessionId } = await request.json();
+    const { userId, sessionId, activity } = await request.json();
 
     if (!userId || !sessionId) {
       return NextResponse.json({ valid: true });
     }
+
+    const nowStr = Date.now().toString();
 
     // 1. Check in MySQL database first
     try {
@@ -36,11 +38,19 @@ export async function POST(request: Request) {
           });
         }
 
-        // If MySQL has matching or null session, sync memory store
+        // Update lastActiveAt and currentActivity in MySQL
+        pool.query(
+          'UPDATE users SET lastActiveAt = ?, currentActivity = ?, activeSessionId = ? WHERE id = ?',
+          [nowStr, activity ? JSON.stringify(activity) : null, sessionId, userId]
+        ).catch(() => {});
+
+        // Sync memory store
         const store = getStore();
         const storeUser = store.users.find((u: User) => u.id === userId);
-        if (storeUser && !storeUser.activeSessionId) {
-          storeUser.activeSessionId = dbUser.activeSessionId || sessionId;
+        if (storeUser) {
+          storeUser.activeSessionId = sessionId;
+          storeUser.lastActiveAt = nowStr;
+          storeUser.currentActivity = activity || null;
         }
 
         return NextResponse.json({
@@ -56,6 +66,12 @@ export async function POST(request: Request) {
     const isValid = verifyUserSession(userId, sessionId);
     const store = getStore();
     const user = store.users.find((u: User) => u.id === userId);
+
+    if (user && isValid) {
+      user.lastActiveAt = nowStr;
+      user.currentActivity = activity || null;
+      user.activeSessionId = sessionId;
+    }
 
     if (!isValid) {
       return NextResponse.json({

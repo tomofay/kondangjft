@@ -8,7 +8,7 @@ export async function POST(request: Request) {
     if (userId) {
       kickUserSession(userId);
       try {
-        await pool.query('UPDATE users SET activeSessionId = NULL WHERE id = ?', [userId]);
+        await pool.query('UPDATE users SET activeSessionId = NULL, currentActivity = NULL WHERE id = ?', [userId]);
       } catch (err) {
         console.warn('MySQL logout session clear fallback:', err);
       }

@@ -7,11 +7,21 @@ interface CbtExamEngineProps {
   questions: Question[];
   onSubmitExam: (answers: UserAnswer[], timeSpentSeconds: number) => void;
   user?: User;
+  onProgressUpdate?: (progress: {
+    currentIndex: number;
+    currentNumber: number;
+    currentSection: string;
+    sectionTitle?: string;
+    answeredCount: number;
+    totalQuestions: number;
+    timeLeftSeconds: number;
+  }) => void;
 }
 
 export const CbtExamEngine: React.FC<CbtExamEngineProps> = ({
   questions,
-  onSubmitExam
+  onSubmitExam,
+  onProgressUpdate
 }) => {
   const TOTAL_TIME = 60 * 60; // 60 minutes in seconds
   const [timeLeft, setTimeLeft] = useState(TOTAL_TIME);
@@ -66,6 +76,22 @@ export const CbtExamEngine: React.FC<CbtExamEngineProps> = ({
 
     return () => clearInterval(timer);
   }, []);
+
+  // Real-time progress update for live supervisor monitoring
+  useEffect(() => {
+    if (!onProgressUpdate) return;
+    const q = questions[currentIndex];
+    const answeredCount = Array.from(answers.values()).filter((a) => a.selectedOption !== null).length;
+    onProgressUpdate({
+      currentIndex,
+      currentNumber: q?.number || currentIndex + 1,
+      currentSection: q?.section || 'S1',
+      sectionTitle: q?.sectionTitle,
+      answeredCount,
+      totalQuestions: questions.length,
+      timeLeftSeconds: timeLeft
+    });
+  }, [currentIndex, answers, timeLeft, questions, onProgressUpdate]);
 
   const formatTime = (seconds: number) => {
     const m = Math.floor(seconds / 60);
