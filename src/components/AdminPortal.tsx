@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { User, Question, Transaction, PDFQuestionDraft, SectionType } from '../types';
-import { Users, FileText, Lock, Upload, Layers, DollarSign, BookOpen, X, ChevronLeft, ChevronRight, RefreshCw, Trash2, Shield, Image as ImageIcon, Link as LinkIcon, UploadCloud, Check } from 'lucide-react';
+import { Users, FileText, Lock, Upload, Layers, DollarSign, BookOpen, X, ChevronLeft, ChevronRight, RefreshCw, Trash2, Shield, Image as ImageIcon, Link as LinkIcon, UploadCloud, Check, Volume2, Headphones } from 'lucide-react';
 import { isSubscriptionActive, getRemainingDays, getRemainingSubscriptionText } from '../lib/dataStore';
 
 interface AdminPortalProps {
@@ -81,6 +81,42 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
       setUploadImageError('Gagal menghubungi server: ' + msg);
     } finally {
       setIsUploadingImage(false);
+      if (e.target) e.target.value = '';
+    }
+  };
+
+  // Question Audio Upload State
+  const audioFileInputRef = React.useRef<HTMLInputElement | null>(null);
+  const [isUploadingAudio, setIsUploadingAudio] = useState(false);
+  const [uploadAudioError, setUploadAudioError] = useState('');
+
+  const handleAudioUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !editingQuestion) return;
+
+    setIsUploadingAudio(true);
+    setUploadAudioError('');
+
+    try {
+      const formData = new FormData();
+      formData.append('audio', file);
+
+      const res = await fetch('/api/admin/upload-audio', {
+        method: 'POST',
+        body: formData
+      });
+
+      const data = await res.json();
+      if (data.success && data.url) {
+        setEditingQuestion((prev) => prev ? { ...prev, audioUrl: data.url } : null);
+      } else {
+        setUploadAudioError(data.message || 'Gagal mengunggah file audio.');
+      }
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      setUploadAudioError('Gagal menghubungi server: ' + msg);
+    } finally {
+      setIsUploadingAudio(false);
       if (e.target) e.target.value = '';
     }
   };
@@ -868,7 +904,7 @@ Pembahasan: Laki-laki mengusulkan 10:30.`);
               </button>
             </div>
 
-            <div className="grid grid-cols-3 gap-3 text-xs">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
               <div>
                 <label className="font-bold text-slate-700 dark:text-slate-300 block mb-1">Pilih Paket:</label>
                 <select
@@ -921,6 +957,20 @@ Pembahasan: Laki-laki mengusulkan 10:30.`);
                   className="w-full p-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-slate-100 font-bold"
                 />
               </div>
+
+              <div>
+                <label className="font-bold text-slate-700 dark:text-slate-300 block mb-1">Kunci Jawaban Benar:</label>
+                <select
+                  value={editingQuestion.correctAnswer}
+                  onChange={(e) => setEditingQuestion({ ...editingQuestion, correctAnswer: e.target.value as 'A' | 'B' | 'C' | 'D' })}
+                  className="w-full p-2.5 bg-emerald-50 dark:bg-emerald-950 border border-emerald-300 dark:border-emerald-800 rounded-xl text-emerald-900 dark:text-emerald-300 font-bold"
+                >
+                  <option value="A">Opsi A</option>
+                  <option value="B">Opsi B</option>
+                  <option value="C">Opsi C</option>
+                  <option value="D">Opsi D</option>
+                </select>
+              </div>
             </div>
 
             <div className="text-xs space-y-1">
@@ -955,39 +1005,95 @@ Pembahasan: Laki-laki mengusulkan 10:30.`);
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-3 text-xs">
-              <div>
-                <label className="font-bold text-slate-700 dark:text-slate-300 block mb-1">Kunci Jawaban Benar:</label>
-                <select
-                  value={editingQuestion.correctAnswer}
-                  onChange={(e) => setEditingQuestion({ ...editingQuestion, correctAnswer: e.target.value as 'A' | 'B' | 'C' | 'D' })}
-                  className="w-full p-2.5 bg-emerald-50 dark:bg-emerald-950 border border-emerald-300 dark:border-emerald-800 rounded-xl text-emerald-900 dark:text-emerald-300 font-bold"
-                >
-                  <option value="A">Opsi A</option>
-                  <option value="B">Opsi B</option>
-                  <option value="C">Opsi C</option>
-                  <option value="D">Opsi D</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="font-bold text-slate-700 dark:text-slate-300 block mb-1">URL Audio (Opsional S3 Chōkai MP3/OGG):</label>
-                <input
-                  type="text"
-                  value={editingQuestion.audioUrl || ''}
-                  onChange={(e) => setEditingQuestion({ ...editingQuestion, audioUrl: e.target.value })}
-                  placeholder="https://www.irodori.jpf.go.jp/assets/data/...mp3"
-                  className="w-full p-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-slate-100 text-xs"
-                />
+            {/* Audio Soal Chokai (Upload & Link URL) */}
+            <div className="p-3.5 bg-slate-50 dark:bg-slate-950 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-2.5 text-xs">
+              <div className="flex items-center justify-between">
+                <label className="font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                  <Headphones className="w-4 h-4 text-amber-500" />
+                  Audio Soal Chōkai (S3 - Opsional):
+                </label>
                 {editingQuestion.audioUrl && (
-                  <div className="mt-2 p-2 bg-slate-100 dark:bg-slate-950 rounded-lg border border-slate-200 dark:border-slate-800">
-                    <p className="text-[10px] text-slate-500 font-semibold mb-1">Preview Suara:</p>
-                    <audio key={editingQuestion.audioUrl} controls className="w-full h-8" src={editingQuestion.audioUrl}>
-                      <source src={editingQuestion.audioUrl} type={editingQuestion.audioUrl.endsWith('.ogg') ? 'audio/ogg' : 'audio/mpeg'} />
-                    </audio>
-                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setEditingQuestion({ ...editingQuestion, audioUrl: '' })}
+                    className="text-[11px] font-bold text-rose-500 hover:text-rose-400 flex items-center gap-1 transition"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                    Hapus Audio
+                  </button>
                 )}
               </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {/* Upload File Audio */}
+                <div className="space-y-1">
+                  <span className="text-[11px] text-slate-500 dark:text-slate-400 font-semibold block">
+                    1. Upload File Audio (MP3, WAV, OGG, M4A):
+                  </span>
+                  <input
+                    type="file"
+                    ref={audioFileInputRef}
+                    accept="audio/*"
+                    onChange={handleAudioUpload}
+                    className="hidden"
+                  />
+                  <button
+                    type="button"
+                    disabled={isUploadingAudio}
+                    onClick={() => audioFileInputRef.current?.click()}
+                    className="w-full py-2.5 px-3 bg-amber-50 hover:bg-amber-100 dark:bg-amber-950/60 dark:hover:bg-amber-900/60 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800 rounded-xl font-bold flex items-center justify-center gap-2 transition disabled:opacity-50"
+                  >
+                    <UploadCloud className="w-4 h-4" />
+                    <span>{isUploadingAudio ? 'Mengunggah Audio...' : 'Pilih File Audio & Upload'}</span>
+                  </button>
+                </div>
+
+                {/* Input Link URL Audio */}
+                <div className="space-y-1">
+                  <span className="text-[11px] text-slate-500 dark:text-slate-400 font-semibold block">
+                    2. Atau Tempel / Ketik Link URL Audio:
+                  </span>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      value={editingQuestion.audioUrl || ''}
+                      onChange={(e) => setEditingQuestion({ ...editingQuestion, audioUrl: e.target.value })}
+                      placeholder="https://... atau /uploads/audio/..."
+                      className="w-full p-2.5 pr-8 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-slate-100 text-xs"
+                    />
+                    <LinkIcon className="w-3.5 h-3.5 text-slate-400 absolute right-2.5 top-3" />
+                  </div>
+                </div>
+              </div>
+
+              {uploadAudioError && (
+                <div className="text-[11px] text-rose-500 font-semibold">
+                  ⚠️ {uploadAudioError}
+                </div>
+              )}
+
+              {/* Live Audio Player Preview */}
+              {editingQuestion.audioUrl && (
+                <div className="mt-2 p-2.5 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 space-y-1.5">
+                  <div className="text-[10px] text-slate-400 font-semibold flex items-center gap-1">
+                    <Volume2 className="w-3.5 h-3.5 text-amber-500" /> Pemutar Audio Aktif:
+                  </div>
+                  <audio
+                    key={editingQuestion.audioUrl}
+                    controls
+                    className="w-full h-8"
+                    src={editingQuestion.audioUrl}
+                  >
+                    <source
+                      src={editingQuestion.audioUrl}
+                      type={editingQuestion.audioUrl.endsWith('.ogg') ? 'audio/ogg' : 'audio/mpeg'}
+                    />
+                  </audio>
+                  <div className="text-[10px] text-slate-400 font-mono truncate">
+                    {editingQuestion.audioUrl}
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Foto / Gambar Soal (Upload & Link URL) */}
