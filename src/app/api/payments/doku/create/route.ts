@@ -99,6 +99,12 @@ export async function POST(request: Request) {
     let requestBody: any = {};
     let paymentChannelName = 'BRI Virtual Account';
 
+    // Dynamic base URL for hosting compatibility
+    const hostHeader = request.headers.get('x-forwarded-host') || request.headers.get('host');
+    const protoHeader = request.headers.get('x-forwarded-proto') || 'https';
+    const dynamicOrigin = hostHeader ? `${protoHeader}://${hostHeader}` : null;
+    const baseUrlWeb = dynamicOrigin || process.env.NEXT_PUBLIC_BASE_URL || 'https://kondangsensei.my.id';
+
     // Route based on active channel verified in DOKU Back Office
     switch (channel) {
       case 'BNI':
@@ -179,7 +185,6 @@ export async function POST(request: Request) {
       case 'DOKU_EWALLET': {
         requestTarget = '/dokuwallet-emoney/v1/payment';
         paymentChannelName = 'DOKU e-Wallet';
-        const baseUrlWeb = process.env.NEXT_PUBLIC_BASE_URL || 'https://kondangsensei.my.id';
         requestBody = {
           order: {
             invoice_number: invoiceNumber,
@@ -224,7 +229,6 @@ export async function POST(request: Request) {
       case 'QRIS': {
         requestTarget = '/checkout/v1/payment';
         paymentChannelName = 'QRIS Instant';
-        const baseUrlWeb = process.env.NEXT_PUBLIC_BASE_URL || 'https://kondangsensei.my.id';
         requestBody = {
           order: {
             invoice_number: invoiceNumber,
@@ -250,7 +254,6 @@ export async function POST(request: Request) {
       case 'GOOGLE_PAY': {
         requestTarget = '/checkout/v1/payment';
         paymentChannelName = 'Google Pay';
-        const baseUrlWeb = process.env.NEXT_PUBLIC_BASE_URL || 'https://kondangsensei.my.id';
         requestBody = {
           order: {
             invoice_number: invoiceNumber,
@@ -276,7 +279,6 @@ export async function POST(request: Request) {
       case 'AKULAKU': {
         requestTarget = '/akulaku-peer-to-peer/v2/generate-order';
         paymentChannelName = 'Akulaku PayLater';
-        const baseUrlWeb = process.env.NEXT_PUBLIC_BASE_URL || 'https://kondangsensei.my.id';
         // Akulaku line_items.name strictly allows alphanumeric and spaces (no brackets/parentheses)
         const sanitizedItemName = (pkg.name || 'Paket Tryout JFT Basic')
           .replace(/[^a-zA-Z0-9 ]/g, ' ')

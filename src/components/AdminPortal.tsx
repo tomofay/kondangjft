@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { User, Question, Transaction, PDFQuestionDraft, SectionType, ExamResult } from '../types';
 import { Users, FileText, Lock, Upload, Layers, DollarSign, BookOpen, X, ChevronLeft, ChevronRight, RefreshCw, Trash2, Shield, Image as ImageIcon, Link as LinkIcon, UploadCloud, Check, Volume2, Headphones, Sparkles, Eye, ZoomIn, AlertCircle, FileUp, FolderUp, Folder, FolderPlus, ArrowLeft, Edit3, Plus, Award, CheckCircle2, XCircle, Calendar, Clock, TrendingUp, BarChart3, Activity } from 'lucide-react';
-import { isSubscriptionActive, getRemainingDays, getRemainingSubscriptionText } from '../lib/dataStore';
+import { isSubscriptionActive, getRemainingDays, getRemainingSubscriptionText, DEFAULT_ANONYMOUS_PHOTO } from '../lib/dataStore';
 import { renderFormattedQuestion } from '../lib/formatQuestion';
 import { JftResultReport } from './JftResultReport';
 
@@ -628,21 +628,22 @@ B：いえ、だいじょうぶですよ。
   return (
     <div className="max-w-7xl mx-auto space-y-6 pb-12">
       {/* Admin Header */}
-      <div className="bg-slate-900 text-white p-6 rounded-3xl shadow-xl border border-slate-800 flex flex-wrap items-center justify-between gap-4">
+      <div className="bg-white text-stone-900 p-6 rounded-3xl shadow-sm border border-stone-200/90 flex flex-wrap items-center justify-between gap-4">
         <div>
-          <span className="px-3 py-1 rounded-full bg-indigo-950 border border-indigo-700 text-indigo-400 text-xs font-bold uppercase tracking-wider">
+          <span className="px-3 py-1 rounded-full bg-gradient-to-r from-rose-50 via-amber-50 to-sky-50 border border-stone-200 text-stone-800 text-xs font-bold uppercase tracking-wider inline-flex items-center gap-1.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-indigo-600 animate-pulse" />
             Superadmin Control Panel
           </span>
-          <h1 className="text-2xl font-black tracking-tight mt-1">Portal Administrator KondangSensei</h1>
-          <p className="text-xs text-slate-400">Kelola Bank Soal 50 Soal, Sesi Single Lock, Transaksi & Parser PDF</p>
+          <h1 className="text-2xl font-black tracking-tight mt-1.5 text-stone-900">Portal Administrator KondangSensei</h1>
+          <p className="text-xs text-stone-500">Kelola Bank Soal 50 Soal, Sesi Single Lock, Transaksi & Parser PDF</p>
         </div>
 
-        {/* Tab Buttons */}
-        <div className="flex flex-wrap gap-2 bg-slate-950 p-1.5 rounded-2xl border border-slate-800 text-xs font-semibold">
+        {/* Tab Buttons with Distinct KondangSensei Color Identity */}
+        <div className="flex flex-wrap gap-1.5 bg-stone-100 p-1.5 rounded-2xl border border-stone-200 text-xs font-semibold">
           <button
             onClick={() => setActiveTab('USERS')}
             className={`px-4 py-2 rounded-xl transition flex items-center gap-1.5 ${
-              activeTab === 'USERS' ? 'bg-indigo-600 text-white shadow font-bold' : 'text-slate-400 hover:text-white'
+              activeTab === 'USERS' ? 'bg-sky-600 text-white shadow font-bold' : 'text-stone-600 hover:text-stone-900 hover:bg-stone-200/60'
             }`}
           >
             <Users className="w-4 h-4" />
@@ -652,7 +653,7 @@ B：いえ、だいじょうぶですよ。
           <button
             onClick={() => setActiveTab('QUESTIONS')}
             className={`px-4 py-2 rounded-xl transition flex items-center gap-1.5 ${
-              activeTab === 'QUESTIONS' ? 'bg-indigo-600 text-white shadow font-bold' : 'text-slate-400 hover:text-white'
+              activeTab === 'QUESTIONS' ? 'bg-emerald-600 text-white shadow font-bold' : 'text-stone-600 hover:text-stone-900 hover:bg-stone-200/60'
             }`}
           >
             <Layers className="w-4 h-4" />
@@ -662,20 +663,20 @@ B：いえ、だいじょうぶですよ。
           <button
             onClick={() => setActiveTab('PDF_PARSER')}
             className={`px-4 py-2 rounded-xl transition flex items-center gap-1.5 ${
-              activeTab === 'PDF_PARSER' ? 'bg-indigo-600 text-white shadow font-bold' : 'text-slate-400 hover:text-white'
+              activeTab === 'PDF_PARSER' ? 'bg-violet-600 text-white shadow font-bold' : 'text-stone-600 hover:text-stone-900 hover:bg-stone-200/60'
             }`}
           >
-            <FileText className="w-4 h-4 text-amber-400" />
+            <FileText className="w-4 h-4 text-amber-300" />
             Parser PDF Importer
           </button>
 
           <button
             onClick={() => setActiveTab('TRANSACTIONS')}
             className={`px-4 py-2 rounded-xl transition flex items-center gap-1.5 ${
-              activeTab === 'TRANSACTIONS' ? 'bg-indigo-600 text-white shadow font-bold' : 'text-slate-400 hover:text-white'
+              activeTab === 'TRANSACTIONS' ? 'bg-amber-600 text-white shadow font-bold' : 'text-stone-600 hover:text-stone-900 hover:bg-stone-200/60'
             }`}
           >
-            <DollarSign className="w-4 h-4 text-emerald-400" />
+            <DollarSign className="w-4 h-4" />
             Transaksi ({transactions.length})
           </button>
         </div>
@@ -683,14 +684,14 @@ B：いえ、だいじょうぶですよ。
 
       {/* Tab 1: Users & Single Session Lock Manager */}
       {activeTab === 'USERS' && (
-        <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 shadow-xl border border-slate-200 dark:border-slate-800 space-y-6">
-          <div className="flex flex-wrap items-center justify-between border-b pb-4 border-slate-200 dark:border-slate-800 gap-4">
+        <div className="bg-white rounded-3xl p-6 shadow-xl border border-stone-200 space-y-6">
+          <div className="flex flex-wrap items-center justify-between border-b pb-4 border-stone-200 gap-4">
             <div>
-              <h2 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                <Lock className="w-5 h-5 text-indigo-500" />
+              <h2 className="text-lg font-bold text-stone-900 flex items-center gap-2">
+                <Lock className="w-5 h-5 text-red-600" />
                 Manajemen Pengguna & Sesi Tunggal ({users.length} Akun Terdaftar)
               </h2>
-              <p className="text-xs text-slate-500 dark:text-slate-400">
+              <p className="text-xs text-stone-500">
                 Data terhubung langsung ke Database MySQL. Setiap akun memiliki proteksi 1 sesi aktif (Single Device Lock).
               </p>
             </div>
@@ -707,9 +708,9 @@ B：いえ、だいじょうぶですよ。
                   }
                 }}
                 disabled={isRefreshing}
-                className="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold transition flex items-center gap-1.5 border border-slate-200 dark:border-slate-700 shadow-sm"
+                className="px-3.5 py-2 rounded-xl bg-stone-100 hover:bg-stone-100:bg-stone-200 text-stone-700 text-xs font-bold transition flex items-center gap-1.5 border border-stone-200 shadow-sm"
               >
-                <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin text-indigo-500' : ''}`} />
+                <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin text-red-600' : ''}`} />
                 {isRefreshing ? 'Memuat Ulang...' : 'Sinkronkan Data'}
               </button>
             )}
@@ -725,31 +726,31 @@ B：いえ、だいじょうぶですよ。
             }).length;
 
             return (
-              <div className="p-4 rounded-2xl bg-gradient-to-r from-emerald-950/40 via-indigo-950/30 to-slate-900 border border-emerald-500/30 flex flex-wrap items-center justify-between gap-3 shadow-sm">
+              <div className="p-4 rounded-2xl bg-emerald-50/80 border border-emerald-200 text-emerald-900 flex flex-wrap items-center justify-between gap-3 shadow-sm">
                 <div className="flex items-center gap-2.5">
                   <span className="relative flex h-3 w-3">
                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                     <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
                   </span>
                   <div>
-                    <div className="text-xs font-black text-emerald-400 flex items-center gap-1.5">
+                    <div className="text-xs font-black text-emerald-800 flex items-center gap-1.5">
                       <span>Live Realtime Monitor Aktif</span>
-                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-900/60 text-emerald-300 font-mono">Sync 2s</span>
+                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 font-mono">Sync 2s</span>
                     </div>
-                    <div className="text-[11px] text-slate-400">
+                    <div className="text-[11px] text-emerald-700/80">
                       Data aktivitas siswa diperbarui otomatis secara langsung tanpa perlu memuat ulang halaman.
                     </div>
                   </div>
                 </div>
 
                 <div className="flex items-center gap-2 flex-wrap text-xs">
-                  <div className="px-3 py-1.5 rounded-xl bg-emerald-900/50 border border-emerald-600/40 text-emerald-200 font-bold flex items-center gap-1.5">
+                  <div className="px-3 py-1.5 rounded-xl bg-white border border-emerald-300 text-emerald-800 shadow-xs font-bold flex items-center gap-1.5">
                     <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
                     <span>{onlineCount} Siswa Online</span>
                   </div>
                   {examCount > 0 && (
-                    <div className="px-3 py-1.5 rounded-xl bg-indigo-900/50 border border-indigo-600/40 text-indigo-200 font-bold flex items-center gap-1.5 animate-pulse">
-                      <Activity className="w-3.5 h-3.5 text-indigo-400" />
+                    <div className="px-3 py-1.5 rounded-xl bg-rose-50 border border-rose-300 text-red-800 shadow-xs font-bold flex items-center gap-1.5 animate-pulse">
+                      <Activity className="w-3.5 h-3.5 text-red-600" />
                       <span>{examCount} Sedang Mengerjakan CBT</span>
                     </div>
                   )}
@@ -761,7 +762,7 @@ B：いえ、だいじょうぶですよ。
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs border-collapse">
               <thead>
-                <tr className="border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/50 text-slate-500 dark:text-slate-400 uppercase tracking-wider font-bold">
+                <tr className="border-b border-stone-200 bg-stone-50 text-stone-500 uppercase tracking-wider font-bold">
                   <th className="p-3">Nama & No. Reg</th>
                   <th className="p-3">Email Akun</th>
                   <th className="p-3">Role</th>
@@ -771,10 +772,10 @@ B：いえ、だいじょうぶですよ。
                   <th className="p-3 text-right">Kelola Akun</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+              <tbody className="divide-y divide-stone-100">
                 {users.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="text-center py-8 text-slate-400">
+                    <td colSpan={7} className="text-center py-8 text-stone-400">
                       Belum ada data pengguna terdaftar di database.
                     </td>
                   </tr>
@@ -784,24 +785,26 @@ B：いえ、だいじょうぶですよ。
                     const isBusy = actionLoadingUserId === u.id;
 
                     return (
-                      <tr key={u.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition">
-                        <td className="p-3 font-semibold text-slate-900 dark:text-white">
+                      <tr key={u.id} className="hover:bg-stone-50:bg-stone-100 transition">
+                        <td className="p-3 font-semibold text-stone-900">
                           <div className="flex items-center gap-2">
-                            {u.facePhotoUrl ? (
-                              <img src={u.facePhotoUrl} alt={u.name} className="w-7 h-7 rounded-full object-cover border border-slate-200 dark:border-slate-700" />
-                            ) : (
-                              <div className="w-7 h-7 rounded-full bg-indigo-100 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-400 flex items-center justify-center font-bold text-[10px]">
-                                {u.name ? u.name.charAt(0).toUpperCase() : 'U'}
-                              </div>
-                            )}
+                            <img
+                              src={
+                                u.facePhotoUrl && !u.facePhotoUrl.includes('unsplash.com')
+                                  ? u.facePhotoUrl
+                                  : DEFAULT_ANONYMOUS_PHOTO
+                              }
+                              alt={u.name}
+                              className="w-7 h-7 rounded-full object-cover border border-stone-200"
+                            />
                             <div>
                               <div>{u.name}</div>
-                              <div className="text-[10px] text-slate-400 font-mono">{u.registrationNumber || u.id}</div>
+                              <div className="text-[10px] text-stone-400 font-mono">{u.registrationNumber || u.id}</div>
                             </div>
                           </div>
                         </td>
 
-                        <td className="p-3 text-slate-600 dark:text-slate-300 font-mono text-[11px]">
+                        <td className="p-3 text-stone-600 font-mono text-[11px]">
                           {u.email}
                         </td>
 
@@ -810,8 +813,8 @@ B：いえ、だいじょうぶですよ。
                             <span
                               className={`px-2.5 py-0.5 rounded-full font-bold text-[10px] uppercase ${
                                 u.role === 'admin'
-                                  ? 'bg-indigo-100 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800'
-                                  : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300'
+                                  ? 'bg-rose-100 text-red-600 border border-rose-200'
+                                  : 'bg-stone-100 text-stone-600'
                               }`}
                             >
                               {u.role}
@@ -831,7 +834,7 @@ B：いえ、だいじょうぶですよ。
                                   }
                                 }}
                                 disabled={isBusy}
-                                className="text-slate-400 hover:text-indigo-600 p-0.5 transition"
+                                className="text-stone-400 hover:text-red-600 p-0.5 transition"
                               >
                                 <Shield className="w-3.5 h-3.5" />
                               </button>
@@ -852,54 +855,54 @@ B：いえ、だいじょうぶですよ。
                                       <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                                       <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
                                     </span>
-                                    <span className="px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-300 font-mono text-[10px] font-black border border-emerald-300 dark:border-emerald-800">
+                                    <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 font-mono text-[10px] font-black border border-emerald-300">
                                       Online • Sesi Aktif
                                     </span>
                                   </div>
 
                                   {/* Live What They Are Doing */}
                                   {act?.view === 'exam' ? (
-                                    <div className="p-2.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/50 border border-indigo-200 dark:border-indigo-800 text-xs space-y-1 shadow-xs">
-                                      <div className="flex items-center gap-1.5 font-black text-indigo-700 dark:text-indigo-300 text-[11px]">
-                                        <span className="w-2 h-2 rounded-full bg-indigo-500 animate-pulse"></span>
+                                    <div className="p-2.5 rounded-xl bg-rose-50 border border-rose-200 text-xs space-y-1 shadow-xs">
+                                      <div className="flex items-center gap-1.5 font-black text-red-700 text-[11px]">
+                                        <span className="w-2 h-2 rounded-full bg-red-600 animate-pulse"></span>
                                         <span>Mengerjakan: {act.packageName || 'Paket Ujian'}</span>
                                       </div>
-                                      <div className="font-extrabold text-slate-800 dark:text-slate-200 text-[11px] flex items-center gap-1">
+                                      <div className="font-extrabold text-stone-800 text-[11px] flex items-center gap-1">
                                         <span>Soal No. {act.currentNumber || 1}</span>
-                                        <span className="text-[10px] text-indigo-500 font-mono">({act.currentSection || 'S1'})</span>
+                                        <span className="text-[10px] text-red-600 font-mono">({act.currentSection || 'S1'})</span>
                                       </div>
-                                      <div className="flex items-center gap-2 text-[10px] text-slate-500 dark:text-slate-400 flex-wrap">
-                                        <span className="font-semibold text-slate-700 dark:text-slate-300">
+                                      <div className="flex items-center gap-2 text-[10px] text-stone-500 flex-wrap">
+                                        <span className="font-semibold text-stone-700">
                                           ✓ {act.answeredCount || 0}/{act.totalQuestions || 50} Soal
                                         </span>
                                         <span>•</span>
-                                        <span className="text-amber-600 dark:text-amber-400 font-bold font-mono">
+                                        <span className="text-amber-600 font-bold font-mono">
                                           ⏱ Sisa {Math.floor((act.timeLeftSeconds || 0) / 60)}m {(act.timeLeftSeconds || 0) % 60}s
                                         </span>
                                       </div>
                                     </div>
                                   ) : act?.view === 'dashboard' ? (
-                                    <div className="px-2.5 py-1 rounded-xl bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-900 text-blue-700 dark:text-blue-300 text-[11px] font-semibold flex items-center gap-1.5 w-max">
+                                    <div className="px-2.5 py-1 rounded-xl bg-blue-50 border border-blue-200 text-blue-700 text-[11px] font-semibold flex items-center gap-1.5 w-max">
                                       <span className="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
                                       Di Dashboard Utama
                                     </div>
                                   ) : act?.view === 'report' ? (
-                                    <div className="px-2.5 py-1 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-900 text-emerald-700 dark:text-emerald-300 text-[11px] font-semibold flex items-center gap-1.5 w-max">
+                                    <div className="px-2.5 py-1 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-700 text-[11px] font-semibold flex items-center gap-1.5 w-max">
                                       <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
                                       Melihat Rapor Hasil Ujian
                                     </div>
                                   ) : act?.view === 'review' ? (
-                                    <div className="px-2.5 py-1 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900 text-amber-700 dark:text-amber-300 text-[11px] font-semibold flex items-center gap-1.5 w-max">
+                                    <div className="px-2.5 py-1 rounded-xl bg-amber-50 border border-amber-200 text-amber-700 text-[11px] font-semibold flex items-center gap-1.5 w-max">
                                       <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
                                       Melihat Pembahasan Soal
                                     </div>
                                   ) : act?.view === 'admin' ? (
-                                    <div className="px-2.5 py-1 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-[11px] font-semibold flex items-center gap-1.5 w-max">
-                                      <span className="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
+                                    <div className="px-2.5 py-1 rounded-xl bg-stone-100 text-stone-600 text-[11px] font-semibold flex items-center gap-1.5 w-max">
+                                      <span className="w-1.5 h-1.5 rounded-full bg-stone-400"></span>
                                       Di Portal Admin
                                     </div>
                                   ) : (
-                                    <span className="text-[11px] text-slate-500 dark:text-slate-400">
+                                    <span className="text-[11px] text-stone-500">
                                       Aktif di Aplikasi
                                     </span>
                                   )}
@@ -910,12 +913,12 @@ B：いえ、だいじょうぶですよ。
                             if (u.activeSessionId) {
                               return (
                                 <div className="space-y-1">
-                                  <span className="px-2 py-0.5 rounded-md bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 text-[10px] font-semibold border border-amber-200 dark:border-amber-800 flex items-center gap-1 w-max">
+                                  <span className="px-2 py-0.5 rounded-md bg-amber-50 text-amber-700 text-[10px] font-semibold border border-amber-200 flex items-center gap-1 w-max">
                                     <span className="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
                                     Sesi Terkunci (Tab Ditutup / Idle)
                                   </span>
                                   {act?.packageName && (
-                                    <div className="text-[10px] text-slate-400 truncate max-w-[170px]" title={act.packageName}>
+                                    <div className="text-[10px] text-stone-400 truncate max-w-[170px]" title={act.packageName}>
                                       Terakhir: {act.packageName}
                                     </div>
                                   )}
@@ -924,17 +927,17 @@ B：いえ、だいじょうぶですよ。
                             }
 
                             return (
-                              <span className="text-slate-400 text-[11px] flex items-center gap-1.5">
-                                <span className="w-1.5 h-1.5 rounded-full bg-slate-300 dark:bg-slate-700"></span>
+                              <span className="text-stone-400 text-[11px] flex items-center gap-1.5">
+                                <span className="w-1.5 h-1.5 rounded-full bg-stone-200"></span>
                                 Offline
                               </span>
                             );
                           })()}
                         </td>
 
-                        <td className="p-3 font-bold text-slate-800 dark:text-slate-200">
+                        <td className="p-3 font-bold text-stone-800">
                           {isSubscriptionActive(u) ? (
-                            <span className="text-emerald-600 dark:text-emerald-400">
+                            <span className="text-emerald-600">
                               {getRemainingSubscriptionText(u)}
                             </span>
                           ) : (
@@ -948,7 +951,7 @@ B：いえ、だいじょうぶですよ。
                             const userAttempts = (examResults || []).filter((r) => r.userId === u.id);
                             if (userAttempts.length === 0) {
                               return (
-                                <span className="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-400 text-[11px] font-medium flex items-center gap-1 w-max">
+                                <span className="px-2.5 py-1 rounded-lg bg-stone-100 text-stone-400 text-[11px] font-medium flex items-center gap-1 w-max">
                                   Belum ada tes
                                 </span>
                               );
@@ -962,19 +965,19 @@ B：いえ、だいじょうぶですよ。
                             return (
                               <div className="space-y-1">
                                 <div className="flex items-center gap-1.5 flex-wrap">
-                                  <span className="px-2 py-0.5 rounded-md bg-indigo-50 dark:bg-indigo-950/80 text-indigo-700 dark:text-indigo-300 font-bold text-[10px] border border-indigo-200 dark:border-indigo-800">
+                                  <span className="px-2 py-0.5 rounded-md bg-rose-50 text-red-700 font-bold text-[10px] border border-rose-200">
                                     {userAttempts.length}x Tes
                                   </span>
-                                  <span className="text-[11px] font-extrabold text-slate-900 dark:text-white">
-                                    Max: <span className="text-indigo-600 dark:text-indigo-400">{highestScore}</span><span className="text-[10px] text-slate-400 font-normal">/250</span>
+                                  <span className="text-[11px] font-extrabold text-stone-900">
+                                    Max: <span className="text-red-600">{highestScore}</span><span className="text-[10px] text-stone-400 font-normal">/250</span>
                                   </span>
                                   {passedCount > 0 && (
-                                    <span className="px-1.5 py-0.5 rounded text-[9px] font-extrabold bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300">
+                                    <span className="px-1.5 py-0.5 rounded text-[9px] font-extrabold bg-emerald-100 text-emerald-700">
                                       {passedCount} Lulus
                                     </span>
                                   )}
                                 </div>
-                                <div className="text-[10px] text-slate-500 dark:text-slate-400 truncate max-w-[170px]" title={latestPkg.name}>
+                                <div className="text-[10px] text-stone-500 truncate max-w-[170px]" title={latestPkg.name}>
                                   Terakhir: {latestPkg.name}
                                 </div>
                                 <button
@@ -983,7 +986,7 @@ B：いえ、だいじょうぶですよ。
                                     setSelectedUserForHistory(u);
                                     setIsHistoryModalOpen(true);
                                   }}
-                                  className="px-2.5 py-1 rounded-lg bg-indigo-600/10 hover:bg-indigo-600 text-indigo-600 hover:text-white dark:text-indigo-400 dark:hover:text-white text-[11px] font-bold transition flex items-center gap-1.5 border border-indigo-200 dark:border-indigo-800 shadow-xs"
+                                  className="px-2.5 py-1 rounded-lg bg-red-50 hover:bg-red-600 text-red-600 hover:text-stone-900 text-[11px] font-bold transition flex items-center gap-1.5 border border-rose-200 shadow-xs"
                                 >
                                   <Award className="w-3.5 h-3.5" />
                                   Lihat Progres & Rapor ({userAttempts.length})
@@ -1007,7 +1010,7 @@ B：いえ、だいじょうぶですよ。
                                     setActionLoadingUserId(null);
                                   }
                                 }}
-                                className="py-1 px-2.5 bg-red-100 hover:bg-red-200 dark:bg-red-950 dark:hover:bg-red-900 text-red-700 dark:text-red-300 rounded-lg font-semibold text-[11px] transition disabled:opacity-50"
+                                className="py-1 px-2.5 bg-red-100 hover:bg-red-200:bg-red-900 text-red-700 rounded-lg font-semibold text-[11px] transition disabled:opacity-50"
                               >
                                 {isBusy ? '...' : 'Kick Sesi'}
                               </button>
@@ -1023,7 +1026,7 @@ B：いえ、だいじょうぶですよ。
                                   setActionLoadingUserId(null);
                                 }
                               }}
-                              className="py-1 px-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-semibold text-[11px] transition shadow disabled:opacity-50"
+                              className="py-1 px-2.5 bg-red-600 hover:bg-red-700 text-white rounded-lg font-semibold text-[11px] transition shadow disabled:opacity-50"
                             >
                               +7 Hari
                             </button>
@@ -1038,7 +1041,7 @@ B：いえ、だいじょうぶですよ。
                                   setActionLoadingUserId(null);
                                 }
                               }}
-                              className="py-1 px-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg font-semibold text-[11px] transition border border-slate-700 disabled:opacity-50"
+                              className="py-1 px-2.5 bg-stone-100 hover:bg-stone-200 text-stone-700 rounded-lg font-semibold text-[11px] transition border border-stone-200 disabled:opacity-50"
                             >
                               +30 Hari
                             </button>
@@ -1057,7 +1060,7 @@ B：いえ、だいじょうぶですよ。
                                     }
                                   }
                                 }}
-                                className="p-1.5 text-slate-400 hover:text-red-600 dark:hover:text-red-400 transition rounded-lg hover:bg-red-50 dark:hover:bg-red-950/50 disabled:opacity-50"
+                                className="p-1.5 text-stone-400 hover:text-red-600:text-red-400 transition rounded-lg hover:bg-red-50:bg-red-950/50 disabled:opacity-50"
                               >
                                 <Trash2 className="w-3.5 h-3.5" />
                               </button>
@@ -1076,19 +1079,19 @@ B：いえ、だいじょうぶですよ。
 
       {/* Tab 2: Questions Bank & Package Management */}
       {activeTab === 'QUESTIONS' && (
-        <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 shadow-xl border border-slate-200 dark:border-slate-800 space-y-6">
+        <div className="bg-white rounded-3xl p-6 shadow-xl border border-stone-200 space-y-6">
           {openedPackageId === null ? (
             /* ======================================================== */
             /* LEVEL 1: OVERVIEW DAFTAR PAKET SOAL (MANAJEMEN PAKET)   */
             /* ======================================================== */
             <div className="space-y-6">
-              <div className="flex flex-wrap items-center justify-between gap-4 border-b pb-4 border-slate-200 dark:border-slate-800">
+              <div className="flex flex-wrap items-center justify-between gap-4 border-b pb-4 border-stone-200">
                 <div>
-                  <h2 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                    <Folder className="w-5 h-5 text-indigo-500" />
+                  <h2 className="text-lg font-bold text-stone-900 flex items-center gap-2">
+                    <Folder className="w-5 h-5 text-red-600" />
                     Bank Soal & Manajemen Paket Ujian JFT-Basic ({allExamSets.length} Paket Tersedia)
                   </h2>
-                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                  <p className="text-xs text-stone-500">
                     Klik salah satu kartu paket di bawah untuk melihat & mengelola soal di dalamnya, atau buat paket baru.
                   </p>
                 </div>
@@ -1096,7 +1099,7 @@ B：いえ、だいじょうぶですよ。
                 <button
                   type="button"
                   onClick={handleOpenCreatePackage}
-                  className="px-4 py-2.5 bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-700 hover:to-indigo-600 text-white font-bold text-xs rounded-xl shadow-lg shadow-indigo-600/20 transition flex items-center gap-2"
+                  className="px-4 py-2.5 bg-gradient-to-r from-red-600 via-rose-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-bold text-xs rounded-xl shadow-lg shadow-red-500/20 transition flex items-center gap-2"
                 >
                   <Plus className="w-4 h-4" />
                   Tambah Paket Soal Baru
@@ -1105,23 +1108,23 @@ B：いえ、だいじょうぶですよ。
 
               {/* Stat Summary */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
-                <div className="p-4 bg-slate-50 dark:bg-slate-950 rounded-2xl border border-slate-200 dark:border-slate-800">
-                  <div className="text-slate-500 dark:text-slate-400 font-semibold">Total Paket Ujian</div>
-                  <div className="text-2xl font-black text-slate-900 dark:text-white mt-1">
-                    {allExamSets.length} <span className="text-xs font-normal text-slate-400">Paket Aktif</span>
+                <div className="p-4 bg-stone-50 rounded-2xl border border-stone-200">
+                  <div className="text-stone-500 font-semibold">Total Paket Ujian</div>
+                  <div className="text-2xl font-black text-stone-900 mt-1">
+                    {allExamSets.length} <span className="text-xs font-normal text-stone-400">Paket Aktif</span>
                   </div>
                 </div>
-                <div className="p-4 bg-slate-50 dark:bg-slate-950 rounded-2xl border border-slate-200 dark:border-slate-800">
-                  <div className="text-slate-500 dark:text-slate-400 font-semibold">Total Seluruh Soal</div>
-                  <div className="text-2xl font-black text-indigo-600 dark:text-indigo-400 mt-1">
-                    {questions.length} <span className="text-xs font-normal text-slate-400">Soal Terdaftar</span>
+                <div className="p-4 bg-stone-50 rounded-2xl border border-stone-200">
+                  <div className="text-stone-500 font-semibold">Total Seluruh Soal</div>
+                  <div className="text-2xl font-black text-red-600 mt-1">
+                    {questions.length} <span className="text-xs font-normal text-stone-400">Soal Terdaftar</span>
                   </div>
                 </div>
-                <div className="p-4 bg-slate-50 dark:bg-slate-950 rounded-2xl border border-slate-200 dark:border-slate-800">
-                  <div className="text-slate-500 dark:text-slate-400 font-semibold">Rata-rata per Paket</div>
-                  <div className="text-2xl font-black text-emerald-600 dark:text-emerald-400 mt-1">
+                <div className="p-4 bg-stone-50 rounded-2xl border border-stone-200">
+                  <div className="text-stone-500 font-semibold">Rata-rata per Paket</div>
+                  <div className="text-2xl font-black text-emerald-600 mt-1">
                     ~{allExamSets.length > 0 ? Math.round(questions.length / allExamSets.length) : 0}{' '}
-                    <span className="text-xs font-normal text-slate-400">Soal/Paket</span>
+                    <span className="text-xs font-normal text-stone-400">Soal/Paket</span>
                   </div>
                 </div>
               </div>
@@ -1144,48 +1147,48 @@ B：いえ、だいじょうぶですよ。
                         setSearchQuery('');
                         setCurrentPage(1);
                       }}
-                      className="p-5 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 hover:border-indigo-500 dark:hover:border-indigo-500 hover:shadow-xl hover:shadow-indigo-500/5 transition cursor-pointer flex flex-col justify-between gap-4 group"
+                      className="p-5 rounded-2xl bg-stone-50 border border-stone-200 hover:border-red-400:border-red-400 hover:shadow-xl hover:shadow-indigo-500/5 transition cursor-pointer flex flex-col justify-between gap-4 group"
                     >
                       <div className="space-y-3">
                         <div className="flex items-center justify-between">
-                          <span className="px-2.5 py-1 rounded-lg bg-indigo-100 dark:bg-indigo-950 border border-indigo-200 dark:border-indigo-800 text-indigo-700 dark:text-indigo-300 font-mono text-[11px] font-bold">
+                          <span className="px-2.5 py-1 rounded-lg bg-rose-100 border border-rose-200 text-red-700 font-mono text-[11px] font-bold">
                             {pkg.code}
                           </span>
-                          <span className="px-2 py-0.5 rounded text-[11px] font-semibold bg-emerald-100 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-400 border border-emerald-300 dark:border-emerald-800">
+                          <span className="px-2 py-0.5 rounded text-[11px] font-semibold bg-emerald-100 text-emerald-700 border border-emerald-300">
                             {pkgQuestions.length > 0 ? `${pkgQuestions.length} Soal Aktif` : `${pkg.totalQuestions} Target Soal`}
                           </span>
                         </div>
 
                         <div>
-                          <h3 className="text-base font-bold text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition flex items-center gap-1.5">
-                            <Folder className="w-4 h-4 text-indigo-500 shrink-0" />
+                          <h3 className="text-base font-bold text-stone-900 group-hover:text-red-600:text-red-600 transition flex items-center gap-1.5">
+                            <Folder className="w-4 h-4 text-red-600 shrink-0" />
                             {pkg.name}
                           </h3>
-                          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 line-clamp-2 leading-relaxed">
+                          <p className="text-xs text-stone-500 mt-1 line-clamp-2 leading-relaxed">
                             {pkg.description || 'Tidak ada deskripsi paket.'}
                           </p>
                         </div>
 
                         {/* Section Pills */}
                         <div className="grid grid-cols-4 gap-1 text-[10px] text-center pt-1 font-semibold">
-                          <div className="bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 p-1.5 rounded-lg border border-amber-200 dark:border-amber-800">
+                          <div className="bg-amber-100 text-amber-800 p-1.5 rounded-lg border border-amber-200">
                             S1: {s1Count}
                           </div>
-                          <div className="bg-blue-100 dark:bg-blue-950/60 text-blue-800 dark:text-blue-300 p-1.5 rounded-lg border border-blue-200 dark:border-blue-800">
+                          <div className="bg-blue-100 text-blue-800 p-1.5 rounded-lg border border-blue-200">
                             S2: {s2Count}
                           </div>
-                          <div className="bg-purple-100 dark:bg-purple-950/60 text-purple-800 dark:text-purple-300 p-1.5 rounded-lg border border-purple-200 dark:border-purple-800">
+                          <div className="bg-purple-100 text-purple-800 p-1.5 rounded-lg border border-purple-200">
                             S3: {s3Count}
                           </div>
-                          <div className="bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 p-1.5 rounded-lg border border-emerald-200 dark:border-emerald-800">
+                          <div className="bg-emerald-100 text-emerald-800 p-1.5 rounded-lg border border-emerald-200">
                             S4: {s4Count}
                           </div>
                         </div>
                       </div>
 
                       {/* Card Footer Actions */}
-                      <div className="pt-3 flex items-center justify-between border-t border-slate-200 dark:border-slate-800/80 gap-2">
-                        <span className="text-xs font-bold text-indigo-600 dark:text-indigo-400 flex items-center gap-1 group-hover:underline">
+                      <div className="pt-3 flex items-center justify-between border-t border-stone-200 gap-2">
+                        <span className="text-xs font-bold text-red-600 flex items-center gap-1 group-hover:underline">
                           Buka Soal ({pkgQuestions.length}) →
                         </span>
 
@@ -1193,7 +1196,7 @@ B：いえ、だいじょうぶですよ。
                           <button
                             type="button"
                             onClick={(e) => handleOpenEditPackage(pkg, e)}
-                            className="p-1.5 rounded-lg text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-slate-200 dark:hover:bg-slate-800 transition"
+                            className="p-1.5 rounded-lg text-stone-400 hover:text-red-600:text-red-600 hover:bg-stone-100:bg-stone-100 transition"
                             title="Edit Info Paket"
                           >
                             <Edit3 className="w-3.5 h-3.5" />
@@ -1201,7 +1204,7 @@ B：いえ、だいじょうぶですよ。
                           <button
                             type="button"
                             onClick={(e) => handleDeletePackage(pkg, e)}
-                            className="p-1.5 rounded-lg text-slate-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/40 transition"
+                            className="p-1.5 rounded-lg text-stone-400 hover:text-red-600:text-red-400 hover:bg-red-50:bg-red-950/40 transition"
                             title="Hapus Paket Ini"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
@@ -1231,29 +1234,29 @@ B：いえ、だいじょうぶですよ。
               return (
                 <div className="space-y-6">
                   {/* Top Bar with Back Button & Package Header */}
-                  <div className="flex flex-wrap items-center justify-between gap-4 border-b pb-4 border-slate-200 dark:border-slate-800">
+                  <div className="flex flex-wrap items-center justify-between gap-4 border-b pb-4 border-stone-200">
                     <div className="flex items-start gap-3">
                       <button
                         type="button"
                         onClick={() => setOpenedPackageId(null)}
-                        className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 transition shrink-0"
+                        className="p-2 rounded-xl bg-stone-100 hover:bg-stone-100:bg-stone-200 text-stone-700 transition shrink-0"
                         title="Kembali ke Daftar Semua Paket"
                       >
                         <ArrowLeft className="w-5 h-5" />
                       </button>
                       <div>
                         <div className="flex items-center gap-2 flex-wrap">
-                          <span className="px-2.5 py-0.5 rounded-lg bg-indigo-100 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 font-mono text-xs font-bold border border-indigo-200 dark:border-indigo-800">
+                          <span className="px-2.5 py-0.5 rounded-lg bg-rose-100 text-red-700 font-mono text-xs font-bold border border-rose-200">
                             {currentPackage.code}
                           </span>
-                          <h2 className="text-lg font-bold text-slate-900 dark:text-white">
+                          <h2 className="text-lg font-bold text-stone-900">
                             {currentPackage.name}
                           </h2>
-                          <span className="px-2 py-0.5 rounded text-[11px] font-semibold bg-emerald-100 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-400 border border-emerald-300 dark:border-emerald-800">
+                          <span className="px-2 py-0.5 rounded text-[11px] font-semibold bg-emerald-100 text-emerald-700 border border-emerald-300">
                             {currentPackageQuestions.length} Soal Terdaftar
                           </span>
                         </div>
-                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                        <p className="text-xs text-stone-500 mt-1">
                           {currentPackage.description || 'Kelola dan modifikasi soal-soal khusus untuk paket simulasi ini.'}
                         </p>
                       </div>
@@ -1263,7 +1266,7 @@ B：いえ、だいじょうぶですよ。
                       <button
                         type="button"
                         onClick={() => handleOpenEditPackage(currentPackage)}
-                        className="px-3.5 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold text-xs rounded-xl transition flex items-center gap-1.5"
+                        className="px-3.5 py-2 bg-stone-100 hover:bg-stone-100:bg-stone-200 text-stone-700 font-bold text-xs rounded-xl transition flex items-center gap-1.5"
                       >
                         <Edit3 className="w-3.5 h-3.5" />
                         Edit Info Paket
@@ -1272,7 +1275,7 @@ B：いえ、だいじょうぶですよ。
                       <button
                         type="button"
                         onClick={() => handleDeletePackage(currentPackage)}
-                        className="px-3.5 py-2 bg-red-100 dark:bg-red-950/50 hover:bg-red-200 dark:hover:bg-red-900/60 text-red-700 dark:text-red-300 font-bold text-xs rounded-xl transition flex items-center gap-1.5 border border-red-200 dark:border-red-800"
+                        className="px-3.5 py-2 bg-red-100 hover:bg-red-200:bg-red-900/60 text-red-700 font-bold text-xs rounded-xl transition flex items-center gap-1.5 border border-red-200"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
                         Hapus Paket
@@ -1281,7 +1284,7 @@ B：いえ、だいじょうぶですよ。
                       <button
                         type="button"
                         onClick={handleOpenAdd}
-                        className="px-4 py-2 bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-700 hover:to-indigo-600 text-white font-bold text-xs rounded-xl shadow transition flex items-center gap-1.5"
+                        className="px-4 py-2 bg-gradient-to-r from-red-600 via-rose-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-bold text-xs rounded-xl shadow transition flex items-center gap-1.5"
                       >
                         <Plus className="w-4 h-4" />
                         Tambah Soal ke Paket Ini
@@ -1290,9 +1293,9 @@ B：いえ、だいじょうぶですよ。
                   </div>
 
                   {/* Filters: Seksi, Tampilkan, dan Cari */}
-                  <div className="flex flex-wrap items-center justify-between gap-3 bg-slate-50 dark:bg-slate-950 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 text-xs">
+                  <div className="flex flex-wrap items-center justify-between gap-3 bg-stone-50 p-4 rounded-2xl border border-stone-200 text-xs">
                     <div className="flex flex-wrap items-center gap-2">
-                      <span className="font-bold text-slate-700 dark:text-slate-300">Filter Seksi:</span>
+                      <span className="font-bold text-stone-700">Filter Seksi:</span>
                       {['ALL', 'S1', 'S2', 'S3', 'S4'].map((sec) => (
                         <button
                           key={sec}
@@ -1303,8 +1306,8 @@ B：いえ、だいじょうぶですよ。
                           }}
                           className={`px-3 py-1.5 rounded-xl font-bold transition ${
                             selectedSecFilter === sec
-                              ? 'bg-slate-800 dark:bg-slate-200 text-white dark:text-slate-900 shadow'
-                              : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700'
+                              ? 'bg-red-600 text-white shadow'
+                              : 'bg-white text-stone-600 border border-stone-200'
                           }`}
                         >
                           {sec === 'ALL' ? 'Semua Seksi' : sec}
@@ -1314,14 +1317,14 @@ B：いえ、だいじょうぶですよ。
 
                     <div className="flex items-center gap-3">
                       <div className="flex items-center gap-1.5">
-                        <span className="text-slate-500 font-semibold">Tampilkan:</span>
+                        <span className="text-stone-500 font-semibold">Tampilkan:</span>
                         <select
                           value={pageSize}
                           onChange={(e) => {
                             setPageSize(Number(e.target.value));
                             setCurrentPage(1);
                           }}
-                          className="px-2.5 py-1.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-800 dark:text-slate-200 font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                          className="px-2.5 py-1.5 bg-white border border-stone-200 rounded-xl text-xs text-stone-800 font-bold focus:outline-none focus:ring-2 focus:ring-red-500"
                         >
                           <option value={5}>5 Soal</option>
                           <option value={10}>10 Soal</option>
@@ -1340,7 +1343,7 @@ B：いえ、だいじょうぶですよ。
                             setCurrentPage(1);
                           }}
                           placeholder="Cari kata kunci soal..."
-                          className="w-full px-3 py-1.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                          className="w-full px-3 py-1.5 bg-white border border-stone-200 rounded-xl text-xs text-stone-900 focus:outline-none focus:ring-2 focus:ring-red-500"
                         />
                       </div>
                     </div>
@@ -1349,7 +1352,7 @@ B：いえ、だいじょうぶですよ。
           {/* Question List */}
           <div className="grid grid-cols-1 gap-4">
             {filteredQuestions.length === 0 ? (
-              <div className="p-8 text-center text-xs text-slate-400 bg-slate-50 dark:bg-slate-950/40 rounded-2xl border border-dashed border-slate-300 dark:border-slate-800">
+              <div className="p-8 text-center text-xs text-stone-400 bg-stone-50 rounded-2xl border border-dashed border-stone-300">
                 Tidak ada soal yang cocok dengan filter.
               </div>
             ) : (
@@ -1364,28 +1367,28 @@ B：いえ、だいじょうぶですよ。
                     {pageQuestions.map((q) => (
                       <div
                         key={q.id}
-                        className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 space-y-3 text-xs"
+                        className="p-4 rounded-2xl bg-stone-50 border border-stone-200 space-y-3 text-xs"
                       >
-                        <div className="flex items-center justify-between font-bold text-slate-900 dark:text-white flex-wrap gap-2">
+                        <div className="flex items-center justify-between font-bold text-stone-900 flex-wrap gap-2">
                           <div className="flex items-center gap-2 flex-wrap">
-                            <span className="px-2.5 py-1 rounded-lg bg-indigo-100 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800">
+                            <span className="px-2.5 py-1 rounded-lg bg-rose-100 text-red-700 border border-rose-200">
                               Paket #{q.packageId || 1} • Soal #{q.number} ({q.section})
                             </span>
-                            <span className="text-slate-500 text-[11px] font-normal">{q.sectionTitle}</span>
+                            <span className="text-stone-500 text-[11px] font-normal">{q.sectionTitle}</span>
                             {q.imageUrl && (
-                              <span className="px-2 py-0.5 rounded-full bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800 text-[10px] font-bold flex items-center gap-1">
+                              <span className="px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 border border-blue-200 text-[10px] font-bold flex items-center gap-1">
                                 <ImageIcon className="w-3 h-3" /> Ada Foto
                               </span>
                             )}
                             {q.audioUrl && (
-                              <span className="px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800 text-[10px] font-bold">
+                              <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 border border-amber-200 text-[10px] font-bold">
                                 🎵 Audio
                               </span>
                             )}
                           </div>
 
                           <div className="flex items-center gap-2">
-                            <span className="px-2 py-0.5 rounded bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 font-bold">
+                            <span className="px-2 py-0.5 rounded bg-emerald-100 text-emerald-700 font-bold">
                               Kunci: {q.correctAnswer}
                             </span>
                             <button
@@ -1409,29 +1412,29 @@ B：いえ、だいじょうぶですよ。
                           </div>
                         </div>
 
-                        <div className="font-semibold text-slate-900 dark:text-white font-japanese text-sm bg-white dark:bg-slate-900 p-3 rounded-xl border border-slate-200 dark:border-slate-800 leading-relaxed">
+                        <div className="font-semibold text-stone-900 font-japanese text-sm bg-white p-3 rounded-xl border border-stone-200 leading-relaxed">
                           {renderFormattedQuestion(q.questionText)}
                         </div>
 
                         {q.imageUrl && (
-                          <div className="p-2 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 flex items-center gap-3">
+                          <div className="p-2 bg-white rounded-xl border border-stone-200 flex items-center gap-3">
                             <img
                               src={q.imageUrl}
                               alt="Foto Soal"
-                              className="h-16 w-24 object-contain rounded bg-slate-50 dark:bg-slate-950 p-1 border border-slate-200 dark:border-slate-800 shrink-0"
+                              className="h-16 w-24 object-contain rounded bg-stone-50 p-1 border border-stone-200 shrink-0"
                             />
-                            <span className="text-[11px] text-slate-500 font-mono truncate">{q.imageUrl}</span>
+                            <span className="text-[11px] text-stone-500 font-mono truncate">{q.imageUrl}</span>
                           </div>
                         )}
 
-                        <div className="grid grid-cols-2 gap-2 text-[11px] font-mono text-slate-700 dark:text-slate-300">
+                        <div className="grid grid-cols-2 gap-2 text-[11px] font-mono text-stone-700">
                           {q.options.map((opt) => (
                             <div
                               key={opt.key}
                               className={`p-2 rounded-lg border ${
                                 opt.key === q.correctAnswer
-                                  ? 'bg-emerald-50 dark:bg-emerald-950/60 border-emerald-300 dark:border-emerald-800 font-bold text-emerald-800 dark:text-emerald-300'
-                                  : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800'
+                                  ? 'bg-emerald-50 border-emerald-300 font-bold text-emerald-800'
+                                  : 'bg-white border-stone-200'
                               }`}
                             >
                               {opt.key}) {opt.text}
@@ -1439,28 +1442,28 @@ B：いえ、だいじょうぶですよ。
                           ))}
                         </div>
 
-                        <p className="text-[11px] text-slate-500 italic bg-slate-100 dark:bg-slate-900/60 p-2.5 rounded-lg flex items-center gap-1.5">
-                          <BookOpen className="w-3.5 h-3.5 shrink-0 text-indigo-500" />
+                        <p className="text-[11px] text-stone-500 italic bg-stone-100 p-2.5 rounded-lg flex items-center gap-1.5">
+                          <BookOpen className="w-3.5 h-3.5 shrink-0 text-red-600" />
                           <span>Pembahasan: {q.explanation}</span>
                         </p>
                       </div>
                     ))}
 
                     {/* Pagination Bar */}
-                    <div className="p-4 bg-slate-50 dark:bg-slate-950 rounded-2xl border border-slate-200 dark:border-slate-800 flex flex-wrap items-center justify-between gap-3 text-xs">
-                      <div className="text-slate-500 dark:text-slate-400">
-                        Menampilkan <span className="font-bold text-slate-900 dark:text-white">{startIndex + 1}</span> -{' '}
-                        <span className="font-bold text-slate-900 dark:text-white">
+                    <div className="p-4 bg-stone-50 rounded-2xl border border-stone-200 flex flex-wrap items-center justify-between gap-3 text-xs">
+                      <div className="text-stone-500">
+                        Menampilkan <span className="font-bold text-stone-900">{startIndex + 1}</span> -{' '}
+                        <span className="font-bold text-stone-900">
                           {Math.min(startIndex + pageSize, filteredQuestions.length)}
                         </span>{' '}
-                        dari <span className="font-bold text-indigo-600 dark:text-indigo-400">{filteredQuestions.length}</span> soal
+                        dari <span className="font-bold text-red-600">{filteredQuestions.length}</span> soal
                       </div>
 
                       <div className="flex items-center gap-1.5">
                         <button
                           onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                           disabled={safeCurrentPage <= 1}
-                          className="p-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-700 dark:text-slate-200 disabled:opacity-40 hover:bg-slate-100 dark:hover:bg-slate-700 transition"
+                          className="p-2 bg-white border border-stone-200 rounded-xl text-stone-700 disabled:opacity-40 hover:bg-stone-100:bg-stone-200 transition"
                           title="Halaman Sebelumnya"
                         >
                           <ChevronLeft className="w-4 h-4" />
@@ -1481,14 +1484,14 @@ B：いえ、だいじょうぶですよ。
                               return (
                                 <React.Fragment key={p}>
                                   {showEllipsis && (
-                                    <span className="px-2 text-slate-400">...</span>
+                                    <span className="px-2 text-stone-400">...</span>
                                   )}
                                   <button
                                     onClick={() => setCurrentPage(p)}
                                     className={`w-8 h-8 rounded-xl font-bold transition text-xs ${
                                       safeCurrentPage === p
-                                        ? 'bg-indigo-600 text-white shadow'
-                                        : 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700'
+                                        ? 'bg-red-600 text-white shadow'
+                                        : 'bg-white border border-stone-200 text-stone-700 hover:bg-stone-100:bg-stone-200'
                                     }`}
                                   >
                                     {p}
@@ -1501,7 +1504,7 @@ B：いえ、だいじょうぶですよ。
                         <button
                           onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
                           disabled={safeCurrentPage >= totalPages}
-                          className="p-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-700 dark:text-slate-200 disabled:opacity-40 hover:bg-slate-100 dark:hover:bg-slate-700 transition"
+                          className="p-2 bg-white border border-stone-200 rounded-xl text-stone-700 disabled:opacity-40 hover:bg-stone-100:bg-stone-200 transition"
                           title="Halaman Selanjutnya"
                         >
                           <ChevronRight className="w-4 h-4" />
@@ -1522,20 +1525,20 @@ B：いえ、だいじょうぶですよ。
 
       {/* Tab 3: PDF Question Parser (Cara 2: Unggah PDF Berkas & Otomatisasi Gambar Soal) */}
       {activeTab === 'PDF_PARSER' && (
-        <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 shadow-xl border border-slate-200 dark:border-slate-800 space-y-6">
+        <div className="bg-white rounded-3xl p-6 shadow-xl border border-stone-200 space-y-6">
           {/* Header Tab */}
-          <div className="border-b pb-4 border-slate-200 dark:border-slate-800 flex flex-wrap items-center justify-between gap-4">
+          <div className="border-b pb-4 border-stone-200 flex flex-wrap items-center justify-between gap-4">
             <div>
               <div className="flex items-center gap-2">
-                <span className="px-2.5 py-0.5 rounded-full bg-amber-100 dark:bg-amber-950/80 border border-amber-300 dark:border-amber-800 text-amber-700 dark:text-amber-300 text-[10px] font-black uppercase tracking-wider flex items-center gap-1">
+                <span className="px-2.5 py-0.5 rounded-full bg-amber-100 border border-amber-300 text-amber-700 text-[10px] font-black uppercase tracking-wider flex items-center gap-1">
                   <Sparkles className="w-3 h-3 text-amber-500" /> Cara 2: Ekstraksi Otomatis
                 </span>
-                <h2 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                  <FileText className="w-5 h-5 text-indigo-500" />
+                <h2 className="text-lg font-bold text-stone-900 flex items-center gap-2">
+                  <FileText className="w-5 h-5 text-red-600" />
                   Sistem Impor & Parser PDF Cerdas
                 </h2>
               </div>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+              <p className="text-xs text-stone-500 mt-1">
                 Unggah langsung berkas PDF soal JFT. Sistem otomatis mengekstrak seluruh nomor soal, seksi S1-S4, opsi jawaban, serta <strong>memotong & memasang gambar soal secara otomatis</strong> ke setiap nomor soal yang sesuai!
               </p>
             </div>
@@ -1550,7 +1553,7 @@ B：いえ、だいじょうぶですよ。
                     setBatchSaveSuccess('');
                   }
                 }}
-                className="px-3 py-1.5 rounded-xl text-xs font-bold text-red-600 hover:text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-950/50 hover:bg-red-100 dark:hover:bg-red-900/50 border border-red-200 dark:border-red-900 transition flex items-center gap-1"
+                className="px-3 py-1.5 rounded-xl text-xs font-bold text-red-600 hover:text-red-700 bg-red-50 hover:bg-red-100:bg-red-900/50 border border-red-200 transition flex items-center gap-1"
               >
                 <Trash2 className="w-3.5 h-3.5" />
                 Hapus Semua Draf ({localDrafts.length})
@@ -1560,31 +1563,31 @@ B：いえ、だいじょうぶですよ。
 
           {/* Alert Messages */}
           {parseMessage && (
-            <div className="p-4 bg-emerald-50 dark:bg-emerald-950/70 border border-emerald-200 dark:border-emerald-800 text-emerald-900 dark:text-emerald-200 rounded-2xl text-xs font-semibold flex items-center justify-between gap-3 shadow-sm animate-in fade-in">
+            <div className="p-4 bg-emerald-50 border border-emerald-200 text-emerald-900 rounded-2xl text-xs font-semibold flex items-center justify-between gap-3 shadow-sm animate-in fade-in">
               <div className="flex items-center gap-2">
-                <Check className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                <Check className="w-4 h-4 text-emerald-600 shrink-0" />
                 <span>{parseMessage}</span>
               </div>
-              <button onClick={() => setParseMessage('')} className="text-slate-400 hover:text-slate-600">
+              <button onClick={() => setParseMessage('')} className="text-stone-400 hover:text-stone-600">
                 <X className="w-4 h-4" />
               </button>
             </div>
           )}
 
           {batchSaveSuccess && (
-            <div className="p-4 bg-indigo-50 dark:bg-indigo-950/70 border border-indigo-200 dark:border-indigo-800 text-indigo-900 dark:text-indigo-200 rounded-2xl text-xs font-bold flex items-center justify-between gap-3 shadow-sm animate-in fade-in">
+            <div className="p-4 bg-rose-50 border border-rose-200 text-red-900 rounded-2xl text-xs font-bold flex items-center justify-between gap-3 shadow-sm animate-in fade-in">
               <div className="flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-indigo-500 shrink-0" />
+                <Sparkles className="w-4 h-4 text-red-600 shrink-0" />
                 <span>{batchSaveSuccess}</span>
               </div>
-              <button onClick={() => setBatchSaveSuccess('')} className="text-slate-400 hover:text-slate-600">
+              <button onClick={() => setBatchSaveSuccess('')} className="text-stone-400 hover:text-stone-600">
                 <X className="w-4 h-4" />
               </button>
             </div>
           )}
 
           {/* CARA 2: Upload File PDF Ujian Box */}
-          <div className="p-6 rounded-3xl bg-gradient-to-br from-indigo-50/50 via-white to-slate-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 border-2 border-dashed border-indigo-200 dark:border-indigo-900/60 shadow-inner flex flex-col items-center justify-center text-center space-y-4">
+          <div className="p-6 rounded-3xl bg-gradient-to-br from-indigo-50/50 via-white to-slate-50 border-2 border-dashed border-rose-200 shadow-inner flex flex-col items-center justify-center text-center space-y-4">
             <input
               type="file"
               ref={pdfFileInputRef}
@@ -1599,31 +1602,31 @@ B：いえ、だいじょうぶですよ。
               }}
             />
 
-            <div className="w-14 h-14 rounded-2xl bg-indigo-600/10 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shadow-sm">
+            <div className="w-14 h-14 rounded-2xl bg-red-50 text-red-600 flex items-center justify-center shadow-sm">
               <FileUp className="w-7 h-7" />
             </div>
 
             <div className="space-y-1 max-w-lg">
-              <h3 className="text-base font-black text-slate-900 dark:text-white">
+              <h3 className="text-base font-black text-stone-900">
                 Unggah Berkas PDF Soal JFT (Cara 2 Otomatis)
               </h3>
-              <p className="text-xs text-slate-500 dark:text-slate-400">
+              <p className="text-xs text-stone-500">
                 Pilih berkas PDF soal ujian Anda. Teks, nomor soal, opsi, dan potongan gambar soal akan langsung diekstrak dan dipasangkan otomatis.
               </p>
             </div>
 
             {selectedPdfFile ? (
-              <div className="flex flex-wrap items-center justify-center gap-3 bg-white dark:bg-slate-800 px-4 py-2.5 rounded-2xl border border-indigo-200 dark:border-indigo-800 shadow-sm text-xs">
-                <FileText className="w-4 h-4 text-indigo-500" />
-                <span className="font-bold text-slate-800 dark:text-slate-200">{selectedPdfFile.name}</span>
-                <span className="text-[11px] text-slate-400">({(selectedPdfFile.size / (1024 * 1024)).toFixed(2)} MB)</span>
+              <div className="flex flex-wrap items-center justify-center gap-3 bg-white px-4 py-2.5 rounded-2xl border border-rose-200 shadow-sm text-xs">
+                <FileText className="w-4 h-4 text-red-600" />
+                <span className="font-bold text-stone-800">{selectedPdfFile.name}</span>
+                <span className="text-[11px] text-emerald-700/80">({(selectedPdfFile.size / (1024 * 1024)).toFixed(2)} MB)</span>
                 <button
                   type="button"
                   onClick={() => {
                     setSelectedPdfFile(null);
                     if (pdfFileInputRef.current) pdfFileInputRef.current.value = '';
                   }}
-                  className="text-slate-400 hover:text-red-500 transition ml-1"
+                  className="text-stone-400 hover:text-red-500 transition ml-1"
                   title="Batalkan pilihan"
                 >
                   <X className="w-3.5 h-3.5" />
@@ -1636,9 +1639,9 @@ B：いえ、だいじょうぶですよ。
                 type="button"
                 onClick={() => pdfFileInputRef.current?.click()}
                 disabled={isUploadingPdf}
-                className="px-5 py-2.5 rounded-xl bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 text-xs font-bold border border-slate-300 dark:border-slate-700 transition flex items-center gap-2 shadow-sm disabled:opacity-50"
+                className="px-5 py-2.5 rounded-xl bg-white hover:bg-stone-100:bg-stone-200 text-stone-800 text-xs font-bold border border-stone-300 transition flex items-center gap-2 shadow-sm disabled:opacity-50"
               >
-                <FolderUp className="w-4 h-4 text-indigo-500" />
+                <FolderUp className="w-4 h-4 text-red-600" />
                 {selectedPdfFile ? 'Ganti File PDF...' : 'Pilih File PDF (.pdf)'}
               </button>
 
@@ -1646,7 +1649,7 @@ B：いえ、だいじょうぶですよ。
                 type="button"
                 onClick={handleUploadPdfFile}
                 disabled={isUploadingPdf || !selectedPdfFile}
-                className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 text-white text-xs font-black transition flex items-center gap-2 shadow-lg shadow-indigo-600/25 disabled:opacity-50"
+                className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-red-600 via-rose-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white text-xs font-black transition flex items-center gap-2 shadow-lg shadow-red-500/20 disabled:opacity-50"
               >
                 {isUploadingPdf ? (
                   <>
@@ -1667,44 +1670,44 @@ B：いえ、だいじょうぶですよ。
           {localDrafts.length > 0 && (
             <div className="space-y-4 pt-2">
               {/* Batch Action Bar */}
-              <div className="bg-slate-900 text-white p-4 sm:p-5 rounded-2xl shadow-xl border border-slate-800 flex flex-wrap items-center justify-between gap-4">
+              <div className="bg-white text-stone-900 p-4 sm:p-5 rounded-2xl shadow-xl border border-stone-200 flex flex-wrap items-center justify-between gap-4">
                 <div className="space-y-1">
                   <div className="flex flex-wrap items-center gap-2">
-                    <span className="px-2.5 py-0.5 rounded-full bg-emerald-950 border border-emerald-700 text-emerald-400 text-xs font-black">
+                    <span className="px-2.5 py-0.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-black">
                       {localDrafts.length} Soal Berhasil Diekstrak
                     </span>
-                    <span className="px-2.5 py-0.5 rounded-full bg-indigo-950 border border-indigo-700 text-indigo-400 text-xs font-black flex items-center gap-1">
+                    <span className="px-2.5 py-0.5 rounded-full bg-rose-50 border border-rose-200 text-red-600 text-xs font-black flex items-center gap-1">
                       <ImageIcon className="w-3 h-3" />
                       {localDrafts.filter((d) => d.imageUrl).length} Gambar Soal Otomatis Terhubung
                     </span>
                   </div>
-                  <p className="text-xs text-slate-400">
+                  <p className="text-xs text-stone-400">
                     Periksa pratinjau draf soal di bawah. Setelah sesuai, pilih target paket dan klik tombol simpan di sebelah kanan.
                   </p>
                 </div>
 
                 {/* Panel Tujuan Penerbitan Paket Ujian (Baru vs Ada) */}
-                <div className="w-full p-4 rounded-2xl bg-indigo-950/40 border border-indigo-800/70 space-y-3">
+                <div className="w-full p-4 rounded-2xl bg-rose-50 border border-rose-300/70 space-y-3">
                   <div className="flex flex-wrap items-center justify-between gap-3">
                     <div>
-                      <h4 className="text-xs font-black text-white flex items-center gap-1.5">
+                      <h4 className="text-xs font-black text-stone-900 flex items-center gap-1.5">
                         <Sparkles className="w-4 h-4 text-amber-400" />
                         Tujuan Penerbitan Soal Ujian
                       </h4>
-                      <p className="text-[11px] text-slate-300">
+                      <p className="text-[11px] text-stone-600">
                         Pilih untuk membuat paket soal baru agar langsung muncul di Halaman Depan atau simpan ke paket lama
                       </p>
                     </div>
 
                     {/* Mode Toggle Buttons */}
-                    <div className="flex p-1 bg-slate-950 rounded-xl border border-slate-800 text-xs">
+                    <div className="flex p-1 bg-stone-50 rounded-xl border border-stone-200 text-xs">
                       <button
                         type="button"
                         onClick={() => setPublishMode('new_package')}
                         className={`px-3 py-1.5 rounded-lg font-bold transition flex items-center gap-1.5 ${
                           publishMode === 'new_package'
                             ? 'bg-gradient-to-r from-red-600 to-rose-600 text-white shadow'
-                            : 'text-slate-400 hover:text-white'
+                            : 'text-stone-600 hover:text-stone-900'
                         }`}
                       >
                         <Sparkles className="w-3.5 h-3.5 text-amber-300" />
@@ -1715,11 +1718,11 @@ B：いえ、だいじょうぶですよ。
                         onClick={() => setPublishMode('existing_package')}
                         className={`px-3 py-1.5 rounded-lg font-bold transition flex items-center gap-1.5 ${
                           publishMode === 'existing_package'
-                            ? 'bg-slate-800 text-white shadow'
-                            : 'text-slate-400 hover:text-white'
+                            ? 'bg-red-600 text-white shadow'
+                            : 'text-stone-600 hover:text-stone-900'
                         }`}
                       >
-                        <Layers className="w-3.5 h-3.5 text-indigo-400" />
+                        <Layers className="w-3.5 h-3.5 text-red-600" />
                         Simpan ke Paket yang Ada
                       </button>
                     </div>
@@ -1728,7 +1731,7 @@ B：いえ、だいじょうぶですよ。
                   {publishMode === 'new_package' ? (
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1 text-xs">
                       <div className="space-y-1">
-                        <label className="font-bold text-slate-200 flex items-center gap-1">
+                        <label className="font-bold text-stone-700 flex items-center gap-1">
                           Nama Paket Ujian Baru:
                         </label>
                         <input
@@ -1736,11 +1739,11 @@ B：いえ、だいじょうぶですよ。
                           value={newPackageName}
                           onChange={(e) => setNewPackageName(e.target.value)}
                           placeholder={`Paket Ujian #${nextPackageId} (Simulasi Baru)`}
-                          className="w-full p-2.5 bg-slate-950 border border-slate-800 rounded-xl text-white font-bold text-xs focus:ring-2 focus:ring-red-500 focus:outline-none"
+                          className="w-full p-2.5 bg-stone-50 border border-stone-200 rounded-xl text-stone-900 font-bold text-xs focus:ring-2 focus:ring-red-500 focus:outline-none"
                         />
                       </div>
                       <div className="space-y-1">
-                        <label className="font-bold text-slate-200 flex items-center gap-1">
+                        <label className="font-bold text-stone-700 flex items-center gap-1">
                           Kode Paket:
                         </label>
                         <input
@@ -1748,11 +1751,11 @@ B：いえ、だいじょうぶですよ。
                           value={newPackageCode}
                           onChange={(e) => setNewPackageCode(e.target.value)}
                           placeholder={`JFT-SET-${nextLetter}`}
-                          className="w-full p-2.5 bg-slate-950 border border-slate-800 rounded-xl text-amber-400 font-mono font-bold text-xs focus:ring-2 focus:ring-red-500 focus:outline-none"
+                          className="w-full p-2.5 bg-stone-50 border border-stone-200 rounded-xl text-stone-900 font-mono font-bold text-xs focus:ring-2 focus:ring-red-500 focus:outline-none"
                         />
                       </div>
                       <div className="space-y-1">
-                        <label className="font-bold text-slate-200 flex items-center gap-1">
+                        <label className="font-bold text-stone-700 flex items-center gap-1">
                           Deskripsi Paket:
                         </label>
                         <input
@@ -1760,20 +1763,20 @@ B：いえ、だいじょうぶですよ。
                           value={newPackageDescription}
                           onChange={(e) => setNewPackageDescription(e.target.value)}
                           placeholder={`Simulasi ${localDrafts.length} soal JFT-Basic hasil impor PDF.`}
-                          className="w-full p-2.5 bg-slate-950 border border-slate-800 rounded-xl text-slate-300 text-xs focus:ring-2 focus:ring-red-500 focus:outline-none"
+                          className="w-full p-2.5 bg-stone-50 border border-stone-200 rounded-xl text-stone-600 text-xs focus:ring-2 focus:ring-red-500 focus:outline-none"
                         />
                       </div>
                     </div>
                   ) : (
-                    <div className="flex items-center gap-2 bg-slate-950 p-2.5 rounded-xl border border-slate-800 text-xs max-w-sm">
-                      <span className="font-bold text-slate-300">Pilih Paket:</span>
+                    <div className="flex items-center gap-2 bg-stone-50 p-2.5 rounded-xl border border-stone-200 text-xs max-w-sm">
+                      <span className="font-bold text-stone-600">Pilih Paket:</span>
                       <select
                         value={targetPackageId}
                         onChange={(e) => setTargetPackageId(Number(e.target.value))}
-                        className="bg-transparent text-amber-400 font-bold focus:outline-none cursor-pointer flex-1"
+                        className="bg-transparent text-stone-900 font-bold focus:outline-none cursor-pointer flex-1"
                       >
                         {allExamSets.map((s) => (
-                          <option key={s.id} value={s.id} className="bg-slate-900 text-white">
+                          <option key={s.id} value={s.id} className="bg-white text-stone-900">
                             Paket #{s.id} - {s.name}
                           </option>
                         ))}
@@ -1781,9 +1784,9 @@ B：いえ、だいじょうぶですよ。
                     </div>
                   )}
 
-                  <div className="pt-2 flex flex-wrap items-center justify-between border-t border-indigo-900/60 gap-3">
-                    <div className="text-[11px] text-slate-300">
-                      Total Draf: <strong className="text-white font-mono">{localDrafts.length} soal</strong> • Gambar terpasang: <strong className="text-emerald-400 font-mono">{localDrafts.filter((d) => d.imageUrl).length} gambar</strong>
+                  <div className="pt-2 flex flex-wrap items-center justify-between border-t border-rose-200 gap-3">
+                    <div className="text-[11px] text-stone-600">
+                      Total Draf: <strong className="text-stone-900 font-mono">{localDrafts.length} soal</strong> • Gambar terpasang: <strong className="text-emerald-700 font-mono">{localDrafts.filter((d) => d.imageUrl).length} gambar</strong>
                     </div>
 
                     <button
@@ -1817,23 +1820,23 @@ B：いえ、だいじょうぶですよ。
                 {localDrafts.map((draft, idx) => (
                   <div
                     key={draft.id}
-                    className="p-4 rounded-2xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 shadow-sm space-y-3 flex flex-col justify-between"
+                    className="p-4 rounded-2xl bg-white border border-stone-200 shadow-sm space-y-3 flex flex-col justify-between"
                   >
                     <div className="space-y-2.5">
                       {/* Card Header: Number & Section */}
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                          <span className="w-7 h-7 rounded-lg bg-indigo-100 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-400 font-black text-xs flex items-center justify-center">
+                          <span className="w-7 h-7 rounded-lg bg-rose-100 text-red-700 font-black text-xs flex items-center justify-center">
                             #{draft.number || idx + 1}
                           </span>
                           <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
                             draft.section === 'S1'
-                              ? 'bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300'
+                              ? 'bg-blue-100 text-blue-700'
                               : draft.section === 'S2'
-                              ? 'bg-purple-100 dark:bg-purple-950 text-purple-700 dark:text-purple-300'
+                              ? 'bg-purple-100 text-purple-700'
                               : draft.section === 'S3'
-                              ? 'bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-300'
-                              : 'bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300'
+                              ? 'bg-amber-100 text-amber-700'
+                              : 'bg-emerald-100 text-emerald-700'
                           }`}>
                             {draft.sectionTitle || draft.section}
                           </span>
@@ -1842,7 +1845,7 @@ B：いえ、だいじょうぶですよ。
                         <button
                           type="button"
                           onClick={() => handleDeleteSingleDraft(draft.id)}
-                          className="p-1 text-slate-400 hover:text-red-500 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition"
+                          className="p-1 text-stone-400 hover:text-red-500 rounded-lg hover:bg-stone-100:bg-stone-100 transition"
                           title="Hapus draf soal ini"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
@@ -1850,14 +1853,14 @@ B：いえ、だいじょうぶですよ。
                       </div>
 
                       {/* Question Text */}
-                      <div className="text-xs font-semibold text-slate-900 dark:text-slate-100 font-japanese leading-relaxed whitespace-pre-line">
+                      <div className="text-xs font-semibold text-stone-900 font-japanese leading-relaxed whitespace-pre-line">
                         {renderFormattedQuestion(draft.questionText)}
                       </div>
 
                       {/* Image Preview & Controls (Auto-extracted from PDF) */}
                       {draft.imageUrl ? (
-                        <div className="space-y-1.5 p-2 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
-                          <div className="relative group overflow-hidden rounded-lg bg-white dark:bg-slate-950 flex items-center justify-center p-2 border border-slate-200 dark:border-slate-800">
+                        <div className="space-y-1.5 p-2 rounded-xl bg-stone-50 border border-stone-200">
+                          <div className="relative group overflow-hidden rounded-lg bg-white flex items-center justify-center p-2 border border-stone-200">
                             <img
                               src={draft.imageUrl}
                               alt={`Soal #${draft.number}`}
@@ -1867,13 +1870,13 @@ B：いえ、だいじょうぶですよ。
                             <button
                               type="button"
                               onClick={() => setZoomPreviewImage(draft.imageUrl || null)}
-                              className="absolute inset-0 bg-slate-950/40 text-white opacity-0 group-hover:opacity-100 transition flex items-center justify-center gap-1.5 text-xs font-bold"
+                              className="absolute inset-0 bg-stone-900/40 backdrop-blur-xs text-white opacity-0 group-hover:opacity-100 transition flex items-center justify-center gap-1.5 text-xs font-bold"
                             >
                               <ZoomIn className="w-4 h-4" /> Perbesar Gambar
                             </button>
                           </div>
                           <div className="flex items-center justify-between text-[11px]">
-                            <span className="text-emerald-600 dark:text-emerald-400 font-bold flex items-center gap-1">
+                            <span className="text-emerald-600 font-bold flex items-center gap-1">
                               <Check className="w-3 h-3" /> Gambar Otomatis Terhubung
                             </span>
                             <div className="flex items-center gap-1.5">
@@ -1883,11 +1886,11 @@ B：いえ、だいじょうぶですよ。
                                   setActiveDraftIdForImage(draft.id);
                                   draftSpecificImageInputRef.current?.click();
                                 }}
-                                className="text-indigo-600 dark:text-indigo-400 hover:underline font-semibold"
+                                className="text-red-600 hover:underline font-semibold"
                               >
                                 Ganti
                               </button>
-                              <span className="text-slate-300">•</span>
+                              <span className="text-stone-600">•</span>
                               <button
                                 type="button"
                                 onClick={() => handleRemoveDraftImage(draft.id)}
@@ -1906,7 +1909,7 @@ B：いえ、だいじょうぶですよ。
                               setActiveDraftIdForImage(draft.id);
                               draftSpecificImageInputRef.current?.click();
                             }}
-                            className="text-[11px] font-bold text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 flex items-center gap-1 border border-dashed border-slate-200 dark:border-slate-800 px-2.5 py-1.5 rounded-xl hover:border-indigo-400 transition"
+                            className="text-[11px] font-bold text-stone-500 hover:text-red-600:text-red-600 flex items-center gap-1 border border-dashed border-stone-200 px-2.5 py-1.5 rounded-xl hover:border-indigo-400 transition"
                           >
                             <ImageIcon className="w-3 h-3" /> + Tambah Gambar untuk Soal Ini
                           </button>
@@ -1920,14 +1923,14 @@ B：いえ、だいじょうぶですよ。
                             key={opt.key}
                             className={`p-1.5 rounded-lg border flex items-center gap-2 text-xs transition ${
                               draft.correctAnswer === opt.key
-                                ? 'bg-emerald-50 dark:bg-emerald-950/50 border-emerald-300 dark:border-emerald-800 font-bold text-emerald-900 dark:text-emerald-300'
-                                : 'bg-slate-50/60 dark:bg-slate-900/60 border-slate-100 dark:border-slate-800 text-slate-700 dark:text-slate-300'
+                                ? 'bg-emerald-50 border-emerald-300 font-bold text-emerald-900'
+                                : 'bg-stone-50/60 border-stone-100 text-stone-700'
                             }`}
                           >
                             <span className="font-bold font-mono text-[11px] w-4">{opt.key})</span>
                             <span className="flex-1">{opt.text}</span>
                             {draft.correctAnswer === opt.key && (
-                              <span className="text-[10px] uppercase tracking-wider font-extrabold text-emerald-600 dark:text-emerald-400">
+                              <span className="text-[10px] uppercase tracking-wider font-extrabold text-emerald-600">
                                 Kunci
                               </span>
                             )}
@@ -1937,14 +1940,14 @@ B：いえ、だいじょうぶですよ。
                     </div>
 
                     {/* Card Footer: Correct Answer Selector */}
-                    <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs">
-                      <span className="text-slate-500 text-[11px] font-semibold">Kunci Jawaban:</span>
+                    <div className="pt-3 border-t border-stone-100 flex items-center justify-between text-xs">
+                      <span className="text-stone-500 text-[11px] font-semibold">Kunci Jawaban:</span>
                       <select
                         value={draft.correctAnswer}
                         onChange={(e) =>
                           handleUpdateDraftAnswer(draft.id, e.target.value as 'A' | 'B' | 'C' | 'D')
                         }
-                        className="p-1 px-2.5 rounded-lg bg-emerald-50 dark:bg-emerald-950 border border-emerald-300 dark:border-emerald-800 font-bold text-emerald-900 dark:text-emerald-300 text-xs focus:outline-none"
+                        className="p-1 px-2.5 rounded-lg bg-emerald-50 border border-emerald-300 font-bold text-emerald-900 text-xs focus:outline-none"
                       >
                         {draft.options.map((opt) => (
                           <option key={opt.key} value={opt.key}>
@@ -1960,30 +1963,30 @@ B：いえ、だいじょうぶですよ。
           )}
 
           {/* CARA 1: Fallback Tempel Teks Manual (Collapsible) */}
-          <div className="border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden">
+          <div className="border border-stone-200 rounded-2xl overflow-hidden">
             <button
               type="button"
               onClick={() => setIsManualTextOpen((prev) => !prev)}
-              className="w-full p-4 bg-slate-50 dark:bg-slate-950 hover:bg-slate-100 dark:hover:bg-slate-900 flex items-center justify-between text-left text-xs font-bold text-slate-700 dark:text-slate-300 transition"
+              className="w-full p-4 bg-stone-50 hover:bg-stone-100:bg-white flex items-center justify-between text-left text-xs font-bold text-stone-700 transition"
             >
               <span className="flex items-center gap-2">
-                <FileText className="w-4 h-4 text-slate-400" />
+                <FileText className="w-4 h-4 text-stone-400" />
                 Cara 1: Tempel Teks PDF Manual (Alternatif / Cadangan)
               </span>
-              <span className="text-[11px] text-slate-400 font-normal">
+              <span className="text-[11px] text-emerald-700/80 font-normal">
                 {isManualTextOpen ? 'Sembunyikan' : 'Tampilkan Form Teks'}
               </span>
             </button>
 
             {isManualTextOpen && (
-              <div className="p-4 bg-white dark:bg-slate-900 space-y-3 border-t border-slate-200 dark:border-slate-800">
+              <div className="p-4 bg-white space-y-3 border-t border-stone-200">
                 <div className="flex justify-between items-center text-xs">
-                  <label className="font-bold text-slate-700 dark:text-slate-300">
+                  <label className="font-bold text-stone-700">
                     Tempel Teks Soal:
                   </label>
                   <button
                     onClick={fillSamplePdfText}
-                    className="text-indigo-600 dark:text-indigo-400 hover:underline text-xs font-semibold"
+                    className="text-red-600 hover:underline text-xs font-semibold"
                   >
                     + Isi Contoh Teks Demo
                   </button>
@@ -1994,14 +1997,14 @@ B：いえ、だいじょうぶですよ。
                   value={pdfInputText}
                   onChange={(e) => setPdfInputText(e.target.value)}
                   placeholder="Tempel teks PDF soal di sini (misal: [S1] Soal 1... A) ほん B) はん... Kunci: A...)"
-                  className="w-full p-3 bg-slate-50 dark:bg-slate-950 rounded-xl border border-slate-200 dark:border-slate-800 text-xs font-mono text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  className="w-full p-3 bg-stone-50 rounded-xl border border-stone-200 text-xs font-mono text-stone-900 focus:outline-none focus:ring-2 focus:ring-red-500"
                 ></textarea>
 
                 <button
                   type="button"
                   onClick={handleRunPdfParse}
                   disabled={isParsing || !pdfInputText.trim()}
-                  className="py-2.5 px-5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl shadow transition flex items-center gap-2 disabled:opacity-50"
+                  className="py-2.5 px-5 bg-red-600 hover:bg-red-700 text-white font-bold text-xs rounded-xl shadow transition flex items-center gap-2 disabled:opacity-50"
                 >
                   <Upload className="w-3.5 h-3.5" />
                   {isParsing ? 'Mengurai Teks PDF...' : 'Ekstrak Draf dari Teks Manual'}
@@ -2025,27 +2028,27 @@ B：いえ、だいじょうぶですよ。
       {zoomPreviewImage && (
         <div
           onClick={() => setZoomPreviewImage(null)}
-          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/85 backdrop-blur-md p-4 animate-in fade-in cursor-zoom-out"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-stone-900/40 backdrop-blur-xs backdrop-blur-md p-4 animate-in fade-in cursor-zoom-out"
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="relative max-w-4xl max-h-[90vh] bg-slate-900 rounded-3xl p-4 border border-slate-700 shadow-2xl overflow-hidden flex flex-col items-center cursor-default"
+            className="relative max-w-4xl max-h-[90vh] bg-white rounded-3xl p-4 border border-stone-200 shadow-2xl overflow-hidden flex flex-col items-center cursor-default"
           >
             <button
               onClick={() => setZoomPreviewImage(null)}
-              className="absolute top-4 right-4 p-2 rounded-full bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700 z-10 transition shadow-lg"
+              className="absolute top-4 right-4 p-2 rounded-full bg-stone-100 text-stone-600 hover:text-stone-900 hover:bg-stone-200 z-10 transition shadow-lg"
               title="Tutup Pratinjau (ESC)"
             >
               <X className="w-5 h-5" />
             </button>
-            <div className="text-xs text-slate-400 font-bold mb-2 flex items-center gap-1.5">
-              <Eye className="w-4 h-4 text-indigo-400" />
+            <div className="text-xs text-stone-400 font-bold mb-2 flex items-center gap-1.5">
+              <Eye className="w-4 h-4 text-red-600" />
               Pratinjau Resolusi Penuh Gambar Soal JFT
             </div>
             <img
               src={zoomPreviewImage}
               alt="Pratinjau Gambar Soal"
-              className="max-w-full max-h-[80vh] object-contain rounded-2xl shadow-md border border-slate-800 bg-white dark:bg-slate-950 p-2"
+              className="max-w-full max-h-[80vh] object-contain rounded-2xl shadow-md border border-stone-200 bg-white p-2"
             />
           </div>
         </div>
@@ -2053,13 +2056,13 @@ B：いえ、だいじょうぶですよ。
 
       {/* Tab 4: Transactions */}
       {activeTab === 'TRANSACTIONS' && (
-        <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 shadow-xl border border-slate-200 dark:border-slate-800 space-y-6">
-          <div className="flex flex-wrap items-center justify-between border-b pb-4 border-slate-200 dark:border-slate-800 gap-4">
+        <div className="bg-white rounded-3xl p-6 shadow-xl border border-stone-200 space-y-6">
+          <div className="flex flex-wrap items-center justify-between border-b pb-4 border-stone-200 gap-4">
             <div>
-              <h2 className="text-lg font-bold text-slate-900 dark:text-white">
+              <h2 className="text-lg font-bold text-stone-900">
                 Riwayat Pembayaran & Transaksi Paket ({transactions.length} Total Transaksi)
               </h2>
-              <p className="text-xs text-slate-500 dark:text-slate-400">
+              <p className="text-xs text-stone-500">
                 Data transaksi pembayaran real-time dari database MySQL & DOKU Payment Gateway
               </p>
             </div>
@@ -2076,9 +2079,9 @@ B：いえ、だいじょうぶですよ。
                   }
                 }}
                 disabled={isRefreshing}
-                className="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold transition flex items-center gap-1.5 border border-slate-200 dark:border-slate-700 shadow-sm"
+                className="px-3.5 py-2 rounded-xl bg-stone-100 hover:bg-stone-100:bg-stone-200 text-stone-700 text-xs font-bold transition flex items-center gap-1.5 border border-stone-200 shadow-sm"
               >
-                <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin text-indigo-500' : ''}`} />
+                <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin text-red-600' : ''}`} />
                 {isRefreshing ? 'Memuat Ulang...' : 'Sinkronkan Transaksi'}
               </button>
             )}
@@ -2087,7 +2090,7 @@ B：いえ、だいじょうぶですよ。
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs border-collapse">
               <thead>
-                <tr className="border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/50 text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider">
+                <tr className="border-b border-stone-200 bg-stone-50 text-stone-500 font-bold uppercase tracking-wider">
                   <th className="p-3">ID Transaksi</th>
                   <th className="p-3">Waktu</th>
                   <th className="p-3">Peserta</th>
@@ -2097,33 +2100,33 @@ B：いえ、だいじょうぶですよ。
                   <th className="p-3">Status</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+              <tbody className="divide-y divide-stone-100">
                 {transactions.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="text-center py-8 text-slate-400">
+                    <td colSpan={7} className="text-center py-8 text-stone-400">
                       Belum ada transaksi di database.
                     </td>
                   </tr>
                 ) : (
                   transactions.map((tx) => (
-                    <tr key={tx.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition">
-                      <td className="p-3 font-mono text-[11px] text-slate-500">{tx.id}</td>
-                      <td className="p-3 text-[11px] text-slate-400">
+                    <tr key={tx.id} className="hover:bg-stone-50:bg-stone-100 transition">
+                      <td className="p-3 font-mono text-[11px] text-stone-500">{tx.id}</td>
+                      <td className="p-3 text-[11px] text-emerald-700/80">
                         {tx.createdAt ? new Date(tx.createdAt).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '-'}
                       </td>
-                      <td className="p-3 font-semibold text-slate-900 dark:text-white">{tx.userName}</td>
-                      <td className="p-3 text-slate-700 dark:text-slate-300">{tx.packageName}</td>
-                      <td className="p-3 font-bold text-indigo-600 dark:text-indigo-400">
+                      <td className="p-3 font-semibold text-stone-900">{tx.userName}</td>
+                      <td className="p-3 text-stone-700">{tx.packageName}</td>
+                      <td className="p-3 font-bold text-red-600">
                         Rp {tx.amount.toLocaleString('id-ID')}
                       </td>
-                      <td className="p-3 text-slate-500">{tx.paymentMethod}</td>
+                      <td className="p-3 text-stone-500">{tx.paymentMethod}</td>
                       <td className="p-3">
                         <span className={`px-2.5 py-0.5 rounded-full font-bold text-[10px] ${
                           tx.status === 'PAID'
-                            ? 'bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300'
+                            ? 'bg-emerald-100 text-emerald-700'
                             : tx.status === 'PENDING'
-                            ? 'bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-300'
-                            : 'bg-red-100 dark:bg-red-950 text-red-700 dark:text-red-300'
+                            ? 'bg-amber-100 text-amber-700'
+                            : 'bg-red-100 text-red-700'
                         }`}>
                           {tx.status}
                         </span>
@@ -2139,15 +2142,15 @@ B：いえ、だいじょうぶですよ。
 
       {/* QUESTION EDIT MODAL OVERLAY */}
       {isEditModalOpen && editingQuestion && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-md p-4 overflow-y-auto">
-          <div className="bg-white dark:bg-slate-900 max-w-2xl w-full rounded-3xl p-6 shadow-2xl border border-slate-200 dark:border-slate-800 space-y-4 my-8">
-            <div className="flex items-center justify-between border-b pb-3 border-slate-200 dark:border-slate-800">
-              <h3 className="text-base font-bold text-slate-900 dark:text-white">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-stone-900/40 backdrop-blur-xs backdrop-blur-md p-4 overflow-y-auto">
+          <div className="bg-white max-w-2xl w-full rounded-3xl p-6 shadow-2xl border border-stone-200 space-y-4 my-8">
+            <div className="flex items-center justify-between border-b pb-3 border-stone-200">
+              <h3 className="text-base font-bold text-stone-900">
                 Editor Soal JFT (ID #{editingQuestion.id})
               </h3>
               <button
                 onClick={() => setIsEditModalOpen(false)}
-                className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition"
+                className="p-1 text-stone-400 hover:text-stone-600:text-stone-700 rounded-lg hover:bg-stone-100:bg-stone-100 transition"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -2155,13 +2158,13 @@ B：いえ、だいじょうぶですよ。
 
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
               <div>
-                <label className="font-bold text-slate-700 dark:text-slate-300 block mb-1">Pilih Paket:</label>
+                <label className="font-bold text-stone-700 block mb-1">Pilih Paket:</label>
                 <select
                   value={editingQuestion.packageId || 1}
                   onChange={(e) =>
                     setEditingQuestion({ ...editingQuestion, packageId: Number(e.target.value) })
                   }
-                  className="w-full p-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-slate-100 font-bold"
+                  className="w-full p-2.5 bg-stone-50 border border-stone-200 rounded-xl text-stone-900 font-bold"
                 >
                   {allExamSets.map((s) => (
                     <option key={s.id} value={s.id}>
@@ -2172,7 +2175,7 @@ B：いえ、だいじょうぶですよ。
               </div>
 
               <div>
-                <label className="font-bold text-slate-700 dark:text-slate-300 block mb-1">Seksi Ujian:</label>
+                <label className="font-bold text-stone-700 block mb-1">Seksi Ujian:</label>
                 <select
                   value={editingQuestion.section}
                   onChange={(e) => {
@@ -2189,7 +2192,7 @@ B：いえ、だいじょうぶですよ。
                       sectionTitle: secTitles[sec] || sec
                     });
                   }}
-                  className="w-full p-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-slate-100 font-bold"
+                  className="w-full p-2.5 bg-stone-50 border border-stone-200 rounded-xl text-stone-900 font-bold"
                 >
                   <option value="S1">S1 (Moji Goi)</option>
                   <option value="S2">S2 (Kaiwa)</option>
@@ -2199,21 +2202,21 @@ B：いえ、だいじょうぶですよ。
               </div>
 
               <div>
-                <label className="font-bold text-slate-700 dark:text-slate-300 block mb-1">Nomor Soal:</label>
+                <label className="font-bold text-stone-700 block mb-1">Nomor Soal:</label>
                 <input
                   type="number"
                   value={editingQuestion.number}
                   onChange={(e) => setEditingQuestion({ ...editingQuestion, number: Number(e.target.value) })}
-                  className="w-full p-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-slate-100 font-bold"
+                  className="w-full p-2.5 bg-stone-50 border border-stone-200 rounded-xl text-stone-900 font-bold"
                 />
               </div>
 
               <div>
-                <label className="font-bold text-slate-700 dark:text-slate-300 block mb-1">Kunci Jawaban Benar:</label>
+                <label className="font-bold text-stone-700 block mb-1">Kunci Jawaban Benar:</label>
                 <select
                   value={editingQuestion.correctAnswer}
                   onChange={(e) => setEditingQuestion({ ...editingQuestion, correctAnswer: e.target.value as 'A' | 'B' | 'C' | 'D' })}
-                  className="w-full p-2.5 bg-emerald-50 dark:bg-emerald-950 border border-emerald-300 dark:border-emerald-800 rounded-xl text-emerald-900 dark:text-emerald-300 font-bold"
+                  className="w-full p-2.5 bg-emerald-50 border border-emerald-300 rounded-xl text-emerald-900 font-bold"
                 >
                   <option value="A">Opsi A</option>
                   <option value="B">Opsi B</option>
@@ -2224,22 +2227,22 @@ B：いえ、だいじょうぶですよ。
             </div>
 
             <div className="text-xs space-y-1">
-              <label className="font-bold text-slate-700 dark:text-slate-300">Teks Pertanyaan:</label>
+              <label className="font-bold text-stone-700">Teks Pertanyaan:</label>
               <textarea
                 rows={3}
                 value={editingQuestion.questionText}
                 onChange={(e) => setEditingQuestion({ ...editingQuestion, questionText: e.target.value })}
-                className="w-full p-3 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-slate-100 font-japanese text-xs"
+                className="w-full p-3 bg-stone-50 border border-stone-200 rounded-xl text-stone-900 font-japanese text-xs"
               ></textarea>
             </div>
 
             {/* Options A-D */}
             <div className="space-y-2 text-xs">
-              <label className="font-bold text-slate-700 dark:text-slate-300">Opsi Jawaban A, B, C, D:</label>
+              <label className="font-bold text-stone-700">Opsi Jawaban A, B, C, D:</label>
               <div className="grid grid-cols-2 gap-2">
                 {editingQuestion.options.map((opt, idx) => (
                   <div key={opt.key} className="flex items-center gap-2">
-                    <span className="font-bold text-indigo-600 dark:text-indigo-400 w-4">{opt.key})</span>
+                    <span className="font-bold text-red-600 w-4">{opt.key})</span>
                     <input
                       type="text"
                       value={opt.text}
@@ -2248,7 +2251,7 @@ B：いえ、だいじょうぶですよ。
                         newOpts[idx].text = e.target.value;
                         setEditingQuestion({ ...editingQuestion, options: newOpts });
                       }}
-                      className="w-full p-2 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg text-slate-900 dark:text-slate-100 text-xs"
+                      className="w-full p-2 bg-stone-50 border border-stone-200 rounded-lg text-stone-900 text-xs"
                     />
                   </div>
                 ))}
@@ -2256,9 +2259,9 @@ B：いえ、だいじょうぶですよ。
             </div>
 
             {/* Audio Soal Chokai (Upload & Link URL) */}
-            <div className="p-3.5 bg-slate-50 dark:bg-slate-950 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-2.5 text-xs">
+            <div className="p-3.5 bg-stone-50 rounded-2xl border border-stone-200 space-y-2.5 text-xs">
               <div className="flex items-center justify-between">
-                <label className="font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                <label className="font-bold text-stone-800 flex items-center gap-1.5">
                   <Headphones className="w-4 h-4 text-amber-500" />
                   Audio Soal Chōkai (S3 - Opsional):
                 </label>
@@ -2277,7 +2280,7 @@ B：いえ、だいじょうぶですよ。
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {/* Upload File Audio */}
                 <div className="space-y-1">
-                  <span className="text-[11px] text-slate-500 dark:text-slate-400 font-semibold block">
+                  <span className="text-[11px] text-stone-500 font-semibold block">
                     1. Upload File Audio (MP3, WAV, OGG, M4A):
                   </span>
                   <input
@@ -2291,7 +2294,7 @@ B：いえ、だいじょうぶですよ。
                     type="button"
                     disabled={isUploadingAudio}
                     onClick={() => audioFileInputRef.current?.click()}
-                    className="w-full py-2.5 px-3 bg-amber-50 hover:bg-amber-100 dark:bg-amber-950/60 dark:hover:bg-amber-900/60 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800 rounded-xl font-bold flex items-center justify-center gap-2 transition disabled:opacity-50"
+                    className="w-full py-2.5 px-3 bg-amber-50 hover:bg-amber-100:bg-amber-900/60 text-amber-700 border border-amber-200 rounded-xl font-bold flex items-center justify-center gap-2 transition disabled:opacity-50"
                   >
                     <UploadCloud className="w-4 h-4" />
                     <span>{isUploadingAudio ? 'Mengunggah Audio...' : 'Pilih File Audio & Upload'}</span>
@@ -2300,7 +2303,7 @@ B：いえ、だいじょうぶですよ。
 
                 {/* Input Link URL Audio */}
                 <div className="space-y-1">
-                  <span className="text-[11px] text-slate-500 dark:text-slate-400 font-semibold block">
+                  <span className="text-[11px] text-stone-500 font-semibold block">
                     2. Atau Tempel / Ketik Link URL Audio:
                   </span>
                   <div className="relative">
@@ -2309,9 +2312,9 @@ B：いえ、だいじょうぶですよ。
                       value={editingQuestion.audioUrl || ''}
                       onChange={(e) => setEditingQuestion({ ...editingQuestion, audioUrl: e.target.value })}
                       placeholder="https://... atau /uploads/audio/..."
-                      className="w-full p-2.5 pr-8 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-slate-100 text-xs"
+                      className="w-full p-2.5 pr-8 bg-white border border-stone-200 rounded-xl text-stone-900 text-xs"
                     />
-                    <LinkIcon className="w-3.5 h-3.5 text-slate-400 absolute right-2.5 top-3" />
+                    <LinkIcon className="w-3.5 h-3.5 text-stone-400 absolute right-2.5 top-3" />
                   </div>
                 </div>
               </div>
@@ -2324,8 +2327,8 @@ B：いえ、だいじょうぶですよ。
 
               {/* Live Audio Player Preview */}
               {editingQuestion.audioUrl && (
-                <div className="mt-2 p-2.5 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 space-y-1.5">
-                  <div className="text-[10px] text-slate-400 font-semibold flex items-center gap-1">
+                <div className="mt-2 p-2.5 bg-white rounded-xl border border-stone-200 space-y-1.5">
+                  <div className="text-[10px] text-stone-400 font-semibold flex items-center gap-1">
                     <Volume2 className="w-3.5 h-3.5 text-amber-500" /> Pemutar Audio Aktif:
                   </div>
                   <audio
@@ -2339,7 +2342,7 @@ B：いえ、だいじょうぶですよ。
                       type={editingQuestion.audioUrl.endsWith('.ogg') ? 'audio/ogg' : 'audio/mpeg'}
                     />
                   </audio>
-                  <div className="text-[10px] text-slate-400 font-mono truncate">
+                  <div className="text-[10px] text-stone-400 font-mono truncate">
                     {editingQuestion.audioUrl}
                   </div>
                 </div>
@@ -2347,10 +2350,10 @@ B：いえ、だいじょうぶですよ。
             </div>
 
             {/* Foto / Gambar Soal (Upload & Link URL) */}
-            <div className="p-3.5 bg-slate-50 dark:bg-slate-950 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-2.5 text-xs">
+            <div className="p-3.5 bg-stone-50 rounded-2xl border border-stone-200 space-y-2.5 text-xs">
               <div className="flex items-center justify-between">
-                <label className="font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
-                  <ImageIcon className="w-4 h-4 text-indigo-500" />
+                <label className="font-bold text-stone-800 flex items-center gap-1.5">
+                  <ImageIcon className="w-4 h-4 text-red-600" />
                   Foto / Gambar Soal (Opsional):
                 </label>
                 {editingQuestion.imageUrl && (
@@ -2368,7 +2371,7 @@ B：いえ、だいじょうぶですよ。
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {/* Upload File */}
                 <div className="space-y-1">
-                  <span className="text-[11px] text-slate-500 dark:text-slate-400 font-semibold block">
+                  <span className="text-[11px] text-stone-500 font-semibold block">
                     1. Upload File Gambar (JPG, PNG, WebP):
                   </span>
                   <input
@@ -2382,7 +2385,7 @@ B：いえ、だいじょうぶですよ。
                     type="button"
                     disabled={isUploadingImage}
                     onClick={() => fileInputRef.current?.click()}
-                    className="w-full py-2.5 px-3 bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-950/60 dark:hover:bg-indigo-900/60 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 rounded-xl font-bold flex items-center justify-center gap-2 transition disabled:opacity-50"
+                    className="w-full py-2.5 px-3 bg-rose-50 hover:bg-rose-100:bg-rose-100/60 text-red-700 border border-rose-200 rounded-xl font-bold flex items-center justify-center gap-2 transition disabled:opacity-50"
                   >
                     <UploadCloud className="w-4 h-4" />
                     <span>{isUploadingImage ? 'Mengunggah Foto...' : 'Pilih File & Upload'}</span>
@@ -2391,7 +2394,7 @@ B：いえ、だいじょうぶですよ。
 
                 {/* Input Link URL */}
                 <div className="space-y-1">
-                  <span className="text-[11px] text-slate-500 dark:text-slate-400 font-semibold block">
+                  <span className="text-[11px] text-stone-500 font-semibold block">
                     2. Atau Masukkan Link / URL Gambar:
                   </span>
                   <div className="relative">
@@ -2400,9 +2403,9 @@ B：いえ、だいじょうぶですよ。
                       value={editingQuestion.imageUrl || ''}
                       onChange={(e) => setEditingQuestion({ ...editingQuestion, imageUrl: e.target.value })}
                       placeholder="https://... atau /uploads/questions/..."
-                      className="w-full p-2.5 pr-8 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-slate-100 text-xs"
+                      className="w-full p-2.5 pr-8 bg-white border border-stone-200 rounded-xl text-stone-900 text-xs"
                     />
-                    <LinkIcon className="w-3.5 h-3.5 text-slate-400 absolute right-2.5 top-3" />
+                    <LinkIcon className="w-3.5 h-3.5 text-stone-400 absolute right-2.5 top-3" />
                   </div>
                 </div>
               </div>
@@ -2415,16 +2418,16 @@ B：いえ、だいじょうぶですよ。
 
               {/* Live Preview */}
               {editingQuestion.imageUrl && (
-                <div className="mt-2 p-2.5 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 text-center">
-                  <div className="text-[10px] text-slate-400 font-semibold mb-1 flex items-center justify-center gap-1">
+                <div className="mt-2 p-2.5 bg-white rounded-xl border border-stone-200 text-center">
+                  <div className="text-[10px] text-stone-400 font-semibold mb-1 flex items-center justify-center gap-1">
                     <Check className="w-3 h-3 text-emerald-500" /> Preview Gambar Soal Aktif:
                   </div>
                   <img
                     src={editingQuestion.imageUrl}
                     alt="Preview Soal"
-                    className="max-h-48 max-w-full rounded-lg mx-auto object-contain border border-slate-200 dark:border-slate-800 shadow-sm"
+                    className="max-h-48 max-w-full rounded-lg mx-auto object-contain border border-stone-200 shadow-sm"
                   />
-                  <div className="text-[10px] text-slate-400 font-mono mt-1 truncate">
+                  <div className="text-[10px] text-stone-400 font-mono mt-1 truncate">
                     {editingQuestion.imageUrl}
                   </div>
                 </div>
@@ -2434,24 +2437,24 @@ B：いえ、だいじょうぶですよ。
             {/* Dokkai Reading Passage (Optional) */}
             {editingQuestion.section === 'S4' && (
               <div className="text-xs space-y-1">
-                <label className="font-bold text-slate-700 dark:text-slate-300">Teks Bacaan (Dokkai S4 - Opsional):</label>
+                <label className="font-bold text-stone-700">Teks Bacaan (Dokkai S4 - Opsional):</label>
                 <textarea
                   rows={4}
                   value={editingQuestion.readingPassage || ''}
                   onChange={(e) => setEditingQuestion({ ...editingQuestion, readingPassage: e.target.value })}
                   placeholder="Masukkan teks artikel / wacana bacaan jika soal ini memiliki bacaan panjang..."
-                  className="w-full p-3 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-slate-100 font-japanese text-xs"
+                  className="w-full p-3 bg-stone-50 border border-stone-200 rounded-xl text-stone-900 font-japanese text-xs"
                 ></textarea>
               </div>
             )}
 
             <div className="text-xs space-y-1">
-              <label className="font-bold text-slate-700 dark:text-slate-300">Penjelasan & Pembahasan (Insight):</label>
+              <label className="font-bold text-stone-700">Penjelasan & Pembahasan (Insight):</label>
               <textarea
                 rows={2}
                 value={editingQuestion.explanation}
                 onChange={(e) => setEditingQuestion({ ...editingQuestion, explanation: e.target.value })}
-                className="w-full p-3 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-slate-100 text-xs"
+                className="w-full p-3 bg-stone-50 border border-stone-200 rounded-xl text-stone-900 text-xs"
               ></textarea>
             </div>
 
@@ -2459,14 +2462,14 @@ B：いえ、だいじょうぶですよ。
               <button
                 type="button"
                 onClick={() => setIsEditModalOpen(false)}
-                className="px-4 py-2 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 text-slate-700 dark:text-slate-300 font-bold rounded-xl text-xs transition"
+                className="px-4 py-2 bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold rounded-xl text-xs transition"
               >
                 Batal
               </button>
               <button
                 type="button"
                 onClick={handleSaveEditModal}
-                className="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-xs transition shadow-lg"
+                className="px-5 py-2 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl text-xs transition shadow-lg"
               >
                 Simpan Perubahan Soal
               </button>
@@ -2477,17 +2480,17 @@ B：いえ、だいじょうぶですよ。
 
       {/* Modal CRUD Paket Ujian */}
       {isPackageModalOpen && editingPackage && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-md p-4 overflow-y-auto">
-          <div className="bg-white dark:bg-slate-900 max-w-lg w-full rounded-3xl p-6 shadow-2xl border border-slate-200 dark:border-slate-800 space-y-5 my-8">
-            <div className="flex items-center justify-between border-b pb-3 border-slate-200 dark:border-slate-800">
-              <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                <Folder className="w-5 h-5 text-indigo-500" />
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-stone-900/40 backdrop-blur-xs backdrop-blur-md p-4 overflow-y-auto">
+          <div className="bg-white max-w-lg w-full rounded-3xl p-6 shadow-2xl border border-stone-200 space-y-5 my-8">
+            <div className="flex items-center justify-between border-b pb-3 border-stone-200">
+              <h3 className="text-base font-bold text-stone-900 flex items-center gap-2">
+                <Folder className="w-5 h-5 text-red-600" />
                 {packageModalMode === 'create' ? 'Tambah Paket Ujian Baru' : `Edit Info Paket #${editingPackage.id}`}
               </h3>
               <button
                 type="button"
                 onClick={() => setIsPackageModalOpen(false)}
-                className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition"
+                className="p-1 text-stone-400 hover:text-stone-600:text-stone-700 rounded-lg hover:bg-stone-100:bg-stone-100 transition"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -2495,7 +2498,7 @@ B：いえ、だいじょうぶですよ。
 
             <div className="space-y-4 text-xs">
               <div className="space-y-1">
-                <label className="font-bold text-slate-700 dark:text-slate-300">
+                <label className="font-bold text-stone-700">
                   Nama Paket Ujian:
                 </label>
                 <input
@@ -2504,13 +2507,13 @@ B：いえ、だいじょうぶですよ。
                   value={editingPackage.name}
                   onChange={(e) => setEditingPackage({ ...editingPackage, name: e.target.value })}
                   placeholder="Contoh: Paket Ujian #5 (Simulasi Mandiri)"
-                  className="w-full p-3 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-slate-100 font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  className="w-full p-3 bg-stone-50 border border-stone-200 rounded-xl text-stone-900 font-bold focus:outline-none focus:ring-2 focus:ring-red-500"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
-                  <label className="font-bold text-slate-700 dark:text-slate-300">
+                  <label className="font-bold text-stone-700">
                     Kode Paket:
                   </label>
                   <input
@@ -2519,12 +2522,12 @@ B：いえ、だいじょうぶですよ。
                     value={editingPackage.code}
                     onChange={(e) => setEditingPackage({ ...editingPackage, code: e.target.value.toUpperCase() })}
                     placeholder="Contoh: JFT-SET-E"
-                    className="w-full p-3 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-amber-600 dark:text-amber-400 font-mono font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    className="w-full p-3 bg-stone-50 border border-stone-200 rounded-xl text-amber-600 font-mono font-bold focus:outline-none focus:ring-2 focus:ring-red-500"
                   />
                 </div>
 
                 <div className="space-y-1">
-                  <label className="font-bold text-slate-700 dark:text-slate-300">
+                  <label className="font-bold text-stone-700">
                     Target Total Soal:
                   </label>
                   <input
@@ -2534,13 +2537,13 @@ B：いえ、だいじょうぶですよ。
                     value={editingPackage.totalQuestions || 50}
                     onChange={(e) => setEditingPackage({ ...editingPackage, totalQuestions: Number(e.target.value) || 50 })}
                     placeholder="50"
-                    className="w-full p-3 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-slate-100 font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    className="w-full p-3 bg-stone-50 border border-stone-200 rounded-xl text-stone-900 font-bold focus:outline-none focus:ring-2 focus:ring-red-500"
                   />
                 </div>
               </div>
 
               <div className="space-y-1">
-                <label className="font-bold text-slate-700 dark:text-slate-300">
+                <label className="font-bold text-stone-700">
                   Deskripsi Paket:
                 </label>
                 <textarea
@@ -2548,16 +2551,16 @@ B：いえ、だいじょうぶですよ。
                   value={editingPackage.description}
                   onChange={(e) => setEditingPackage({ ...editingPackage, description: e.target.value })}
                   placeholder="Keterangan materi soal, fokus bahasan, atau tipe simulasi..."
-                  className="w-full p-3 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-slate-100 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  className="w-full p-3 bg-stone-50 border border-stone-200 rounded-xl text-stone-900 text-xs focus:outline-none focus:ring-2 focus:ring-red-500"
                 ></textarea>
               </div>
             </div>
 
-            <div className="flex justify-end gap-3 pt-2 border-t border-slate-200 dark:border-slate-800">
+            <div className="flex justify-end gap-3 pt-2 border-t border-stone-200">
               <button
                 type="button"
                 onClick={() => setIsPackageModalOpen(false)}
-                className="px-4 py-2.5 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold rounded-xl text-xs transition"
+                className="px-4 py-2.5 bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold rounded-xl text-xs transition"
               >
                 Batal
               </button>
@@ -2565,7 +2568,7 @@ B：いえ、だいじょうぶですよ。
                 type="button"
                 disabled={isSavingPackage}
                 onClick={handleSavePackage}
-                className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-xs transition shadow-lg shadow-indigo-600/30 flex items-center gap-2 disabled:opacity-50"
+                className="px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl text-xs transition shadow-lg shadow-red-500/20 flex items-center gap-2 disabled:opacity-50"
               >
                 {isSavingPackage ? (
                   <>
@@ -2586,32 +2589,30 @@ B：いえ、だいじょうぶですよ。
 
       {/* MODAL: RIWAYAT & PROGRES UJIAN PESERTA */}
       {isHistoryModalOpen && selectedUserForHistory && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-md animate-in fade-in">
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-4xl w-full max-h-[90vh] shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-stone-900/40 backdrop-blur-xs backdrop-blur-md animate-in fade-in">
+          <div className="bg-white border border-stone-200 rounded-3xl max-w-4xl w-full max-h-[90vh] shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95">
             {/* Modal Header */}
-            <div className="p-6 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/50 flex items-center justify-between gap-4">
+            <div className="p-6 border-b border-stone-200 bg-stone-50 flex items-center justify-between gap-4">
               <div className="flex items-center gap-3">
-                {selectedUserForHistory.facePhotoUrl ? (
-                  <img
-                    src={selectedUserForHistory.facePhotoUrl}
-                    alt={selectedUserForHistory.name}
-                    className="w-12 h-12 rounded-2xl object-cover border-2 border-indigo-500 shadow-sm"
-                  />
-                ) : (
-                  <div className="w-12 h-12 rounded-2xl bg-indigo-600 text-white flex items-center justify-center font-black text-lg shadow-md">
-                    {selectedUserForHistory.name ? selectedUserForHistory.name.charAt(0).toUpperCase() : 'U'}
-                  </div>
-                )}
+                <img
+                  src={
+                    selectedUserForHistory.facePhotoUrl && !selectedUserForHistory.facePhotoUrl.includes('unsplash.com')
+                      ? selectedUserForHistory.facePhotoUrl
+                      : DEFAULT_ANONYMOUS_PHOTO
+                  }
+                  alt={selectedUserForHistory.name}
+                  className="w-12 h-12 rounded-2xl object-cover border-2 border-stone-300 shadow-sm"
+                />
                 <div>
                   <div className="flex items-center gap-2">
-                    <h2 className="text-lg font-black text-slate-900 dark:text-white">
+                    <h2 className="text-lg font-black text-stone-900">
                       {selectedUserForHistory.name}
                     </h2>
-                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-indigo-100 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800">
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-rose-100 text-red-700 border border-rose-200">
                       {selectedUserForHistory.role}
                     </span>
                   </div>
-                  <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 mt-0.5 font-mono">
+                  <div className="flex items-center gap-2 text-xs text-stone-500 mt-0.5 font-mono">
                     <span>{selectedUserForHistory.registrationNumber || selectedUserForHistory.id}</span>
                     <span>•</span>
                     <span>{selectedUserForHistory.email}</span>
@@ -2625,7 +2626,7 @@ B：いえ、だいじょうぶですよ。
                   setIsHistoryModalOpen(false);
                   setSelectedUserForHistory(null);
                 }}
-                className="w-9 h-9 rounded-2xl bg-slate-200/60 dark:bg-slate-800 text-slate-500 hover:text-slate-900 dark:hover:text-white flex items-center justify-center transition"
+                className="w-9 h-9 rounded-2xl bg-stone-100 text-stone-500 hover:text-stone-900 flex items-center justify-center transition"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -2648,43 +2649,43 @@ B：いえ、だいじょうぶですよ。
                   <>
                     {/* Summary KPI Cards */}
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                      <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800">
-                        <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400 text-xs font-semibold">
-                          <BookOpen className="w-4 h-4 text-indigo-500" />
+                      <div className="p-4 rounded-2xl bg-stone-50 border border-stone-200">
+                        <div className="flex items-center gap-2 text-stone-500 text-xs font-semibold">
+                          <BookOpen className="w-4 h-4 text-red-600" />
                           <span>Total Dikerjakan</span>
                         </div>
-                        <div className="text-2xl font-black text-slate-900 dark:text-white mt-1">
-                          {userAttempts.length} <span className="text-xs font-normal text-slate-400">Kali</span>
+                        <div className="text-2xl font-black text-stone-900 mt-1">
+                          {userAttempts.length} <span className="text-xs font-normal text-stone-400">Kali</span>
                         </div>
                       </div>
 
-                      <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800">
-                        <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400 text-xs font-semibold">
+                      <div className="p-4 rounded-2xl bg-stone-50 border border-stone-200">
+                        <div className="flex items-center gap-2 text-stone-500 text-xs font-semibold">
                           <TrendingUp className="w-4 h-4 text-emerald-500" />
                           <span>Skor Tertinggi</span>
                         </div>
-                        <div className="text-2xl font-black text-emerald-600 dark:text-emerald-400 mt-1">
-                          {highestScore} <span className="text-xs font-normal text-slate-400">/ 250</span>
+                        <div className="text-2xl font-black text-emerald-600 mt-1">
+                          {highestScore} <span className="text-xs font-normal text-stone-400">/ 250</span>
                         </div>
                       </div>
 
-                      <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800">
-                        <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400 text-xs font-semibold">
+                      <div className="p-4 rounded-2xl bg-stone-50 border border-stone-200">
+                        <div className="flex items-center gap-2 text-stone-500 text-xs font-semibold">
                           <BarChart3 className="w-4 h-4 text-amber-500" />
                           <span>Rata-rata Skor</span>
                         </div>
-                        <div className="text-2xl font-black text-amber-600 dark:text-amber-400 mt-1">
-                          {avgScore} <span className="text-xs font-normal text-slate-400">/ 250</span>
+                        <div className="text-2xl font-black text-amber-600 mt-1">
+                          {avgScore} <span className="text-xs font-normal text-stone-400">/ 250</span>
                         </div>
                       </div>
 
-                      <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800">
-                        <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400 text-xs font-semibold">
-                          <CheckCircle2 className="w-4 h-4 text-indigo-500" />
+                      <div className="p-4 rounded-2xl bg-stone-50 border border-stone-200">
+                        <div className="flex items-center gap-2 text-stone-500 text-xs font-semibold">
+                          <CheckCircle2 className="w-4 h-4 text-red-600" />
                           <span>Kelulusan</span>
                         </div>
-                        <div className="text-2xl font-black text-indigo-600 dark:text-indigo-400 mt-1">
-                          {passedAttempts} <span className="text-xs font-normal text-slate-400">/ {userAttempts.length}</span>
+                        <div className="text-2xl font-black text-red-600 mt-1">
+                          {passedAttempts} <span className="text-xs font-normal text-stone-400">/ {userAttempts.length}</span>
                         </div>
                       </div>
                     </div>
@@ -2692,24 +2693,24 @@ B：いえ、だいじょうぶですよ。
                     {/* Riwayat Tes List */}
                     <div className="space-y-3">
                       <div className="flex items-center justify-between">
-                        <h3 className="text-sm font-black text-slate-900 dark:text-white flex items-center gap-2">
-                          <Clock className="w-4 h-4 text-indigo-500" />
+                        <h3 className="text-sm font-black text-stone-900 flex items-center gap-2">
+                          <Clock className="w-4 h-4 text-red-600" />
                           Daftar Riwayat Tes Paket & Nilai Lengkap
                         </h3>
-                        <span className="text-xs text-slate-400 font-semibold">
+                        <span className="text-xs text-stone-400 font-semibold">
                           {userAttempts.length} Catatan Riwayat
                         </span>
                       </div>
 
                       {userAttempts.length === 0 ? (
-                        <div className="p-8 text-center bg-slate-50 dark:bg-slate-950/50 rounded-2xl border border-dashed border-slate-200 dark:border-slate-800 space-y-2">
-                          <div className="w-12 h-12 mx-auto rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400">
+                        <div className="p-8 text-center bg-stone-50 rounded-2xl border border-dashed border-stone-200 space-y-2">
+                          <div className="w-12 h-12 mx-auto rounded-full bg-stone-100 flex items-center justify-center text-stone-400">
                             <BookOpen className="w-6 h-6" />
                           </div>
-                          <p className="text-sm font-bold text-slate-700 dark:text-slate-300">
+                          <p className="text-sm font-bold text-stone-700">
                             Peserta belum pernah mengerjakan ujian
                           </p>
-                          <p className="text-xs text-slate-500 dark:text-slate-400 max-w-sm mx-auto">
+                          <p className="text-xs text-stone-500 max-w-sm mx-auto">
                             Hasil simulasi CBT dan lembar sertifikat akan otomatis terekam dan muncul di sini saat peserta menyelesaikan paket ujian.
                           </p>
                         </div>
@@ -2723,19 +2724,19 @@ B：いえ、だいじょうぶですよ。
                             return (
                               <div
                                 key={attempt.id || index}
-                                className="p-4 rounded-2xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 hover:border-indigo-300 dark:hover:border-indigo-700 transition shadow-sm space-y-3"
+                                className="p-4 rounded-2xl bg-white border border-stone-200 hover:border-red-300:border-rose-200 transition shadow-sm space-y-3"
                               >
                                 <div className="flex flex-wrap items-start justify-between gap-3">
                                   <div className="space-y-1">
                                     <div className="flex items-center gap-2 flex-wrap">
-                                      <span className="px-2.5 py-1 rounded-xl text-xs font-black bg-indigo-50 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800">
+                                      <span className="px-2.5 py-1 rounded-xl text-xs font-black bg-rose-50 text-red-600 border border-rose-200">
                                         {pkgInfo.code}
                                       </span>
-                                      <h4 className="text-sm font-black text-slate-900 dark:text-white">
+                                      <h4 className="text-sm font-black text-stone-900">
                                         {pkgInfo.name}
                                       </h4>
                                     </div>
-                                    <div className="flex items-center gap-3 text-xs text-slate-400">
+                                    <div className="flex items-center gap-3 text-xs text-stone-400">
                                       <span className="flex items-center gap-1">
                                         <Calendar className="w-3.5 h-3.5" />
                                         {attempt.testDate}
@@ -2750,18 +2751,18 @@ B：いえ、だいじょうぶですよ。
 
                                   <div className="flex items-center gap-3">
                                     <div className="text-right">
-                                      <div className="text-xl font-black text-slate-900 dark:text-white">
+                                      <div className="text-xl font-black text-stone-900">
                                         {attempt.totalScore}
-                                        <span className="text-xs font-normal text-slate-400"> / 250</span>
+                                        <span className="text-xs font-normal text-stone-400"> / 250</span>
                                       </div>
                                       <div>
                                         {attempt.isPassed ? (
-                                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-black bg-emerald-100 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800">
+                                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-black bg-emerald-100 text-emerald-700 border border-emerald-300">
                                             <CheckCircle2 className="w-3 h-3" />
                                             Lulus ({attempt.assessmentResult})
                                           </span>
                                         ) : (
-                                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-black bg-red-100 dark:bg-red-950/80 text-red-700 dark:text-red-300 border border-red-300 dark:border-red-800">
+                                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-black bg-red-100 text-red-700 border border-red-300">
                                             <XCircle className="w-3 h-3" />
                                             {attempt.assessmentResult || 'Tidak Lulus'}
                                           </span>
@@ -2772,7 +2773,7 @@ B：いえ、だいじょうぶですよ。
                                     <button
                                       type="button"
                                       onClick={() => setPreviewingExamResult(attempt)}
-                                      className="px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold transition shadow-sm flex items-center gap-1.5"
+                                      className="px-3.5 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-bold transition shadow-sm flex items-center gap-1.5"
                                     >
                                       <Eye className="w-4 h-4" />
                                       <span>Lihat Rapor Hasil Evaluasi</span>
@@ -2781,50 +2782,50 @@ B：いえ、だいじょうぶですよ。
                                 </div>
 
                                 {/* Section Breakdown Grid */}
-                                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-2 border-t border-slate-100 dark:border-slate-800/80 text-xs">
-                                  <div className="p-2 rounded-xl bg-slate-50 dark:bg-slate-900/50">
-                                    <div className="text-[10px] text-slate-400 font-semibold truncate">
+                                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-2 border-t border-stone-100 text-xs">
+                                  <div className="p-2 rounded-xl bg-stone-50">
+                                    <div className="text-[10px] text-stone-400 font-semibold truncate">
                                       Seksi 1 (Huruf & Kosakata)
                                     </div>
-                                    <div className="font-bold text-slate-800 dark:text-slate-200 mt-0.5">
+                                    <div className="font-bold text-stone-800 mt-0.5">
                                       {attempt.sectionScores?.S1?.score || 0} / {attempt.sectionScores?.S1?.maxScore || 12}
-                                      <span className="text-[10px] text-slate-400 font-normal ml-1">
+                                      <span className="text-[10px] text-stone-400 font-normal ml-1">
                                         ({attempt.sectionScores?.S1?.percentage || 0}%)
                                       </span>
                                     </div>
                                   </div>
 
-                                  <div className="p-2 rounded-xl bg-slate-50 dark:bg-slate-900/50">
-                                    <div className="text-[10px] text-slate-400 font-semibold truncate">
+                                  <div className="p-2 rounded-xl bg-stone-50">
+                                    <div className="text-[10px] text-stone-400 font-semibold truncate">
                                       Seksi 2 (Percakapan & Ekspresi)
                                     </div>
-                                    <div className="font-bold text-slate-800 dark:text-slate-200 mt-0.5">
+                                    <div className="font-bold text-stone-800 mt-0.5">
                                       {attempt.sectionScores?.S2?.score || 0} / {attempt.sectionScores?.S2?.maxScore || 12}
-                                      <span className="text-[10px] text-slate-400 font-normal ml-1">
+                                      <span className="text-[10px] text-stone-400 font-normal ml-1">
                                         ({attempt.sectionScores?.S2?.percentage || 0}%)
                                       </span>
                                     </div>
                                   </div>
 
-                                  <div className="p-2 rounded-xl bg-slate-50 dark:bg-slate-900/50">
-                                    <div className="text-[10px] text-slate-400 font-semibold truncate">
+                                  <div className="p-2 rounded-xl bg-stone-50">
+                                    <div className="text-[10px] text-stone-400 font-semibold truncate">
                                       Seksi 3 (Pendengaran / Chōkai)
                                     </div>
-                                    <div className="font-bold text-slate-800 dark:text-slate-200 mt-0.5">
+                                    <div className="font-bold text-stone-800 mt-0.5">
                                       {attempt.sectionScores?.S3?.score || 0} / {attempt.sectionScores?.S3?.maxScore || 13}
-                                      <span className="text-[10px] text-slate-400 font-normal ml-1">
+                                      <span className="text-[10px] text-stone-400 font-normal ml-1">
                                         ({attempt.sectionScores?.S3?.percentage || 0}%)
                                       </span>
                                     </div>
                                   </div>
 
-                                  <div className="p-2 rounded-xl bg-slate-50 dark:bg-slate-900/50">
-                                    <div className="text-[10px] text-slate-400 font-semibold truncate">
+                                  <div className="p-2 rounded-xl bg-stone-50">
+                                    <div className="text-[10px] text-stone-400 font-semibold truncate">
                                       Seksi 4 (Bacaan / Dokkai)
                                     </div>
-                                    <div className="font-bold text-slate-800 dark:text-slate-200 mt-0.5">
+                                    <div className="font-bold text-stone-800 mt-0.5">
                                       {attempt.sectionScores?.S4?.score || 0} / {attempt.sectionScores?.S4?.maxScore || 13}
-                                      <span className="text-[10px] text-slate-400 font-normal ml-1">
+                                      <span className="text-[10px] text-stone-400 font-normal ml-1">
                                         ({attempt.sectionScores?.S4?.percentage || 0}%)
                                       </span>
                                     </div>
@@ -2842,14 +2843,14 @@ B：いえ、だいじょうぶですよ。
             </div>
 
             {/* Modal Footer */}
-            <div className="p-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 flex justify-end">
+            <div className="p-4 border-t border-stone-200 bg-stone-50 flex justify-end">
               <button
                 type="button"
                 onClick={() => {
                   setIsHistoryModalOpen(false);
                   setSelectedUserForHistory(null);
                 }}
-                className="px-5 py-2.5 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold rounded-xl text-xs transition"
+                className="px-5 py-2.5 bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold rounded-xl text-xs transition"
               >
                 Tutup
               </button>
@@ -2860,19 +2861,19 @@ B：いえ、だいじょうぶですよ。
 
       {/* MODAL: PRATINJAU RAPOR RESMI JFT */}
       {previewingExamResult && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-in fade-in overflow-y-auto">
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-5xl w-full max-h-[92vh] shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 my-auto">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-stone-900/40 backdrop-blur-xs backdrop-blur-md animate-in fade-in overflow-y-auto">
+          <div className="bg-white border border-stone-200 rounded-3xl max-w-5xl w-full max-h-[92vh] shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 my-auto">
             {/* Header */}
-            <div className="p-4 sm:p-5 border-b border-slate-200 dark:border-slate-800 bg-slate-900 text-white flex items-center justify-between gap-4">
+            <div className="p-4 sm:p-5 border-b border-stone-200 bg-white text-stone-900 flex items-center justify-between gap-4">
               <div className="flex items-center gap-2.5">
-                <div className="w-9 h-9 rounded-xl bg-indigo-600/30 text-indigo-400 flex items-center justify-center">
+                <div className="w-9 h-9 rounded-xl bg-red-600/30 text-red-600 flex items-center justify-center">
                   <Award className="w-5 h-5" />
                 </div>
                 <div>
                   <h3 className="text-sm sm:text-base font-black">
                     Lembar Hasil Evaluasi Simulasi KondangSensei — {previewingExamResult.userName}
                   </h3>
-                  <p className="text-xs text-slate-400">
+                  <p className="text-xs text-stone-400">
                     {getPackageInfoForResult(previewingExamResult).name} • Tanggal: {previewingExamResult.testDate}
                   </p>
                 </div>
@@ -2881,14 +2882,14 @@ B：いえ、だいじょうぶですよ。
               <button
                 type="button"
                 onClick={() => setPreviewingExamResult(null)}
-                className="w-8 h-8 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white flex items-center justify-center transition"
+                className="w-8 h-8 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-600 hover:text-stone-900 flex items-center justify-center transition"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
             {/* Certificate Body */}
-            <div className="p-4 sm:p-6 overflow-y-auto bg-slate-100 dark:bg-slate-950">
+            <div className="p-4 sm:p-6 overflow-y-auto bg-stone-100">
               <JftResultReport
                 result={previewingExamResult}
                 onOpenReview={() => {}}
@@ -2897,11 +2898,11 @@ B：いえ、だいじょうぶですよ。
             </div>
 
             {/* Footer */}
-            <div className="p-4 border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 flex justify-end">
+            <div className="p-4 border-t border-stone-200 bg-white flex justify-end">
               <button
                 type="button"
                 onClick={() => setPreviewingExamResult(null)}
-                className="px-5 py-2.5 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold rounded-xl text-xs transition"
+                className="px-5 py-2.5 bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold rounded-xl text-xs transition"
               >
                 Kembali ke Riwayat Peserta
               </button>

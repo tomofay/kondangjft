@@ -1,16 +1,52 @@
 import mysql from 'mysql2/promise';
+import { DEFAULT_ANONYMOUS_PHOTO } from './dataStore';
 
-// MySQL Connection Pool to localhost db_kondangsensei (user: root, no password)
-export const pool = mysql.createPool({
-  host: process.env.DB_HOST || 'localhost',
-  port: Number(process.env.DB_PORT) || 3306,
-  user: process.env.DB_USER || 'root',
-  password: process.env.DB_PASSWORD || '',
-  database: process.env.DB_NAME || 'db_kondangsensei',
-  waitForConnections: true,
-  connectionLimit: 10,
-  queueLimit: 0,
-});
+function getPoolConfig() {
+  if (process.env.DATABASE_URL) {
+    const url = process.env.DATABASE_URL;
+    const isCloud = !url.includes('localhost') && !url.includes('127.0.0.1');
+    const useSsl = process.env.DB_SSL === 'true' || (process.env.DB_SSL !== 'false' && isCloud);
+    return {
+      uri: url,
+      waitForConnections: true,
+      connectionLimit: 10,
+      queueLimit: 0,
+      enableKeepAlive: true,
+      keepAliveInitialDelay: 10000,
+      connectTimeout: 20000,
+      ssl: useSsl ? { rejectUnauthorized: false } : undefined
+    };
+  }
+
+  const host = process.env.DB_HOST || 'localhost';
+  const isLocal = host === 'localhost' || host === '127.0.0.1';
+  const useSsl = process.env.DB_SSL === 'true' || (!isLocal && process.env.DB_SSL !== 'false');
+
+  return {
+    host,
+    port: Number(process.env.DB_PORT) || 3306,
+    user: process.env.DB_USER || 'root',
+    password: process.env.DB_PASSWORD || '',
+    database: process.env.DB_NAME || 'db_kondangsensei',
+    waitForConnections: true,
+    connectionLimit: 10,
+    queueLimit: 0,
+    enableKeepAlive: true,
+    keepAliveInitialDelay: 10000,
+    connectTimeout: 20000,
+    ssl: useSsl ? { rejectUnauthorized: false } : undefined
+  };
+}
+
+// MySQL Connection Pool (Supports local development & cloud hosting / DATABASE_URL)
+export const pool = mysql.createPool(getPoolConfig());
+
+// Safe error listener on underlying pool to prevent unhandled socket drop errors
+try {
+  (pool as any).pool?.on?.('error', (err: any) => {
+    console.error('Unexpected error on idle MySQL connection in pool:', err);
+  });
+} catch {}
 
 let isInitialized = false;
 
@@ -138,7 +174,8 @@ export async function initDatabase() {
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
       `);
 
-      // 6. Auto Seed & Sync Bank Soal (Paket 1 - 4)
+      // 6. Auto Seed & Sync Bank Soal, Exam Sets, and Users
+      await syncUsersToDatabase(connection);
       await syncQuestionsToDatabase(connection);
       await syncExamSetsToDatabase(connection);
 
@@ -149,6 +186,108 @@ export async function initDatabase() {
     }
   } catch (err) {
     console.warn('⚠️ Could not connect to MySQL server or initialize tables:', err instanceof Error ? err.message : err);
+  }
+}
+
+/**
+ * Synchronizes default dummy users (u_1, u_2, u_admin) to MySQL database if empty or missing.
+ */
+export async function syncUsersToDatabase(existingConn?: mysql.PoolConnection, force = false) {
+  const conn = existingConn || (await pool.getConnection());
+  try {
+    const [userCountRows] = await conn.query<any[]>('SELECT COUNT(*) as count FROM users');
+    const count = userCountRows?.[0]?.count || 0;
+    if (count === 0 || force) {
+      const bcrypt = (await import('bcryptjs')).default;
+      const hashedUserPass = await bcrypt.hash('password123', 10);
+      const hashedAdminPass = await bcrypt.hash('adminsecret123', 10);
+
+      const defaultUsers = [
+        {
+          id: 'u_1',
+          name: 'Budi Pratama',
+          email: 'peserta@kondang.com',
+          password: hashedUserPass,
+          role: 'user',
+          subscriptionExpiresAt: new Date(Date.now() + 7 * 86400000).toISOString(),
+          credits: 99,
+          facePhotoUrl: DEFAULT_ANONYMOUS_PHOTO,
+          registrationNumber: 'JFT-2026-88912',
+          nationality: 'INDONESIA',
+          dateOfBirth: '2001/05/14',
+          sex: 'MALE'
+        },
+        {
+          id: 'u_2',
+          name: 'Siti Rahmawati',
+          email: 'siti@kondang.com',
+          password: hashedUserPass,
+          role: 'user',
+          subscriptionExpiresAt: new Date(Date.now() + 14 * 86400000).toISOString(),
+          credits: 99,
+          facePhotoUrl: DEFAULT_ANONYMOUS_PHOTO,
+          registrationNumber: 'JFT-2026-77821',
+          nationality: 'INDONESIA',
+          dateOfBirth: '2002/08/21',
+          sex: 'FEMALE'
+        },
+        {
+          id: 'u_admin',
+          name: 'Super Admin Kondang',
+          email: 'admin@kondang.com',
+          password: hashedAdminPass,
+          role: 'admin',
+          subscriptionExpiresAt: new Date(Date.now() + 365 * 86400000).toISOString(),
+          credits: 999,
+          facePhotoUrl: DEFAULT_ANONYMOUS_PHOTO,
+          registrationNumber: 'ADM-2026-00001',
+          nationality: 'INDONESIA',
+          dateOfBirth: '1995/10/20',
+          sex: 'MALE'
+        }
+      ];
+
+      for (const u of defaultUsers) {
+        await conn.query(
+          `INSERT INTO users 
+           (id, name, email, password, role, subscriptionExpiresAt, credits, facePhotoUrl, registrationNumber, nationality, dateOfBirth, sex)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+           ON DUPLICATE KEY UPDATE
+             name = VALUES(name),
+             email = VALUES(email),
+             password = VALUES(password),
+             role = VALUES(role),
+             subscriptionExpiresAt = VALUES(subscriptionExpiresAt),
+             credits = VALUES(credits),
+             facePhotoUrl = VALUES(facePhotoUrl),
+             registrationNumber = VALUES(registrationNumber),
+             nationality = VALUES(nationality),
+             dateOfBirth = VALUES(dateOfBirth),
+             sex = VALUES(sex)`,
+          [
+            u.id,
+            u.name,
+            u.email,
+            u.password,
+            u.role,
+            u.subscriptionExpiresAt,
+            u.credits,
+            u.facePhotoUrl,
+            u.registrationNumber,
+            u.nationality,
+            u.dateOfBirth,
+            u.sex
+          ]
+        );
+      }
+      console.log('✅ Berhasil menyinkronkan data user awal (peserta & admin) ke MySQL.');
+    }
+  } catch (err) {
+    console.warn('⚠️ Gagal menyinkronkan users ke MySQL:', err);
+  } finally {
+    if (!existingConn) {
+      conn.release();
+    }
   }
 }
 
@@ -187,14 +326,14 @@ export async function syncExamSetsToDatabase(existingConn?: mysql.PoolConnection
 
 /**
  * Synchronizes Bank Soal (Paket 1 - 4) to MySQL database.
- * Updates questions if count === 0 or forces sync.
+ * Updates questions if count < 200 or forces sync.
  */
 export async function syncQuestionsToDatabase(existingConn?: mysql.PoolConnection, force = false) {
   const conn = existingConn || (await pool.getConnection());
   try {
     const [qCountRows] = await conn.query<any[]>('SELECT COUNT(*) as count FROM questions');
     const qCount = qCountRows?.[0]?.count || 0;
-    if (qCount === 0 || force) {
+    if (qCount < 200 || force) {
       const { generateAllPackageQuestions } = await import('./dataStore');
       const allQuestions = generateAllPackageQuestions();
       console.log(`📥 Menyinkronkan ${allQuestions.length} bank soal ke database MySQL (force: ${force})...`);

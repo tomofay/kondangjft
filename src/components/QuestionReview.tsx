@@ -2,7 +2,18 @@
 
 import React, { useState, useEffect } from 'react';
 import { Question, UserAnswer } from '../types';
-import { CheckCircle2, XCircle, HelpCircle, ArrowLeft, Filter, BookOpen, ZoomIn, ZoomOut, RotateCcw, X } from 'lucide-react';
+import {
+  CheckCircle2,
+  XCircle,
+  ArrowLeft,
+  Filter,
+  BookOpen,
+  ZoomIn,
+  ZoomOut,
+  RotateCcw,
+  X,
+  Volume2
+} from 'lucide-react';
 import { renderFormattedQuestion } from '../lib/formatQuestion';
 
 interface QuestionReviewProps {
@@ -54,60 +65,62 @@ export const QuestionReview: React.FC<QuestionReviewProps> = ({
   const correctCount = questions.length - wrongCount;
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6 pb-12">
-      {/* Top Header */}
-      <div className="flex items-center justify-between bg-white dark:bg-slate-900 p-5 rounded-2xl shadow-lg border border-slate-200 dark:border-slate-800">
+    <div className="max-w-4xl mx-auto space-y-6 pb-12 animate-in fade-in duration-150">
+      {/* Top Header Bar */}
+      <div className="flex items-center justify-between bg-white p-5 rounded-3xl shadow-sm border border-stone-200">
         <div className="flex items-center gap-3">
           <button
             onClick={onBackToReport}
-            className="p-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-xl transition"
+            className="p-2.5 bg-stone-100 hover:bg-stone-200 text-stone-700 rounded-xl transition cursor-pointer"
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
           <div>
-            <h1 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
-              <BookOpen className="w-5 h-5 text-indigo-500" />
-              Evaluasi & Pembahasan Soal Lengkap
+            <h1 className="text-xl font-black text-stone-900 flex items-center gap-2">
+              <BookOpen className="w-5 h-5 text-red-600" />
+              Evaluasi & Pembahasan Soal JFT-Basic
             </h1>
-            <p className="text-xs text-slate-500 dark:text-slate-400">
-              Total {questions.length} Soal • <span className="text-emerald-500 font-semibold">{correctCount} Benar</span> •{' '}
-              <span className="text-red-500 font-semibold">{wrongCount} Salah</span>
+            <p className="text-xs text-stone-500 font-medium">
+              Total {questions.length} Butir Soal •{' '}
+              <span className="text-emerald-700 font-bold">{correctCount} Benar</span> •{' '}
+              <span className="text-red-600 font-bold">{wrongCount} Salah</span>
             </p>
           </div>
         </div>
 
         <button
           onClick={onBackToReport}
-          className="py-2 px-4 bg-slate-900 hover:bg-slate-800 dark:bg-slate-800 dark:hover:bg-slate-700 text-white text-xs font-semibold rounded-xl transition"
+          className="py-2.5 px-4 bg-stone-100 hover:bg-stone-200 text-stone-800 text-xs font-black rounded-xl transition cursor-pointer"
         >
           Kembali ke Rapor
         </button>
       </div>
 
       {/* Filter Controls */}
-      <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl shadow border border-slate-200 dark:border-slate-800 space-y-3">
+      {/* Filter and Section Selector */}
+      <div className="bg-white p-4 sm:p-5 rounded-3xl shadow-xs border border-stone-200 space-y-3">
         <div className="flex flex-wrap items-center justify-between gap-3 text-xs">
-          <div className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400 font-semibold">
-            <Filter className="w-4 h-4" /> Filter Status:
+          <div className="flex items-center gap-1.5 text-stone-600 font-bold">
+            <Filter className="w-4 h-4 text-indigo-600" /> Filter Status:
           </div>
 
           <div className="flex flex-wrap gap-2">
             <button
               onClick={() => setFilter('ALL')}
-              className={`py-1.5 px-3 rounded-xl font-medium transition ${
+              className={`py-1.5 px-3 rounded-xl font-bold transition cursor-pointer ${
                 filter === 'ALL'
-                  ? 'bg-indigo-600 text-white shadow'
-                  : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200'
+                  ? 'bg-indigo-600 text-white shadow-xs'
+                  : 'bg-stone-100 text-stone-700 hover:bg-stone-200'
               }`}
             >
               Semua Soal ({questions.length})
             </button>
             <button
               onClick={() => setFilter('WRONG')}
-              className={`py-1.5 px-3 rounded-xl font-medium transition flex items-center gap-1 ${
+              className={`py-1.5 px-3 rounded-xl font-bold transition flex items-center gap-1 cursor-pointer ${
                 filter === 'WRONG'
-                  ? 'bg-red-600 text-white shadow'
-                  : 'bg-red-50 dark:bg-red-950/40 text-red-700 dark:text-red-300 hover:bg-red-100'
+                  ? 'bg-rose-600 text-white shadow-xs'
+                  : 'bg-rose-50 text-red-700 border border-rose-200 hover:bg-rose-100'
               }`}
             >
               <XCircle className="w-3.5 h-3.5" />
@@ -115,10 +128,10 @@ export const QuestionReview: React.FC<QuestionReviewProps> = ({
             </button>
             <button
               onClick={() => setFilter('CORRECT')}
-              className={`py-1.5 px-3 rounded-xl font-medium transition flex items-center gap-1 ${
+              className={`py-1.5 px-3 rounded-xl font-bold transition flex items-center gap-1 cursor-pointer ${
                 filter === 'CORRECT'
-                  ? 'bg-emerald-600 text-white shadow'
-                  : 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100'
+                  ? 'bg-emerald-600 text-white shadow-xs'
+                  : 'bg-emerald-50 text-emerald-800 border border-emerald-200 hover:bg-emerald-100'
               }`}
             >
               <CheckCircle2 className="w-3.5 h-3.5" />
@@ -127,28 +140,53 @@ export const QuestionReview: React.FC<QuestionReviewProps> = ({
           </div>
         </div>
 
-        {/* Section Filter Pills */}
-        <div className="flex gap-2 pt-1 overflow-x-auto text-xs border-t border-slate-100 dark:border-slate-800">
-          {(['ALL', 'S1', 'S2', 'S3', 'S4'] as const).map((sec) => (
-            <button
-              key={sec}
-              onClick={() => setSelectedSection(sec)}
-              className={`py-1 px-3 rounded-lg text-[11px] font-medium transition ${
-                selectedSection === sec
-                  ? 'bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900 font-bold'
-                  : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
-              }`}
-            >
-              {sec === 'ALL' ? 'Semua Seksi' : sec === 'S1' ? 'S1 (Moji Goi)' : sec === 'S2' ? 'S2 (Kaiwa)' : sec === 'S3' ? 'S3 (Chokai)' : 'S4 (Dokkai)'}
-            </button>
-          ))}
+        {/* Section Filter Pills (KondangSensei Signature Colors) */}
+        <div className="flex gap-2 pt-2 overflow-x-auto text-xs border-t border-stone-100">
+          {(['ALL', 'S1', 'S2', 'S3', 'S4'] as const).map((sec) => {
+            const activeStyles: Record<string, string> = {
+              ALL: 'bg-indigo-600 text-white shadow-xs',
+              S1: 'bg-rose-500 text-white shadow-xs',
+              S2: 'bg-amber-500 text-white shadow-xs',
+              S3: 'bg-sky-500 text-white shadow-xs',
+              S4: 'bg-emerald-600 text-white shadow-xs'
+            };
+            const inactiveStyles: Record<string, string> = {
+              ALL: 'text-stone-600 hover:bg-stone-100',
+              S1: 'text-rose-700 hover:bg-rose-50',
+              S2: 'text-amber-800 hover:bg-amber-50',
+              S3: 'text-sky-800 hover:bg-sky-50',
+              S4: 'text-emerald-800 hover:bg-emerald-50'
+            };
+
+            return (
+              <button
+                key={sec}
+                onClick={() => setSelectedSection(sec)}
+                className={`py-1.5 px-3 rounded-xl text-xs font-bold transition cursor-pointer whitespace-nowrap border ${
+                  selectedSection === sec
+                    ? activeStyles[sec]
+                    : `bg-stone-50 border-stone-200 ${inactiveStyles[sec]}`
+                }`}
+              >
+                {sec === 'ALL'
+                  ? 'Semua Seksi'
+                  : sec === 'S1'
+                  ? '🌸 S1 (Moji Goi)'
+                  : sec === 'S2'
+                  ? '🍊 S2 (Kaiwa)'
+                  : sec === 'S3'
+                  ? '🌊 S3 (Chokai)'
+                  : '🍵 S4 (Dokkai)'}
+              </button>
+            );
+          })}
         </div>
       </div>
 
       {/* Questions List */}
       <div className="space-y-4">
         {filteredQuestions.length === 0 ? (
-          <div className="text-center py-12 bg-white dark:bg-slate-900 rounded-2xl border border-dashed border-slate-300 dark:border-slate-800 text-slate-500">
+          <div className="text-center py-12 bg-white rounded-3xl border border-dashed border-stone-200 text-stone-400 text-xs font-medium">
             Tidak ada soal yang sesuai dengan filter ini.
           </div>
         ) : (
@@ -160,29 +198,29 @@ export const QuestionReview: React.FC<QuestionReviewProps> = ({
             return (
               <div
                 key={q.id}
-                className={`bg-white dark:bg-slate-900 rounded-2xl p-6 shadow-md border transition ${
-                  isCorrect
-                    ? 'border-emerald-200 dark:border-emerald-900/60'
-                    : 'border-red-200 dark:border-red-900/60'
+                className={`bg-white rounded-3xl p-5 sm:p-6 shadow-xs border transition ${
+                  isCorrect ? 'border-emerald-200' : 'border-rose-200'
                 }`}
               >
                 {/* Header info */}
-                <div className="flex items-center justify-between border-b pb-3 border-slate-100 dark:border-slate-800 text-xs">
+                <div className="flex items-center justify-between border-b pb-3 border-stone-100 text-xs">
                   <div className="flex items-center gap-2">
-                    <span className="font-bold text-slate-900 dark:text-white bg-slate-100 dark:bg-slate-800 px-2.5 py-1 rounded-lg">
+                    <span className="font-black text-stone-900 bg-stone-100 px-2.5 py-1 rounded-lg">
                       Soal #{q.number}
                     </span>
-                    <span className="text-slate-500 font-medium">{q.sectionTitle}</span>
+                    <span className="text-stone-500 font-bold">{q.sectionTitle}</span>
                   </div>
 
-                  <div className="flex items-center gap-2">
+                  <div>
                     {isCorrect ? (
-                      <span className="px-2.5 py-1 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 font-bold flex items-center gap-1 text-[11px]">
-                        <CheckCircle2 className="w-3.5 h-3.5" /> Jawaban Anda Benar
+                      <span className="px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-800 font-bold flex items-center gap-1 text-[11px] border border-emerald-200">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                        Jawaban Anda Benar
                       </span>
                     ) : (
-                      <span className="px-2.5 py-1 rounded-full bg-red-100 dark:bg-red-950 text-red-700 dark:text-red-300 font-bold flex items-center gap-1 text-[11px]">
-                        <XCircle className="w-3.5 h-3.5" /> Jawaban Anda Salah
+                      <span className="px-2.5 py-1 rounded-full bg-rose-50 text-red-700 font-bold flex items-center gap-1 text-[11px] border border-rose-200">
+                        <XCircle className="w-3.5 h-3.5 text-red-600" />
+                        Jawaban Anda Salah
                       </span>
                     )}
                   </div>
@@ -190,21 +228,21 @@ export const QuestionReview: React.FC<QuestionReviewProps> = ({
 
                 {/* Dokkai Passage if any */}
                 {q.readingPassage && (
-                  <div className="my-3 p-3.5 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-200 dark:border-slate-700 text-xs leading-relaxed text-slate-800 dark:text-slate-200 whitespace-pre-line font-japanese">
-                    <div className="text-[10px] font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-wider mb-1 flex items-center gap-1.5">
+                  <div className="my-3 p-4 bg-stone-50 rounded-2xl border border-stone-200 text-xs leading-relaxed text-stone-800 whitespace-pre-line font-japanese">
+                    <div className="text-[10px] font-black text-red-600 uppercase tracking-wider mb-1 flex items-center gap-1.5">
                       <BookOpen className="w-3.5 h-3.5" />
-                      Teks Bacaan (Dokkai):
+                      Teks Bacaan (Dokkai / 読解):
                     </div>
                     {q.readingPassage}
                   </div>
                 )}
 
                 {/* Question Text */}
-                <div className="my-3 text-sm font-semibold text-slate-900 dark:text-white leading-relaxed whitespace-pre-line font-japanese">
+                <div className="my-3 text-sm sm:text-base font-semibold text-stone-900 leading-relaxed whitespace-pre-line font-japanese">
                   {renderFormattedQuestion(q.questionText)}
                 </div>
 
-                {/* Question Image if any (Clickable to zoom) */}
+                {/* Question Image if any */}
                 {q.imageUrl && (
                   <div className="my-3 flex justify-center">
                     <div
@@ -212,48 +250,57 @@ export const QuestionReview: React.FC<QuestionReviewProps> = ({
                         setZoomedImageUrl(q.imageUrl!);
                         setZoomScale(1);
                       }}
-                      className="relative inline-block group cursor-zoom-in rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 p-1.5 shadow-sm hover:border-indigo-500 transition"
+                      className="relative inline-block group cursor-zoom-in rounded-2xl overflow-hidden border border-stone-200 bg-stone-50 p-1.5 shadow-xs hover:border-red-400 transition"
                       title="Klik untuk memperbesar gambar"
                     >
                       <img
                         src={q.imageUrl}
                         alt={`Gambar Soal #${q.number}`}
-                        className="max-h-64 max-w-full rounded-lg object-contain transition transform group-hover:scale-[1.02]"
+                        className="max-h-64 max-w-full rounded-xl object-contain transition transform group-hover:scale-[1.01]"
                       />
-                      <div className="absolute bottom-2.5 right-2.5 px-2.5 py-1 bg-slate-900/90 text-white rounded-lg text-[11px] font-bold flex items-center gap-1.5 shadow backdrop-blur-md border border-slate-700 pointer-events-none">
-                        <ZoomIn className="w-3.5 h-3.5 text-indigo-400" />
+                      <div className="absolute bottom-2.5 right-2.5 px-2.5 py-1 bg-white/95 text-stone-800 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow border border-stone-200 pointer-events-none group-hover:text-red-600">
+                        <ZoomIn className="w-3.5 h-3.5 text-red-600" />
                         <span>Perbesar</span>
                       </div>
                     </div>
                   </div>
                 )}
 
-                {/* Audio button if Chokai */}
+                {/* Audio if Chōkai */}
                 {q.audioUrl && (
-                  <div className="my-2">
+                  <div className="my-3 p-3 bg-stone-50 rounded-2xl border border-rose-200">
+                    <div className="flex items-center gap-1.5 text-xs text-red-700 font-bold mb-2">
+                      <Volume2 className="w-4 h-4 text-red-600" />
+                      Putar Ulang Audio Chōkai:
+                    </div>
                     <audio
                       key={q.audioUrl + '_' + q.id}
                       controls
                       preload="none"
-                      className="w-full h-9 rounded-lg"
+                      className="w-full h-9 rounded-xl"
                       src={q.audioUrl}
                     >
-                      <source src={q.audioUrl} type={q.audioUrl.endsWith('.ogg') ? 'audio/ogg' : 'audio/mpeg'} />
+                      <source
+                        src={q.audioUrl}
+                        type={q.audioUrl.endsWith('.ogg') ? 'audio/ogg' : 'audio/mpeg'}
+                      />
                     </audio>
                   </div>
                 )}
 
-                {/* Options grid */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 my-4 text-xs">
+                {/* Options Grid */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 my-4 text-xs font-japanese">
                   {q.options.map((opt) => {
                     const isUserChoice = userOpt === opt.key;
                     const isCorrectAnswer = q.correctAnswer === opt.key;
 
-                    let style = 'bg-slate-50 dark:bg-slate-800/40 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700';
+                    let style = 'bg-stone-50 text-stone-700 border-stone-200';
                     if (isCorrectAnswer) {
-                      style = 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-900 dark:text-emerald-200 border-emerald-500 font-semibold ring-2 ring-emerald-500/20';
+                      style =
+                        'bg-emerald-50 text-emerald-900 border-emerald-400 font-bold ring-2 ring-emerald-500/20';
                     } else if (isUserChoice && !isCorrectAnswer) {
-                      style = 'bg-red-50 dark:bg-red-950/60 text-red-900 dark:text-red-200 border-red-500 font-semibold ring-2 ring-red-500/20';
+                      style =
+                        'bg-rose-50 text-red-900 border-red-400 font-bold ring-2 ring-red-500/20';
                     }
 
                     return (
@@ -261,20 +308,20 @@ export const QuestionReview: React.FC<QuestionReviewProps> = ({
                         key={opt.key}
                         className={`p-3 rounded-xl border flex items-center justify-between ${style}`}
                       >
-                        <div className="flex items-center gap-2">
-                          <span className="w-6 h-6 rounded-lg bg-white dark:bg-slate-900 border flex items-center justify-center font-bold text-[11px]">
+                        <div className="flex items-center gap-2.5">
+                          <span className="w-6 h-6 rounded-lg bg-white border border-stone-200 flex items-center justify-center font-black text-[11px]">
                             {opt.key}
                           </span>
-                          <span>{opt.text}</span>
+                          <span className="font-semibold">{opt.text}</span>
                         </div>
 
                         {isCorrectAnswer && (
-                          <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-600 text-white">
+                          <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-emerald-600 text-white shrink-0">
                             KUNCI BENAR
                           </span>
                         )}
                         {isUserChoice && !isCorrectAnswer && (
-                          <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-red-600 text-white">
+                          <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-red-600 text-white shrink-0">
                             PILIHAN ANDA
                           </span>
                         )}
@@ -283,14 +330,15 @@ export const QuestionReview: React.FC<QuestionReviewProps> = ({
                   })}
                 </div>
 
-                {/* Insight & Explanation Box */}
-                <div className="p-4 bg-indigo-50/70 dark:bg-indigo-950/40 rounded-xl border border-indigo-200 dark:border-indigo-900/60 space-y-1.5 text-xs text-indigo-950 dark:text-indigo-200">
-                  <div className="font-bold flex items-center gap-1 text-indigo-700 dark:text-indigo-400">
-                    <HelpCircle className="w-4 h-4" /> Pembahasan Lengkap & Insight:
+                {/* Detailed Explanation / Pembahasan */}
+                <div className="mt-3 p-4 bg-stone-50 rounded-2xl border border-stone-200 text-xs text-stone-700 space-y-1.5">
+                  <div className="font-black text-red-600 uppercase tracking-wider flex items-center gap-1.5 text-[11px]">
+                    <BookOpen className="w-3.5 h-3.5" />
+                    Penjelasan & Pembahasan Jawaban (解説):
                   </div>
-                  <p className="leading-relaxed opacity-95 pl-5 border-l-2 border-indigo-400 dark:border-indigo-600">
-                    {q.explanation}
-                  </p>
+                  <div className="leading-relaxed font-medium">
+                    {q.explanation || 'Tidak ada catatan pembahasan tambahan untuk butir soal ini.'}
+                  </div>
                 </div>
               </div>
             );
@@ -298,76 +346,65 @@ export const QuestionReview: React.FC<QuestionReviewProps> = ({
         )}
       </div>
 
-      {/* Image Zoom Lightbox Modal */}
+      {/* Image Lightbox */}
       {zoomedImageUrl && (
         <div
-          className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-950/90 backdrop-blur-md p-4 animate-in fade-in duration-200"
+          className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-stone-950/80 backdrop-blur-md p-4 animate-in fade-in duration-150"
           onClick={() => setZoomedImageUrl(null)}
         >
-          {/* Floating Controls Bar */}
           <div
-            className="fixed top-4 z-50 flex items-center gap-2 p-1.5 bg-slate-900/90 border border-slate-700 rounded-2xl shadow-2xl backdrop-blur-md"
+            className="fixed top-4 z-50 flex items-center gap-2 p-1.5 bg-white border border-stone-200 rounded-2xl shadow-xl"
             onClick={(e) => e.stopPropagation()}
           >
             <button
               type="button"
               onClick={() => setZoomScale((s) => Math.min(3, s + 0.25))}
-              className="p-2 text-slate-300 hover:text-white hover:bg-slate-800 rounded-xl transition flex items-center gap-1 text-xs font-bold"
+              className="p-2 text-stone-700 hover:bg-stone-100 rounded-xl transition flex items-center gap-1 text-xs font-bold"
               title="Perbesar"
             >
-              <ZoomIn className="w-4 h-4" />
+              <ZoomIn className="w-4 h-4 text-red-600" />
               <span className="hidden sm:inline">Perbesar</span>
             </button>
-
             <button
               type="button"
               onClick={() => setZoomScale((s) => Math.max(0.5, s - 0.25))}
-              className="p-2 text-slate-300 hover:text-white hover:bg-slate-800 rounded-xl transition flex items-center gap-1 text-xs font-bold"
+              className="p-2 text-stone-700 hover:bg-stone-100 rounded-xl transition flex items-center gap-1 text-xs font-bold"
               title="Perkecil"
             >
-              <ZoomOut className="w-4 h-4" />
+              <ZoomOut className="w-4 h-4 text-red-600" />
               <span className="hidden sm:inline">Perkecil</span>
             </button>
-
             <button
               type="button"
               onClick={() => setZoomScale(1)}
-              className="p-2 text-slate-300 hover:text-white hover:bg-slate-800 rounded-xl transition flex items-center gap-1 text-xs font-bold"
-              title="Reset Ukuran (100%)"
+              className="p-2 text-stone-700 hover:bg-stone-100 rounded-xl transition flex items-center gap-1 text-xs font-bold"
+              title="Reset"
             >
               <RotateCcw className="w-4 h-4" />
               <span className="hidden sm:inline">{Math.round(zoomScale * 100)}%</span>
             </button>
-
-            <div className="w-px h-5 bg-slate-700 mx-1"></div>
-
             <button
               type="button"
               onClick={() => setZoomedImageUrl(null)}
-              className="p-2 text-rose-400 hover:text-white hover:bg-rose-600 rounded-xl transition flex items-center gap-1 text-xs font-bold"
-              title="Tutup (ESC)"
+              className="p-2 text-red-600 hover:bg-rose-50 rounded-xl transition flex items-center gap-1 text-xs font-bold"
+              title="Tutup"
             >
               <X className="w-4 h-4" />
               <span className="hidden sm:inline">Tutup</span>
             </button>
           </div>
 
-          {/* Scaled Image Container */}
           <div
             className="max-w-[95vw] max-h-[85vh] overflow-auto flex items-center justify-center p-2"
             onClick={(e) => e.stopPropagation()}
           >
             <img
               src={zoomedImageUrl}
-              alt="Zoomed Review Question"
+              alt="Lampiran Soal"
               style={{ transform: `scale(${zoomScale})`, transformOrigin: 'center center' }}
-              className="max-w-full max-h-[80vh] rounded-2xl shadow-2xl object-contain border border-slate-700 transition-transform duration-200"
+              className="max-w-full max-h-[80vh] rounded-2xl shadow-2xl object-contain border border-stone-200 bg-white"
             />
           </div>
-
-          <p className="fixed bottom-4 text-xs text-slate-400 font-medium text-center">
-            Klik di mana saja atau tekan <kbd className="px-1.5 py-0.5 bg-slate-800 rounded border border-slate-700 font-mono text-[10px]">ESC</kbd> untuk menutup
-          </p>
         </div>
       )}
     </div>

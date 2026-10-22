@@ -266,7 +266,7 @@ export async function POST(request: Request) {
       ];
       let workerConfigured = false;
       for (const p of candidates) {
-        if (fs.existsSync(p)) {
+        if (fs.existsSync(/*turbopackIgnore: true*/ p)) {
           PDFParse.setWorker(p);
           workerConfigured = true;
           break;

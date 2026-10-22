@@ -33,19 +33,25 @@ export async function POST(request: Request) {
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
 
-    // Pastikan direktori tujuan ada: public/uploads/avatars
-    const uploadDir = path.join(process.cwd(), 'public', 'uploads', 'avatars');
-    await mkdir(uploadDir, { recursive: true });
+    let publicUrl = '';
+    try {
+      // Pastikan direktori tujuan ada: public/uploads/avatars
+      const uploadDir = path.join(process.cwd(), 'public', 'uploads', 'avatars');
+      await mkdir(uploadDir, { recursive: true });
 
-    // Generate nama file unik aman
-    const ext = path.extname(file.name) || '.jpg';
-    const cleanExt = ext.replace(/[^a-zA-Z0-9.]/g, '').toLowerCase() || '.jpg';
-    const filename = `avatar-${Date.now()}-${Math.random().toString(36).substring(2, 9)}${cleanExt}`;
-    const filePath = path.join(uploadDir, filename);
+      // Generate nama file unik aman
+      const ext = path.extname(file.name) || '.jpg';
+      const cleanExt = ext.replace(/[^a-zA-Z0-9.]/g, '').toLowerCase() || '.jpg';
+      const filename = `avatar-${Date.now()}-${Math.random().toString(36).substring(2, 9)}${cleanExt}`;
+      const filePath = path.join(uploadDir, filename);
 
-    await writeFile(filePath, buffer);
-
-    const publicUrl = `/uploads/avatars/${filename}`;
+      await writeFile(filePath, buffer);
+      publicUrl = `/uploads/avatars/${filename}`;
+    } catch (fsErr) {
+      console.warn('Filesystem write failed (read-only environment), using base64 fallback:', fsErr);
+      const mime = file.type || 'image/jpeg';
+      publicUrl = `data:${mime};base64,${buffer.toString('base64')}`;
+    }
 
     return NextResponse.json({
       success: true,

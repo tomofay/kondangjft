@@ -11,9 +11,10 @@ import {
   ShieldCheck,
   Clock,
   Menu,
-  X
+  X,
+  Sparkles
 } from 'lucide-react';
-import { isSubscriptionActive, getRemainingSubscriptionText } from '../lib/dataStore';
+import { isSubscriptionActive, getRemainingSubscriptionText, DEFAULT_ANONYMOUS_PHOTO } from '../lib/dataStore';
 
 interface NavbarProps {
   user: User;
@@ -40,96 +41,88 @@ export const Navbar: React.FC<NavbarProps> = ({
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
-    <header className="sticky top-0 z-40 bg-slate-900/95 backdrop-blur-md border-b border-slate-800 text-white shadow-lg shadow-black/20">
-      <div className="max-w-7xl mx-auto px-3 sm:px-6 py-2.5 sm:py-3 flex items-center justify-between gap-2">
-        {/* Brand */}
+    <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-stone-200/90 text-stone-900 shadow-xs">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 py-2.5 sm:py-3 flex items-center justify-between gap-3">
+        {/* Brand with Colorful KondangSensei Styling */}
         <div
-          className="flex items-center gap-2.5 cursor-pointer select-none group shrink-0"
+          className={`flex items-center gap-2.5 select-none group shrink-0 ${
+            activeView === 'exam' ? 'cursor-default' : 'cursor-pointer'
+          }`}
           onClick={() => {
-            onChangeView('dashboard');
-            setMobileMenuOpen(false);
+            if (activeView !== 'exam') {
+              onChangeView('dashboard');
+              setMobileMenuOpen(false);
+            }
           }}
         >
-          <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br from-red-500 via-rose-600 to-amber-500 flex items-center justify-center text-white shadow-md shadow-red-500/20 group-hover:scale-105 transition-transform duration-200 shrink-0">
-            <GraduationCap className="w-4 h-4 sm:w-5 sm:h-5" />
+          <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-tr from-amber-400 via-rose-500 to-sky-500 flex items-center justify-center text-white shadow-md shadow-rose-500/25 group-hover:scale-105 transition-transform duration-200 shrink-0">
+            <GraduationCap className="w-5 h-5 sm:w-5 sm:h-5" />
           </div>
           <div>
-            <div className="flex items-center gap-1.5 font-black text-base sm:text-lg tracking-tight text-white leading-none">
-              <span>Kondang<span className="text-red-500">Sensei</span></span>
-              <span className="text-[9px] sm:text-[10px] font-extrabold px-1.5 sm:px-2 py-0.5 rounded-full bg-red-950/80 text-red-400 border border-red-800/80 uppercase">
-                CBT
+            <div className="flex items-center gap-1.5 font-black text-base sm:text-lg tracking-tight text-stone-900 leading-none">
+              <span>Kondang<span className="text-transparent bg-clip-text bg-gradient-to-r from-rose-600 via-amber-600 to-sky-600">Sensei</span></span>
+              <span className="text-[9px] sm:text-[10px] font-black px-1.5 sm:px-2 py-0.5 rounded-full bg-gradient-to-r from-rose-50 via-amber-50 to-sky-50 text-stone-800 border border-stone-200 uppercase tracking-wider">
+                KondangSensei CBT
               </span>
             </div>
-            <p className="text-[10px] text-slate-400 font-medium hidden md:block">
-              Simulasi Ujian CBT Bahasa Jepang KondangSensei
+            <p className="text-[10px] text-stone-500 font-medium hidden md:block">
+              日本語能力試験 • KondangSensei Simulasi CBT JFT-Basic
             </p>
           </div>
         </div>
 
-        {/* Center: Navigation Links (Desktop) */}
-        <div className="hidden md:flex items-center gap-1.5 bg-slate-950/70 p-1.5 rounded-2xl border border-slate-800/90 text-xs font-semibold">
-          <button
-            onClick={() => onChangeView('dashboard')}
-            className={`px-3.5 py-1.5 rounded-xl transition flex items-center gap-1.5 ${
-              activeView !== 'admin'
-                ? 'bg-slate-800 text-white font-bold shadow-sm'
-                : 'text-slate-400 hover:text-white'
-            }`}
-          >
-            <LayoutDashboard className="w-3.5 h-3.5 text-indigo-400" />
-            Dashboard Peserta
-          </button>
-          {user.role === 'admin' && (
+        {/* Center: Admin Portal Shortcut (Only visible for admin, Dashboard Peserta button removed) */}
+        {user.role === 'admin' && activeView !== 'exam' && (
+          <div className="hidden md:flex items-center">
             <button
-              onClick={() => onChangeView('admin')}
-              className={`px-3.5 py-1.5 rounded-xl transition flex items-center gap-1.5 ${
+              onClick={() => onChangeView(activeView === 'admin' ? 'dashboard' : 'admin')}
+              className={`px-3.5 py-1.5 rounded-xl transition flex items-center gap-1.5 text-xs font-semibold ${
                 activeView === 'admin'
-                  ? 'bg-indigo-600 text-white font-bold shadow-sm'
-                  : 'text-slate-400 hover:text-white'
+                  ? 'bg-gradient-to-r from-violet-600 to-indigo-600 text-white font-black shadow-xs'
+                  : 'bg-stone-100 hover:bg-stone-200 text-stone-700 border border-stone-200/90'
               }`}
             >
-              <ShieldCheck className="w-3.5 h-3.5 text-amber-300" />
-              Portal Admin
+              <ShieldCheck className={`w-3.5 h-3.5 ${activeView === 'admin' ? 'text-amber-300' : 'text-indigo-600'}`} />
+              {activeView === 'admin' ? 'Kembali ke Beranda' : 'Portal Admin'}
             </button>
-          )}
-        </div>
+          </div>
+        )}
 
         {/* Right side: Session status & Profile & Mobile Toggle */}
         <div className="flex items-center gap-1.5 sm:gap-2.5 text-xs shrink-0">
           {/* Single Session Lock Status Badge (Desktop Large) */}
-          <div className="hidden xl:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-950/60 border border-emerald-800/80 text-emerald-400 text-[11px] font-medium shadow-inner">
-            <Lock className="w-3.5 h-3.5" />
+          <div className="hidden xl:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 border border-emerald-200/80 text-emerald-700 text-[11px] font-bold">
+            <Lock className="w-3.5 h-3.5 text-emerald-600" />
             <span>1 Sesi Aktif</span>
           </div>
 
-          {/* Pending Invoices Button */}
-          {user.role === 'user' && onOpenPendingPayments && (
+          {/* Pending Invoices Button (Pill Styled & Always Visible) */}
+          {onOpenPendingPayments && (
             <button
               onClick={onOpenPendingPayments}
-              className={`px-2 py-1.5 sm:px-3 sm:py-1.5 rounded-xl border flex items-center gap-1 sm:gap-1.5 transition ${
+              className={`px-3 py-1.5 rounded-full border flex items-center gap-1.5 transition text-xs font-bold shadow-xs cursor-pointer ${
                 pendingCount > 0
-                  ? 'bg-amber-950/60 border-amber-600/80 text-amber-300 hover:bg-amber-900/60 animate-pulse'
-                  : 'bg-slate-800/80 border-slate-700 text-slate-300 hover:text-white'
+                  ? 'bg-amber-500/15 border-amber-500/50 text-amber-900 hover:bg-amber-500/25 animate-pulse'
+                  : 'bg-stone-100/90 border-stone-300 text-stone-700 hover:text-stone-900 hover:bg-stone-200/80'
               }`}
-              title="Cek tagihan pending & nomor pembayaran"
+              title="Cek daftar tagihan pending & nomor pembayaran"
             >
-              <Clock className="w-3.5 h-3.5 text-amber-400" />
-              <span className="hidden sm:inline">Tagihan</span>
-              <span className="font-bold">({pendingCount})</span>
+              <Clock className="w-3.5 h-3.5 text-amber-600" />
+              <span>Tagihan <strong className="text-amber-700 font-black">({pendingCount})</strong></span>
             </button>
           )}
 
-          {/* Subscription Status Badge */}
+          {/* Subscription Status Badge with Colorful Sunrise Accent */}
           {user.role === 'user' && (
             <button
               onClick={onOpenBuyCredits}
-              className="px-2.5 py-1.5 sm:px-3 sm:py-1.5 bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-500 hover:to-blue-500 text-white font-bold rounded-xl shadow-md flex items-center gap-1 sm:gap-1.5 transition text-[11px] sm:text-xs"
+              className="px-3 py-1.5 bg-gradient-to-r from-amber-500 via-orange-500 to-rose-600 hover:from-amber-600 hover:to-rose-700 text-white font-bold rounded-xl shadow-xs shadow-orange-500/20 flex items-center gap-1 sm:gap-1.5 transition text-[11px] sm:text-xs cursor-pointer"
             >
-              <Zap className="w-3.5 h-3.5 text-amber-300 fill-amber-300 shrink-0" />
+              <Zap className="w-3.5 h-3.5 text-amber-200 fill-amber-200 shrink-0" />
               <span className="hidden sm:inline">
                 {isSubscriptionActive(user)
-                  ? `Unlimited (${getRemainingSubscriptionText(user)})`
-                  : '0 Hari (Beli Paket)'}
+                  ? `Paket Aktif (${getRemainingSubscriptionText(user)})`
+                  : 'Masa Aktif Habis (Beli)'}
               </span>
               <span className="sm:hidden font-bold">
                 {isSubscriptionActive(user)
@@ -143,28 +136,26 @@ export const Navbar: React.FC<NavbarProps> = ({
           {onOpenProfile && (
             <button
               onClick={onOpenProfile}
-              className="flex items-center gap-1.5 p-1 sm:px-2.5 sm:py-1.5 bg-slate-800/80 hover:bg-slate-700/80 text-slate-200 hover:text-white rounded-xl border border-slate-700/80 transition shadow-sm group"
+              className="flex items-center gap-2 px-2 py-1 sm:px-2.5 sm:py-1.5 bg-stone-50 hover:bg-stone-100 text-stone-700 hover:text-stone-900 rounded-xl border border-stone-200 transition shadow-2xs group"
               title="Edit Profil Peserta & Data Sertifikat"
             >
-              <div className="w-7 h-7 sm:w-6 sm:h-6 rounded-lg overflow-hidden border border-slate-600 bg-slate-700 shrink-0">
-                {user.facePhotoUrl ? (
-                  <img
-                    src={user.facePhotoUrl}
-                    alt={user.name}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center bg-indigo-900/60 text-indigo-300 text-[10px] font-bold">
-                    {user.name.charAt(0)}
-                  </div>
-                )}
+              <div className="w-7 h-7 sm:w-7 sm:h-7 rounded-lg overflow-hidden border border-stone-300 bg-stone-200 shrink-0">
+                <img
+                  src={
+                    user.facePhotoUrl && !user.facePhotoUrl.includes('unsplash.com')
+                      ? user.facePhotoUrl
+                      : DEFAULT_ANONYMOUS_PHOTO
+                  }
+                  alt={user.name}
+                  className="w-full h-full object-cover"
+                />
               </div>
               <div className="hidden lg:flex flex-col text-left">
-                <span className="font-bold text-slate-200 text-[11px] truncate max-w-[100px] leading-tight group-hover:text-indigo-300 transition-colors">
-                  {user.name}
+                <span className="font-bold text-stone-900 text-[11px] truncate max-w-[110px] leading-tight group-hover:text-red-600 transition-colors">
+                  {user.name} さん
                 </span>
-                <span className="text-[9px] text-slate-400 capitalize leading-tight">
-                  {user.role === 'admin' ? 'Superadmin' : 'Peserta'}
+                <span className="text-[9px] text-stone-500 capitalize leading-tight">
+                  {user.role === 'admin' ? 'Super Admin' : 'Peserta CBT'}
                 </span>
               </div>
             </button>
@@ -174,71 +165,73 @@ export const Navbar: React.FC<NavbarProps> = ({
           <button
             onClick={onLogout}
             title="Keluar Akun"
-            className="hidden sm:flex p-2 text-slate-400 hover:text-red-400 hover:bg-red-950/40 rounded-xl transition items-center gap-1.5 border border-transparent hover:border-red-900/40"
+            className="hidden sm:flex p-2 text-stone-500 hover:text-red-600 hover:bg-rose-50 rounded-xl transition items-center gap-1.5 border border-transparent hover:border-rose-200"
           >
             <LogOut className="w-4 h-4" />
-            <span className="text-xs hidden md:inline font-semibold">Keluar</span>
+            <span className="text-xs hidden md:inline font-bold">Keluar</span>
           </button>
 
           {/* Mobile Menu Toggle Button */}
           <button
             type="button"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="p-1.5 text-slate-300 hover:text-white bg-slate-800/80 hover:bg-slate-700/80 rounded-xl border border-slate-700 transition md:hidden"
+            className="p-1.5 text-stone-600 hover:text-stone-900 bg-stone-100 hover:bg-stone-200 rounded-xl border border-stone-200 transition md:hidden"
             aria-label="Toggle Navigation Menu"
           >
-            {mobileMenuOpen ? <X className="w-5 h-5 text-red-400" /> : <Menu className="w-5 h-5" />}
+            {mobileMenuOpen ? <X className="w-5 h-5 text-red-600" /> : <Menu className="w-5 h-5" />}
           </button>
         </div>
       </div>
 
       {/* Mobile Drawer / Dropdown */}
       {mobileMenuOpen && (
-        <div className="md:hidden border-t border-slate-800 bg-slate-900/98 px-4 py-3 space-y-3 animate-in fade-in slide-in-from-top-2 duration-150">
-          <div className="flex items-center justify-between text-xs text-slate-400 pb-2 border-b border-slate-800">
-            <span className="font-semibold text-slate-200">{user.name}</span>
-            <span className="px-2 py-0.5 rounded-md bg-slate-800 text-[10px] font-bold text-slate-300 uppercase">
-              {user.role === 'admin' ? 'Superadmin' : 'Peserta CBT'}
+        <div className="md:hidden border-t border-stone-200 bg-white px-4 py-3 space-y-3 animate-in fade-in slide-in-from-top-2 duration-150 shadow-md">
+          <div className="flex items-center justify-between text-xs text-stone-500 pb-2 border-b border-stone-100">
+            <span className="font-bold text-stone-900">{user.name} さん</span>
+            <span className="px-2 py-0.5 rounded-md bg-stone-100 text-[10px] font-extrabold text-stone-600 uppercase">
+              {user.role === 'admin' ? 'Super Admin' : 'Peserta CBT'}
             </span>
           </div>
 
-          <div className="grid grid-cols-2 gap-2 text-xs font-semibold">
-            <button
-              onClick={() => {
-                onChangeView('dashboard');
-                setMobileMenuOpen(false);
-              }}
-              className={`p-2.5 rounded-xl transition flex items-center justify-center gap-2 ${
-                activeView !== 'admin'
-                  ? 'bg-slate-800 text-white font-bold border border-slate-700'
-                  : 'text-slate-400 hover:text-white bg-slate-950/50'
-              }`}
-            >
-              <LayoutDashboard className="w-4 h-4 text-indigo-400" />
-              Dashboard
-            </button>
-
-            {user.role === 'admin' && (
+          <div className="grid grid-cols-1 gap-2 text-xs font-semibold">
+            {onOpenPendingPayments && (
               <button
                 onClick={() => {
-                  onChangeView('admin');
+                  setMobileMenuOpen(false);
+                  onOpenPendingPayments();
+                }}
+                className={`p-2.5 rounded-xl transition flex items-center justify-center gap-2 border ${
+                  pendingCount > 0
+                    ? 'bg-amber-500/15 border-amber-500/40 text-amber-900 font-bold'
+                    : 'bg-stone-50 border-stone-200 text-stone-700'
+                }`}
+              >
+                <Clock className="w-4 h-4 text-amber-600" />
+                Daftar Tagihan ({pendingCount})
+              </button>
+            )}
+
+            {user.role === 'admin' && activeView !== 'exam' && (
+              <button
+                onClick={() => {
+                  onChangeView(activeView === 'admin' ? 'dashboard' : 'admin');
                   setMobileMenuOpen(false);
                 }}
                 className={`p-2.5 rounded-xl transition flex items-center justify-center gap-2 ${
                   activeView === 'admin'
-                    ? 'bg-indigo-600 text-white font-bold'
-                    : 'text-slate-400 hover:text-white bg-slate-950/50'
+                    ? 'bg-gradient-to-r from-violet-600 to-indigo-600 text-white font-bold'
+                    : 'text-stone-600 hover:text-stone-900 bg-stone-50'
                 }`}
               >
                 <ShieldCheck className="w-4 h-4 text-amber-300" />
-                Portal Admin
+                {activeView === 'admin' ? 'Kembali ke Beranda' : 'Portal Admin'}
               </button>
             )}
           </div>
 
-          <div className="pt-2 border-t border-slate-800/80 flex items-center justify-between">
-            <div className="flex items-center gap-1.5 text-[11px] text-emerald-400">
-              <Lock className="w-3.5 h-3.5" />
+          <div className="pt-2 border-t border-stone-100 flex items-center justify-between">
+            <div className="flex items-center gap-1.5 text-[11px] text-emerald-700 font-semibold">
+              <Lock className="w-3.5 h-3.5 text-emerald-600" />
               <span>1 Sesi Terkunci</span>
             </div>
 
@@ -247,7 +240,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 setMobileMenuOpen(false);
                 onLogout();
               }}
-              className="px-3 py-1.5 bg-red-950/60 hover:bg-red-900/60 text-red-300 rounded-xl font-bold text-xs flex items-center gap-1.5 transition border border-red-800/60"
+              className="px-3 py-1.5 bg-rose-50 hover:bg-rose-100 text-red-700 rounded-xl font-bold text-xs flex items-center gap-1.5 transition border border-rose-200"
             >
               <LogOut className="w-3.5 h-3.5" />
               Keluar Akun
@@ -258,4 +251,3 @@ export const Navbar: React.FC<NavbarProps> = ({
     </header>
   );
 };
-

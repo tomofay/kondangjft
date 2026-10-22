@@ -33,19 +33,25 @@ export async function POST(request: Request) {
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
 
-    // Direktori tujuan: public/uploads/questions
-    const uploadDir = path.join(process.cwd(), 'public', 'uploads', 'questions');
-    await mkdir(uploadDir, { recursive: true });
+    let publicUrl = '';
+    try {
+      // Direktori tujuan: public/uploads/questions
+      const uploadDir = path.join(process.cwd(), 'public', 'uploads', 'questions');
+      await mkdir(uploadDir, { recursive: true });
 
-    // Generate nama file unik
-    const ext = path.extname(file.name) || '.png';
-    const cleanExt = ext.replace(/[^a-zA-Z0-9.]/g, '').toLowerCase() || '.png';
-    const filename = `soal-${Date.now()}-${Math.random().toString(36).substring(2, 8)}${cleanExt}`;
-    const filePath = path.join(uploadDir, filename);
+      // Generate nama file unik
+      const ext = path.extname(file.name) || '.png';
+      const cleanExt = ext.replace(/[^a-zA-Z0-9.]/g, '').toLowerCase() || '.png';
+      const filename = `soal-${Date.now()}-${Math.random().toString(36).substring(2, 8)}${cleanExt}`;
+      const filePath = path.join(uploadDir, filename);
 
-    await writeFile(filePath, buffer);
-
-    const publicUrl = `/uploads/questions/${filename}`;
+      await writeFile(filePath, buffer);
+      publicUrl = `/uploads/questions/${filename}`;
+    } catch (fsErr) {
+      console.warn('Filesystem write failed, using data URL fallback:', fsErr);
+      const mime = file.type || 'image/png';
+      publicUrl = `data:${mime};base64,${buffer.toString('base64')}`;
+    }
 
     return NextResponse.json({
       success: true,

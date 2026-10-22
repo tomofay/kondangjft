@@ -19,7 +19,7 @@ export function renderFormattedQuestion(text: string): React.ReactNode {
           return (
             <span
               key={idx}
-              className="font-bold underline underline-offset-8 decoration-[2.5px] decoration-indigo-500 dark:decoration-indigo-400 text-indigo-900 dark:text-indigo-200 px-0.5 inline-block"
+              className="font-bold underline underline-offset-8 decoration-[2.5px] decoration-red-600 text-red-900 px-0.5 inline-block"
             >
               {inner}
             </span>

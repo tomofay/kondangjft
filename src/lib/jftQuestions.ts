@@ -1,4 +1,4 @@
-import { Question } from '../types';
+import { Question } from '../types/index';
 
 export const JFT_QUESTIONS_BANK: Question[] = [
   // ==========================================

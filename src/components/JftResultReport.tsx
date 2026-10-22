@@ -2,8 +2,9 @@
 
 import React, { useRef, useState } from 'react';
 import { ExamResult } from '../types';
-import { CheckCircle2, XCircle, Download, BookOpen, RefreshCw } from 'lucide-react';
-import html2canvas from 'html2canvas';
+import { Download, BookOpen, RefreshCw, CheckCircle2, Printer, FileText, Image as ImageIcon } from 'lucide-react';
+import html2canvas from 'html2canvas-pro';
+import { jsPDF } from 'jspdf';
 import confetti from 'canvas-confetti';
 
 interface JftResultReportProps {
@@ -12,18 +13,56 @@ interface JftResultReportProps {
   onRetake: () => void;
 }
 
+import { DEFAULT_ANONYMOUS_PHOTO } from '../lib/dataStore';
+
+// KondangSensei CBT Brand Logos for Report
+const KondangSenseiReportLogo: React.FC<{ className?: string }> = ({ className = 'h-9' }) => (
+  <div className={`flex items-center gap-3 select-none ${className}`}>
+    <div className="px-3 py-1.5 rounded-xl bg-gradient-to-r from-indigo-700 via-indigo-600 to-rose-600 text-white font-black text-lg tracking-tight shadow-2xs">
+      KondangSensei
+    </div>
+    <div className="flex flex-col leading-tight">
+      <span className="font-extrabold text-xs text-stone-900 tracking-tight">
+        KondangSensei CBT
+      </span>
+      <span className="text-[9px] text-stone-500 font-medium">
+        Platform Simulasi Ujian Bahasa Jepang
+      </span>
+    </div>
+  </div>
+);
+
+const KondangInstitutionReportLogo: React.FC<{ className?: string }> = ({ className = 'h-9' }) => (
+  <div className={`flex items-center gap-2.5 select-none text-right ${className}`}>
+    <div className="flex flex-col items-end leading-tight">
+      <span className="text-xs font-black tracking-tight text-stone-900 uppercase">
+        KONDANG SENSEI INDONESIA
+      </span>
+      <span className="text-[9px] text-stone-500 font-medium">
+        Lembaga Pelatihan & Persiapan Kerja Jepang
+      </span>
+    </div>
+  </div>
+);
+
 export const JftResultReport: React.FC<JftResultReportProps> = ({
   result,
   onOpenReview,
   onRetake
 }) => {
   const certificateRef = useRef<HTMLDivElement>(null);
-  const [downloading, setDownloading] = useState(false);
+  const [downloadingPdf, setDownloadingPdf] = useState(false);
+  const [downloadingPng, setDownloadingPng] = useState(false);
 
-  // Normalize result only for legacy records where all packages were merged (>80 questions)
+  // Normalize result
   const normalizedResult = React.useMemo(() => {
     const s = result.sectionScores;
-    const totalMax = (s?.S1?.maxScore || 0) + (s?.S2?.maxScore || 0) + (s?.S3?.maxScore || 0) + (s?.S4?.maxScore || 0);
+    const totalMax =
+      (s?.S1?.maxScore || 0) +
+      (s?.S2?.maxScore || 0) +
+      (s?.S3?.maxScore || 0) +
+      (s?.S4?.maxScore || 0);
+
     if (totalMax > 80) {
       const s1Score = Math.min(s?.S1?.score || 0, 12);
       const s2Score = Math.min(s?.S2?.score || 0, 12);
@@ -31,32 +70,65 @@ export const JftResultReport: React.FC<JftResultReportProps> = ({
       const s4Score = Math.min(s?.S4?.score || 0, 13);
       const totalCorrect = s1Score + s2Score + s3Score + s4Score;
       const totalScore = Math.min(250, Math.max(10, Math.round(10 + (totalCorrect / 50) * 240)));
-      let assessmentResult = 'Tidak Lulus (Below A1)';
-      let isPassed = false;
-      if (totalScore >= 200) {
-        assessmentResult = 'Lulus (A2.2)';
-        isPassed = true;
-      } else if (totalScore >= 175) {
-        assessmentResult = 'Lulus (A2.1)';
-        isPassed = true;
-      } else if (totalScore >= 145) {
-        assessmentResult = 'Lulus (A1)';
-        isPassed = true;
+
+      let assessmentResult = 'A2.2';
+      let assessmentSub = '(A2到達, reached A2)';
+      let isPassed = true;
+
+      if (totalScore < 145) {
+        assessmentResult = 'Below A1';
+        assessmentSub = '(A1未到達, not reached A1)';
+        isPassed = false;
+      } else if (totalScore < 175) {
+        assessmentResult = 'A1';
+        assessmentSub = '(A1到達, not reached A2)';
+        isPassed = false;
+      } else if (totalScore < 200) {
+        assessmentResult = 'A2.1';
+        assessmentSub = '(A2未到達, not reached A2)';
+        isPassed = false;
       }
+
       return {
         ...result,
         totalScore,
         assessmentResult,
+        assessmentSub,
         isPassed,
         sectionScores: {
           S1: { score: s1Score, maxScore: 12, percentage: Math.round((s1Score / 12) * 100) },
           S2: { score: s2Score, maxScore: 12, percentage: Math.round((s2Score / 12) * 100) },
           S3: { score: s3Score, maxScore: 13, percentage: Math.round((s3Score / 13) * 100) },
-          S4: { score: s4Score, maxScore: 13, percentage: Math.round((s4Score / 13) * 100) },
+          S4: { score: s4Score, maxScore: 13, percentage: Math.round((s4Score / 13) * 100) }
         }
       };
     }
-    return result;
+
+    // Standard single package result
+    let assessmentResult = 'A2.2';
+    let assessmentSub = '(A2到達, reached A2)';
+    let isPassed = true;
+
+    if (result.totalScore < 145) {
+      assessmentResult = 'Below A1';
+      assessmentSub = '(A1未到達, not reached A1)';
+      isPassed = false;
+    } else if (result.totalScore < 175) {
+      assessmentResult = 'A1';
+      assessmentSub = '(A1到達, not reached A2)';
+      isPassed = false;
+    } else if (result.totalScore < 200) {
+      assessmentResult = 'A2.1';
+      assessmentSub = '(A2未到達, not reached A2)';
+      isPassed = false;
+    }
+
+    return {
+      ...result,
+      assessmentResult,
+      assessmentSub,
+      isPassed
+    };
   }, [result]);
 
   // Trigger confetti if passed
@@ -70,25 +142,93 @@ export const JftResultReport: React.FC<JftResultReportProps> = ({
     }
   }, [normalizedResult.isPassed]);
 
-  const handleDownload = async () => {
+  // Direct PDF Download via html2canvas-pro + jsPDF
+  const handleDownloadPdf = async () => {
     if (!certificateRef.current) return;
-    setDownloading(true);
+    setDownloadingPdf(true);
+    try {
+      const element = certificateRef.current;
+      const canvas = await html2canvas(element, {
+        scale: 2,
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: '#ffffff',
+        logging: false,
+        windowWidth: 1200,
+        onclone: (clonedDoc) => {
+          const el = clonedDoc.getElementById('jft-certificate-container');
+          if (el) {
+            el.style.width = '800px';
+            el.style.boxShadow = 'none';
+          }
+        }
+      });
+
+      const imgData = canvas.toDataURL('image/jpeg', 0.98);
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4',
+        compress: true
+      });
+
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = pdf.internal.pageSize.getHeight();
+      
+      const margin = 8;
+      const contentWidth = pdfWidth - (margin * 2);
+      const contentHeight = (canvas.height * contentWidth) / canvas.width;
+
+      if (contentHeight > (pdfHeight - margin * 2)) {
+        const scale = (pdfHeight - margin * 2) / contentHeight;
+        const finalWidth = contentWidth * scale;
+        const finalHeight = contentHeight * scale;
+        const xOffset = (pdfWidth - finalWidth) / 2;
+        pdf.addImage(imgData, 'JPEG', xOffset, margin, finalWidth, finalHeight, undefined, 'FAST');
+      } else {
+        const yOffset = (pdfHeight - contentHeight) / 2;
+        pdf.addImage(imgData, 'JPEG', margin, yOffset, contentWidth, contentHeight, undefined, 'FAST');
+      }
+
+      const safeName = (normalizedResult.userName || 'Peserta').replace(/[^a-zA-Z0-9_-]/g, '_');
+      pdf.save(`Rapor_Hasil_JFT_${safeName}.pdf`);
+    } catch (err) {
+      console.error('Failed generating PDF certificate', err);
+      window.print();
+    } finally {
+      setDownloadingPdf(false);
+    }
+  };
+
+  // Direct PNG Download
+  const handleDownloadPng = async () => {
+    if (!certificateRef.current) return;
+    setDownloadingPng(true);
     try {
       const canvas = await html2canvas(certificateRef.current, {
         scale: 2,
         useCORS: true,
-        backgroundColor: '#ffffff'
+        allowTaint: true,
+        backgroundColor: '#ffffff',
+        logging: false,
+        windowWidth: 1200
       });
       const image = canvas.toDataURL('image/png');
       const link = document.createElement('a');
       link.href = image;
-      link.download = `Rapor_Simulasi_KondangSensei_${normalizedResult.userName.replace(/\s+/g, '_')}_${normalizedResult.testDate}.png`;
+      const safeName = (normalizedResult.userName || 'Peserta').replace(/[^a-zA-Z0-9_-]/g, '_');
+      link.download = `Rapor_Hasil_JFT_${safeName}.png`;
       link.click();
     } catch (err) {
       console.error('Failed downloading certificate image', err);
     } finally {
-      setDownloading(false);
+      setDownloadingPng(false);
     }
+  };
+
+  // Browser Native Print / Save as PDF
+  const handlePrint = () => {
+    window.print();
   };
 
   // Score calculation marker position percentage (from 10 to 250)
@@ -101,354 +241,423 @@ export const JftResultReport: React.FC<JftResultReportProps> = ({
 
   const pinPercent = calculatePinPercent(normalizedResult.totalScore);
 
-  const totalCorrect =
-    (normalizedResult.sectionScores?.S1?.score || 0) +
-    (normalizedResult.sectionScores?.S2?.score || 0) +
-    (normalizedResult.sectionScores?.S3?.score || 0) +
-    (normalizedResult.sectionScores?.S4?.score || 0);
-
-  const totalQuestions =
-    (normalizedResult.sectionScores?.S1?.maxScore || 0) +
-    (normalizedResult.sectionScores?.S2?.maxScore || 0) +
-    (normalizedResult.sectionScores?.S3?.maxScore || 0) +
-    (normalizedResult.sectionScores?.S4?.maxScore || 0) ||
-    normalizedResult.answers?.length || 0;
+  // Format date helper: YYYY/MM/DD
+  const formatYmd = (dateStr?: string) => {
+    if (!dateStr) return '2026/10/22 (yyyy/mm/dd)';
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return dateStr;
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}/${m}/${day} (yyyy/mm/dd)`;
+  };
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6 pb-12">
-      {/* Top Action Bar */}
-      <div className="flex flex-wrap items-center justify-between gap-4 p-4 bg-slate-900 text-white rounded-2xl shadow-xl border border-slate-800">
+    <div className="max-w-4xl mx-auto space-y-6 pb-12 print:max-w-none print:m-0 print:p-0 print:space-y-0">
+      {/* Top Action Bar (Hidden during Print) */}
+      <div className="no-print flex flex-wrap items-center justify-between gap-4 p-5 bg-white text-stone-900 rounded-3xl shadow-sm border border-stone-200">
         <div className="flex items-center gap-3">
           <div
-            className={`w-12 h-12 rounded-xl flex items-center justify-center font-bold text-xl ${
-              normalizedResult.isPassed ? 'bg-emerald-500 text-slate-950' : 'bg-red-500 text-white'
+            className={`w-11 h-11 rounded-2xl flex items-center justify-center font-bold text-xl shadow-xs ${
+              normalizedResult.isPassed
+                ? 'bg-emerald-50 text-emerald-600 border border-emerald-200'
+                : 'bg-amber-50 text-amber-700 border border-amber-200'
             }`}
           >
-            {normalizedResult.isPassed ? <CheckCircle2 className="w-7 h-7" /> : <XCircle className="w-7 h-7" />}
+            <CheckCircle2 className="w-6 h-6" />
           </div>
           <div>
-            <h2 className="text-lg font-bold">
-              {normalizedResult.isPassed ? 'Selamat! Anda Dinyatakan LULUS Simulasi CBT' : 'Hasil Simulasi: Belum Lulus'}
+            <h2 className="text-base sm:text-lg font-black text-stone-900">
+              {normalizedResult.isPassed
+                ? 'Selamat! Anda Memenuhi Kualifikasi A2 (A2到達)'
+                : 'Hasil Penilaian: Belum Mencapai Target A2 (A2未到達)'}
             </h2>
-            <p className="text-xs text-slate-400">
-              Skor Total: <span className="font-semibold text-amber-400">{normalizedResult.totalScore} / 250</span> • Level:{' '}
-              <span className="font-semibold text-emerald-400">{normalizedResult.assessmentResult}</span>
-              {totalQuestions > 0 && (
-                <>
-                  {' '}• Paket Soal:{' '}
-                  <span className="font-semibold text-white">
-                    {totalQuestions} Soal ({totalCorrect} Benar, {Math.max(0, totalQuestions - totalCorrect)} Salah)
-                  </span>
-                </>
-              )}
+            <p className="text-xs text-stone-500 font-medium">
+              Skor Total: <strong className="text-stone-900">{normalizedResult.totalScore} / 250</strong> • Status:{' '}
+              <strong className={normalizedResult.isPassed ? 'text-emerald-700' : 'text-stone-800'}>
+                {normalizedResult.assessmentResult} {normalizedResult.assessmentSub}
+              </strong>
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <button
             onClick={onOpenReview}
-            className="py-2.5 px-4 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-xl flex items-center gap-2 transition shadow"
+            className="py-2.5 px-3.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl flex items-center gap-1.5 transition shadow-xs cursor-pointer"
           >
             <BookOpen className="w-4 h-4" />
-            Lihat Pembahasan Soal
+            Pembahasan
           </button>
+          
+          {/* Main Direct PDF Export */}
           <button
-            onClick={handleDownload}
-            disabled={downloading}
-            className="py-2.5 px-4 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-xl flex items-center gap-2 transition shadow disabled:opacity-50"
+            onClick={handleDownloadPdf}
+            disabled={downloadingPdf}
+            className="py-2.5 px-4 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black rounded-xl flex items-center gap-2 transition shadow-xs disabled:opacity-50 cursor-pointer"
+            title="Download Dokumen Rapor JFT dalam format PDF Resmi"
           >
-            <Download className="w-4 h-4" />
-            {downloading ? 'Mengunduh...' : 'Unduh Rapor KondangSensei'}
+            <FileText className="w-4 h-4" />
+            {downloadingPdf ? 'Menyimpan PDF...' : 'Unduh PDF'}
           </button>
+
+          {/* Native Print / Save as PDF */}
+          <button
+            onClick={handlePrint}
+            className="py-2.5 px-3.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl flex items-center gap-1.5 transition shadow-xs cursor-pointer"
+            title="Cetak langsung atau simpan melalui dialog cetak browser (Ctrl + P)"
+          >
+            <Printer className="w-4 h-4" />
+            Cetak / Simpan PDF
+          </button>
+
+          {/* Secondary PNG Download */}
+          <button
+            onClick={handleDownloadPng}
+            disabled={downloadingPng}
+            className="py-2.5 px-3 bg-stone-100 hover:bg-stone-200 text-stone-700 text-xs font-medium rounded-xl flex items-center gap-1.5 transition disabled:opacity-50 cursor-pointer"
+            title="Unduh sebagai file gambar PNG"
+          >
+            <ImageIcon className="w-4 h-4 text-stone-500" />
+            {downloadingPng ? '...' : 'PNG'}
+          </button>
+
           <button
             onClick={onRetake}
-            className="py-2.5 px-4 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-xl flex items-center gap-2 transition"
+            className="py-2.5 px-3.5 bg-stone-100 hover:bg-stone-200 text-stone-700 text-xs font-bold rounded-xl flex items-center gap-1.5 transition cursor-pointer"
           >
             <RefreshCw className="w-4 h-4" />
-            Coba Ulang
+            Ulang
           </button>
         </div>
       </div>
 
-      {/* KondangSensei Simulation Certificate Container */}
-      <div className="w-full overflow-x-auto pb-4">
+      {/* Official JFT Notification of Assessment Results Document (Exact Replica of Image 2) */}
+      <div className="w-full overflow-x-auto pb-4 print:overflow-visible print:p-0">
         <div
           ref={certificateRef}
-          className="bg-white text-slate-900 rounded-xl p-8 shadow-2xl border-4 border-slate-300 font-sans space-y-6 relative overflow-hidden select-none mx-auto"
-          style={{ minWidth: '700px', maxWidth: '850px' }}
+          id="jft-certificate-container"
+          className="bg-white text-stone-900 p-8 sm:p-12 shadow-xl border border-stone-300 font-sans space-y-7 relative select-none mx-auto print:shadow-none print:border-none print:p-0 print:m-0 print:w-full"
+          style={{ width: '800px', minHeight: '1000px' }}
         >
-          {/* Top Branding Header */}
-          <div className="flex items-center justify-between border-b pb-4 border-slate-300">
-            <div className="flex items-center gap-3">
-              <div className="px-3.5 py-1.5 bg-indigo-600 text-white font-black text-xl tracking-tight rounded-xl shadow-sm">
-                KondangSensei
-              </div>
-              <div className="text-xs font-bold text-slate-800 leading-tight">
-                <div>KondangSensei CBT</div>
-                <div className="text-[10px] text-slate-500 font-normal">Platform Simulasi Ujian Bahasa Jepang</div>
-              </div>
-            </div>
-
-            <div className="border-2 border-indigo-600 bg-indigo-50 text-indigo-700 px-3.5 py-1 font-black tracking-wider text-[11px] uppercase rounded-lg shadow-sm">
+          {/* Header Logos */}
+          <div className="flex items-center justify-between border-b border-stone-200 pb-4">
+            <KondangSenseiReportLogo className="h-10" />
+            <div className="px-3 py-1 rounded-xl bg-indigo-50 border border-indigo-200 text-indigo-700 text-[10px] font-black uppercase tracking-wider">
               SIMULATION REPORT • LAPORAN EVALUASI
             </div>
-
-            <div className="text-right">
-              <div className="text-xs font-black text-slate-900 tracking-wider">
-                KONDANG SENSEI INDONESIA
-              </div>
-              <div className="text-[10px] text-slate-500">
-                Lembaga Pelatihan & Persiapan Kerja Jepang
-              </div>
-            </div>
+            <KondangInstitutionReportLogo className="h-10" />
           </div>
 
-          {/* Certificate Main Title */}
-          <div className="text-center space-y-1">
-            <h1 className="text-xl font-black tracking-wide text-slate-900">
+          {/* Centered Document Titles */}
+          <div className="text-center space-y-1.5 pt-1">
+            <h1 className="text-2xl sm:text-[25px] font-black tracking-wide text-stone-900 font-japanese">
               KondangSensei CBT 日本語能力判定結果通知書
             </h1>
-            <p className="text-xs font-bold text-slate-700 tracking-tight">
+            <p className="text-xs sm:text-[13px] text-stone-700 font-medium">
               KondangSensei CBT Japanese Assessment Test — Simulation Result Report
             </p>
-            <div className="inline-block mt-1 px-3 py-0.5 rounded-full bg-slate-100 border border-slate-200 text-[10px] text-slate-500 font-medium">
+            <p className="text-[10px] text-stone-500 font-medium">
               * Dokumen ini diterbitkan resmi oleh KondangSensei sebagai lembar evaluasi hasil simulasi mandiri siswa.
+            </p>
+          </div>
+
+          {/* Examinee Information Section */}
+          <div className="flex items-start gap-8 pt-2 pb-2">
+            {/* Left Photo (Anonymous by default) */}
+            <div className="shrink-0">
+              <img
+                src={
+                  normalizedResult.facePhotoUrl && !normalizedResult.facePhotoUrl.includes('unsplash.com')
+                    ? normalizedResult.facePhotoUrl
+                    : DEFAULT_ANONYMOUS_PHOTO
+                }
+                alt="Examinee Photo"
+                className="w-36 h-48 object-cover border border-stone-300 bg-stone-100 rounded-sm shadow-2xs"
+              />
+            </div>
+
+            {/* Right Information Rows */}
+            <div className="flex-1 space-y-2 text-xs sm:text-[13px] text-stone-900">
+              {/* Reg No */}
+              <div className="grid grid-cols-[160px_1fr] items-start">
+                <div>
+                  <span className="font-bold font-japanese">受験番号</span>
+                  <div className="text-[10px] text-stone-600">Registration Number</div>
+                </div>
+                <div className="font-mono font-bold text-stone-950 flex items-center gap-1.5 pt-0.5">
+                  <span>:</span>
+                  <span>{normalizedResult.registrationNumber || '4892716382'}</span>
+                </div>
+              </div>
+
+              {/* Name */}
+              <div className="grid grid-cols-[160px_1fr] items-start">
+                <div>
+                  <span className="font-bold font-japanese">氏名</span>
+                  <div className="text-[10px] text-stone-600">Name</div>
+                </div>
+                <div className="font-bold uppercase text-stone-950 flex items-center gap-1.5 pt-0.5">
+                  <span>:</span>
+                  <span>{normalizedResult.userName}</span>
+                </div>
+              </div>
+
+              {/* Nationality */}
+              <div className="grid grid-cols-[160px_1fr] items-start">
+                <div>
+                  <span className="font-bold font-japanese">国籍</span>
+                  <div className="text-[10px] text-stone-600">Nationality</div>
+                </div>
+                <div className="font-medium text-stone-950 flex items-center gap-1.5 pt-0.5">
+                  <span>:</span>
+                  <span>{normalizedResult.nationality || 'Indonesia'}</span>
+                </div>
+              </div>
+
+              {/* Date of Birth */}
+              <div className="grid grid-cols-[160px_1fr] items-start">
+                <div>
+                  <span className="font-bold font-japanese">生年月日</span>
+                  <div className="text-[10px] text-stone-600">Date of Birth</div>
+                </div>
+                <div className="font-mono text-stone-950 flex items-center gap-1.5 pt-0.5">
+                  <span>:</span>
+                  <span>{formatYmd(normalizedResult.dateOfBirth)}</span>
+                </div>
+              </div>
+
+              {/* Sex */}
+              <div className="grid grid-cols-[160px_1fr] items-start">
+                <div>
+                  <span className="font-bold font-japanese">性別</span>
+                  <div className="text-[10px] text-stone-600">Sex</div>
+                </div>
+                <div className="font-medium text-stone-950 flex items-center gap-1.5 pt-0.5">
+                  <span>:</span>
+                  <span>{normalizedResult.sex === 'FEMALE' ? 'Female' : 'Male'}</span>
+                </div>
+              </div>
+
+              {/* Test Location */}
+              <div className="grid grid-cols-[160px_1fr] items-start">
+                <div>
+                  <span className="font-bold font-japanese">受験地</span>
+                  <div className="text-[10px] text-stone-600">Test Location</div>
+                </div>
+                <div className="font-medium text-stone-950 flex items-center gap-1.5 pt-0.5">
+                  <span>:</span>
+                  <span>{normalizedResult.testLocation || 'Indonesia'}</span>
+                </div>
+              </div>
+
+              {/* Test Date */}
+              <div className="grid grid-cols-[160px_1fr] items-start">
+                <div>
+                  <span className="font-bold font-japanese">受験日</span>
+                  <div className="text-[10px] text-stone-600">Test Date</div>
+                </div>
+                <div className="font-mono text-stone-950 flex items-center gap-1.5 pt-0.5">
+                  <span>:</span>
+                  <span>{formatYmd(normalizedResult.testDate)}</span>
+                </div>
+              </div>
             </div>
           </div>
 
-          {/* Grid: Examinee Info & Test Info */}
-          <div className="grid grid-cols-2 gap-4">
-            {/* Examinee Info Box */}
-            <div className="border border-slate-300 rounded-lg p-3 bg-slate-50 space-y-2">
-              <div className="text-xs font-bold text-slate-700 border-b border-slate-200 pb-1">
-                受験者情報 <span className="font-normal text-[10px]">Examinee information</span>
-              </div>
-              <div className="flex gap-3 text-xs">
-                <img
-                  src={normalizedResult.facePhotoUrl || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80"}
-                  alt="Face Photo"
-                  className="w-16 h-20 object-cover rounded border border-slate-300 bg-slate-200"
-                />
-                <div className="space-y-1 flex-1 text-[11px]">
-                  <div>
-                    <span className="text-slate-500">受験番号 / Reg No:</span>{' '}
-                    <span className="font-bold">{normalizedResult.registrationNumber}</span>
+          {/* Assessment Results Section Box (Exact Replica) */}
+          <div className="border border-stone-300 p-6 sm:p-7 bg-white space-y-6">
+            {/* Top Score & Result Header */}
+            <div className="flex items-start justify-between">
+              <div className="space-y-4">
+                {/* Total Score */}
+                <div className="flex items-start gap-4">
+                  <div className="w-28">
+                    <div className="font-bold font-japanese text-sm text-stone-900 leading-tight">総合得点:</div>
+                    <div className="text-[11px] text-stone-600">Total Score</div>
+                  </div>
+                  <div className="text-3xl sm:text-4xl font-black text-stone-950 tracking-tight font-mono leading-none">
+                    {normalizedResult.totalScore}
+                  </div>
+                </div>
+
+                {/* Assessment Result Level */}
+                <div className="flex items-start gap-4">
+                  <div className="w-28">
+                    <div className="font-bold font-japanese text-sm text-stone-900 leading-tight">判定結果:</div>
+                    <div className="text-[11px] text-stone-600">Assessment Results</div>
                   </div>
                   <div>
-                    <span className="text-slate-500">氏名 / Name:</span>{' '}
-                    <span className="font-bold">{normalizedResult.userName}</span>
-                  </div>
-                  <div>
-                    <span className="text-slate-500">国籍 / Nationality:</span>{' '}
-                    <span className="font-semibold uppercase">{normalizedResult.nationality || 'INDONESIA'}</span>
-                  </div>
-                  <div>
-                    <span className="text-slate-500">生年月日 / Date of Birth:</span>{' '}
-                    <span className="font-semibold">{normalizedResult.dateOfBirth || '2001/05/14'}</span>
-                  </div>
-                  <div>
-                    <span className="text-slate-500">性別 / Sex:</span>{' '}
-                    <span className="font-semibold uppercase">{normalizedResult.sex || 'MALE'}</span>
+                    <div className="text-2xl sm:text-3xl font-black text-stone-950 tracking-tight leading-none">
+                      {normalizedResult.assessmentResult}
+                    </div>
+                    <div className="text-xs font-bold text-stone-700 mt-1">
+                      {normalizedResult.assessmentSub}
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
 
-            {/* Test Info Box */}
-            <div className="border border-slate-300 rounded-lg p-3 bg-slate-50 space-y-2">
-              <div className="text-xs font-bold text-slate-700 border-b border-slate-200 pb-1">
-                受験情報 <span className="font-normal text-[10px]">Test information</span>
-              </div>
-              <div className="space-y-2 text-xs pt-1">
+              {/* Right Passing Benchmark Standards */}
+              <div className="text-right text-xs text-stone-800 space-y-1">
                 <div>
-                  <div className="text-slate-500 text-[10px]">・受験地 / Test Location:</div>
-                  <div className="font-semibold text-slate-800 text-[11px] pl-2">{normalizedResult.testLocation || 'KondangSensei CBT Online Simulator'}</div>
+                  <span className="font-japanese">得点範囲:</span> 10-250
+                  <div className="text-[10px] text-stone-500">Range of Scores</div>
                 </div>
-                <div>
-                  <div className="text-slate-500 text-[10px]">・受験日 / Test Date:</div>
-                  <div className="font-semibold text-slate-800 text-[11px] pl-2">{normalizedResult.testDate}</div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Score and Assessment Results Section */}
-          <div className="border-2 border-slate-400 rounded-xl p-5 bg-white space-y-5 shadow-sm">
-            <div className="flex items-start justify-between border-b pb-4 border-slate-200">
-              <div className="space-y-2">
-                <div className="flex items-baseline gap-3">
-                  <span className="text-xs font-bold text-slate-800">総合得分 : <span className="text-[10px] text-slate-500 font-normal">Total Score</span></span>
-                  <span className="text-3xl font-black text-slate-900 tracking-tight">{normalizedResult.totalScore}</span>
-                </div>
-                <div className="flex items-baseline gap-3">
-                  <span className="text-xs font-bold text-slate-800">判定結果 : <span className="text-[10px] text-slate-500 font-normal">Assessment Results</span></span>
-                  <span className={`text-2xl font-black tracking-tight ${normalizedResult.isPassed ? 'text-emerald-700' : 'text-red-600'}`}>
-                    {normalizedResult.assessmentResult}
-                  </span>
-                </div>
-              </div>
-
-              <div className="text-[11px] text-slate-600 space-y-0.5 text-right">
-                <div>得点範囲 (Range of Scores) : <strong>10-250</strong></div>
-                <div>判定基準 (Passing Benchmark Standards) :</div>
-                <div className="font-mono text-[10px] bg-slate-100 p-1.5 rounded border border-slate-200">
-                  A1 : 145, A2.1 : 175, A2.2 (A2) : 200
+                <div className="pt-1">
+                  <span className="font-japanese">判定基準点</span> A1: 145, A2.1: 175, A2.2(A2): 200
+                  <div className="text-[10px] text-stone-500">Passing Score</div>
                 </div>
               </div>
             </div>
 
-            {/* Graphical Score Gauge Bar with Accurate Coordinate Markers */}
-            <div className="space-y-3 px-2 pt-1">
-              {/* Threshold Labels accurately positioned over their respective dividers */}
-              <div className="relative h-6 text-[10px] font-bold text-slate-700">
-                <span className="absolute left-0 top-0">10</span>
-                <span className="absolute left-[56.25%] -translate-x-1/2 top-0 text-indigo-700 font-extrabold whitespace-nowrap bg-indigo-50 px-1.5 py-0.5 rounded border border-indigo-200 shadow-xs">
-                  145 (A1)
-                </span>
-                <span className="absolute left-[68.75%] -translate-x-1/2 top-0 text-blue-700 font-extrabold whitespace-nowrap bg-blue-50 px-1.5 py-0.5 rounded border border-blue-200 shadow-xs">
-                  175 (A2.1)
-                </span>
-                <span className="absolute left-[79.17%] -translate-x-1/2 top-0 text-emerald-700 font-extrabold whitespace-nowrap bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200 shadow-xs">
-                  200 (A2.2)
-                </span>
-                <span className="absolute right-0 top-0">250</span>
-              </div>
-
-              {/* The Bar */}
-              <div className="relative h-7 rounded-full bg-gradient-to-r from-red-200 via-amber-200 via-emerald-200 to-emerald-500 border-2 border-slate-400 shadow-inner overflow-visible">
-                {/* Threshold Divider Lines */}
-                <div className="absolute left-[56.25%] top-0 bottom-0 w-0.5 bg-slate-900 z-10" title="Ambang A1 (145)"></div>
-                <div className="absolute left-[68.75%] top-0 bottom-0 w-0.5 bg-slate-900 z-10" title="Ambang A2.1 (175)"></div>
-                <div className="absolute left-[79.17%] top-0 bottom-0 w-0.5 bg-slate-900 z-10" title="Ambang A2.2 (200)"></div>
-
-                {/* Pin Indicator */}
+            {/* Scale Gauge Bar (Exact Replica) */}
+            <div className="pt-6 pb-4">
+              <div className="relative">
+                {/* Pin Score Tag directly above the marker */}
                 <div
-                  className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 z-20 transition-all duration-700"
+                  className="absolute -top-7 -translate-x-1/2 z-20 font-black text-xs sm:text-sm text-stone-950 font-mono"
                   style={{ left: `${pinPercent}%` }}
                 >
-                  <div className="relative flex flex-col items-center">
-                    <div className="w-7 h-7 rounded-full bg-white border-2 border-amber-600 shadow-lg flex items-center justify-center ring-2 ring-amber-400/50">
-                      <div className="w-3 h-3 rounded-full bg-amber-600 animate-ping"></div>
-                    </div>
-                    {/* Floating Score Tag directly below the pin */}
-                    <div className="absolute -bottom-6 px-1.5 py-0.5 rounded bg-slate-900 text-white text-[9px] font-black tracking-tight whitespace-nowrap shadow-md border border-slate-700">
-                      Skor: {normalizedResult.totalScore}
-                    </div>
-                  </div>
+                  {normalizedResult.totalScore}
                 </div>
-              </div>
 
-              {/* Bottom guide explanation */}
-              <div className="flex justify-between text-[9px] text-slate-500 pt-3 px-1 font-medium">
-                <span>Kurang dari A1 (&lt; 145)</span>
-                <span className="text-indigo-600 font-semibold">Taraf Dasar A1 (145 - 174)</span>
-                <span className="text-blue-600 font-semibold">Taraf Mandiri A2.1 (175 - 199)</span>
-                <span className="text-emerald-600 font-semibold">Taraf Utama A2.2 (≥ 200)</span>
+                {/* Pin Circular Indicator on the Bar */}
+                <div
+                  className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 z-20"
+                  style={{ left: `${pinPercent}%` }}
+                >
+                  <div className="w-4 h-4 rounded-full bg-amber-400 border-2 border-white shadow-xs ring-1 ring-stone-400"></div>
+                </div>
+
+                {/* Horizontal Gradient Bar */}
+                <div className="h-4 w-full rounded-xs bg-gradient-to-r from-[#f9a8d4] via-[#f59e0b] to-[#84cc16] relative">
+                  {/* Tick 10 (Left Edge) */}
+                  <div className="absolute left-0 -top-1.5 -bottom-1.5 w-[2px] bg-black"></div>
+
+                  {/* Tick 145 (A1) */}
+                  <div className="absolute left-[56.25%] -top-1.5 -bottom-1.5 w-[2px] bg-black"></div>
+
+                  {/* Tick 175 (A2.1) */}
+                  <div className="absolute left-[68.75%] -top-1.5 -bottom-1.5 w-[2px] bg-black"></div>
+
+                  {/* Tick 200 (A2.2) */}
+                  <div className="absolute left-[79.17%] -top-1.5 -bottom-1.5 w-[2px] bg-black"></div>
+
+                  {/* Tick 250 (Right Edge) */}
+                  <div className="absolute right-0 -top-1.5 -bottom-1.5 w-[2px] bg-black"></div>
+                </div>
+
+                {/* Tick Labels Below */}
+                <div className="relative h-10 text-xs text-stone-900 font-mono mt-1.5">
+                  <span className="absolute left-0 top-0">10</span>
+
+                  <div className="absolute left-[56.25%] -translate-x-1/2 top-0 text-center leading-tight">
+                    <div>145</div>
+                    <div className="font-bold font-sans text-[11px]">A1</div>
+                  </div>
+
+                  <div className="absolute left-[68.75%] -translate-x-1/2 top-0 text-center leading-tight">
+                    <div>175</div>
+                    <div className="font-bold font-sans text-[11px]">A2.1</div>
+                  </div>
+
+                  <div className="absolute left-[79.17%] -translate-x-1/2 top-0 text-center leading-tight">
+                    <div>200</div>
+                    <div className="font-bold font-sans text-[11px]">A2.2(A2)</div>
+                  </div>
+
+                  <span className="absolute right-0 top-0">250</span>
+                </div>
               </div>
             </div>
 
-            {/* Section Breakdown Percentage Progress Gauges */}
-            <div className="pt-2 space-y-3">
-              <div className="text-xs font-bold text-slate-800">
-                セクション毎の正答率 : <span className="text-[10px] text-slate-500 font-normal">The percentage of correct answers for each section</span>
+            {/* Section Breakdown Percentage Sliders (Exact Replica of Image 2) */}
+            <div className="space-y-4 pt-2">
+              <div className="text-xs sm:text-[13px] text-stone-900 font-medium">
+                <span className="font-bold font-japanese">セクション毎の正答率 :</span>
+                <span className="text-[11px] text-stone-600 ml-1.5">
+                  Percentage of Correct Answers for Each Section
+                </span>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
-                {/* S1 */}
-                <div className="space-y-1 bg-slate-50 p-2.5 rounded border border-slate-200">
-                  <div className="flex justify-between font-semibold text-slate-800 text-[11px]">
-                    <span>文字と語彙 (Script and Vocabulary)</span>
-                    <span className="font-bold text-slate-900">
-                      {(normalizedResult.sectionScores?.S1?.maxScore || 0) > 0 ? `${normalizedResult.sectionScores.S1.percentage}%` : '-'}
-                    </span>
-                  </div>
-                  <div className="h-2 bg-slate-200 rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-amber-500 rounded-full transition-all duration-500"
-                      style={{ width: `${(normalizedResult.sectionScores?.S1?.maxScore || 0) > 0 ? normalizedResult.sectionScores.S1.percentage : 0}%` }}
-                    ></div>
-                  </div>
-                  <div className="text-[10px] text-slate-500 text-right">
-                    {(normalizedResult.sectionScores?.S1?.maxScore || 0) > 0
-                      ? `${normalizedResult.sectionScores.S1.score} / ${normalizedResult.sectionScores.S1.maxScore} Soal Benar`
-                      : 'Tidak diujikan dalam paket ini'}
-                  </div>
-                </div>
+              {/* 4 Section Rows */}
+              <div className="space-y-3.5">
+                {[
+                  {
+                    code: 'S1',
+                    ja: '文字と語彙',
+                    en: 'Script and Vocabulary',
+                    data: normalizedResult.sectionScores?.S1
+                  },
+                  {
+                    code: 'S2',
+                    ja: '会話と表現',
+                    en: 'Conversation and Expression',
+                    data: normalizedResult.sectionScores?.S2
+                  },
+                  {
+                    code: 'S3',
+                    ja: '聴解',
+                    en: 'Listening Comprehension',
+                    data: normalizedResult.sectionScores?.S3
+                  },
+                  {
+                    code: 'S4',
+                    ja: '読解',
+                    en: 'Reading Comprehension',
+                    data: normalizedResult.sectionScores?.S4
+                  }
+                ].map((sec) => {
+                  const pct = sec.data?.percentage ?? 0;
+                  return (
+                    <div key={sec.code} className="grid grid-cols-[220px_1fr] items-center gap-4">
+                      {/* Left: Titles */}
+                      <div>
+                        <div className="font-bold font-japanese text-xs sm:text-[13px] text-stone-900 leading-tight">
+                          {sec.ja}
+                        </div>
+                        <div className="text-[10px] text-stone-600 leading-tight">
+                          {sec.en}
+                        </div>
+                      </div>
 
-                {/* S2 */}
-                <div className="space-y-1 bg-slate-50 p-2.5 rounded border border-slate-200">
-                  <div className="flex justify-between font-semibold text-slate-800 text-[11px]">
-                    <span>会話と表現 (Conversation and Expression)</span>
-                    <span className="font-bold text-slate-900">
-                      {(normalizedResult.sectionScores?.S2?.maxScore || 0) > 0 ? `${normalizedResult.sectionScores.S2.percentage}%` : '-'}
-                    </span>
-                  </div>
-                  <div className="h-2 bg-slate-200 rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-blue-500 rounded-full transition-all duration-500"
-                      style={{ width: `${(normalizedResult.sectionScores?.S2?.maxScore || 0) > 0 ? normalizedResult.sectionScores.S2.percentage : 0}%` }}
-                    ></div>
-                  </div>
-                  <div className="text-[10px] text-slate-500 text-right">
-                    {(normalizedResult.sectionScores?.S2?.maxScore || 0) > 0
-                      ? `${normalizedResult.sectionScores.S2.score} / ${normalizedResult.sectionScores.S2.maxScore} Soal Benar`
-                      : 'Tidak diujikan dalam paket ini'}
-                  </div>
-                </div>
+                      {/* Right: Grey Track with Orange Pin & Percentage above */}
+                      <div className="relative pt-4 pb-1">
+                        {/* Percentage above pin */}
+                        <div
+                          className="absolute top-0 -translate-x-1/2 text-[11px] font-mono font-bold text-stone-900"
+                          style={{ left: `${pct}%` }}
+                        >
+                          {pct}%
+                        </div>
 
-                {/* S3 */}
-                <div className="space-y-1 bg-slate-50 p-2.5 rounded border border-slate-200">
-                  <div className="flex justify-between font-semibold text-slate-800 text-[11px]">
-                    <span>聴解 (Listening Comprehension)</span>
-                    <span className="font-bold text-slate-900">
-                      {(normalizedResult.sectionScores?.S3?.maxScore || 0) > 0 ? `${normalizedResult.sectionScores.S3.percentage}%` : '-'}
-                    </span>
-                  </div>
-                  <div className="h-2 bg-slate-200 rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-indigo-500 rounded-full transition-all duration-500"
-                      style={{ width: `${(normalizedResult.sectionScores?.S3?.maxScore || 0) > 0 ? normalizedResult.sectionScores.S3.percentage : 0}%` }}
-                    ></div>
-                  </div>
-                  <div className="text-[10px] text-slate-500 text-right">
-                    {(normalizedResult.sectionScores?.S3?.maxScore || 0) > 0
-                      ? `${normalizedResult.sectionScores.S3.score} / ${normalizedResult.sectionScores.S3.maxScore} Soal Benar`
-                      : 'Tidak diujikan dalam paket ini'}
-                  </div>
-                </div>
-
-                {/* S4 */}
-                <div className="space-y-1 bg-slate-50 p-2.5 rounded border border-slate-200">
-                  <div className="flex justify-between font-semibold text-slate-800 text-[11px]">
-                    <span>読解 (Reading Comprehension)</span>
-                    <span className="font-bold text-slate-900">
-                      {(normalizedResult.sectionScores?.S4?.maxScore || 0) > 0 ? `${normalizedResult.sectionScores.S4.percentage}%` : '-'}
-                    </span>
-                  </div>
-                  <div className="h-2 bg-slate-200 rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-emerald-500 rounded-full transition-all duration-500"
-                      style={{ width: `${(normalizedResult.sectionScores?.S4?.maxScore || 0) > 0 ? normalizedResult.sectionScores.S4.percentage : 0}%` }}
-                    ></div>
-                  </div>
-                  <div className="text-[10px] text-slate-500 text-right">
-                    {(normalizedResult.sectionScores?.S4?.maxScore || 0) > 0
-                      ? `${normalizedResult.sectionScores.S4.score} / ${normalizedResult.sectionScores.S4.maxScore} Soal Benar`
-                      : 'Tidak diujikan dalam paket ini'}
-                  </div>
-                </div>
+                        {/* Grey Track */}
+                        <div className="h-3 w-full bg-stone-200 rounded-none relative">
+                          {/* Orange Pin */}
+                          <div
+                            className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2"
+                            style={{ left: `${pct}%` }}
+                          >
+                            <div className="w-3.5 h-3.5 rounded-full bg-amber-400 border-2 border-white shadow-xs ring-1 ring-stone-400"></div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           </div>
 
-          <div className="text-center text-[10px] text-slate-500 space-y-1 font-sans pt-3 border-t border-slate-200">
-            <div className="font-bold text-slate-700">
+          {/* Certificate Footer Notice */}
+          <div className="pt-6 border-t border-stone-200 text-center space-y-1">
+            <div className="text-xs font-bold text-stone-700">
               Diterbitkan oleh Platform Simulasi KondangSensei CBT • Hak Cipta © KondangSensei Indonesia
             </div>
-            <div className="text-[9px] text-slate-400">
+            <p className="text-[10px] text-stone-400">
               Pemberitahuan: Dokumen ini diterbitkan oleh KondangSensei Indonesia sebagai lembar evaluasi hasil simulasi mandiri siswa dan bukan merupakan dokumen sertifikasi dari lembaga negara/pihak ketiga manapun.
-            </div>
+            </p>
           </div>
         </div>
       </div>

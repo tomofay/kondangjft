@@ -1,12 +1,62 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+'use client';
+
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Question, UserAnswer, User } from '../types';
-import { Clock, Bookmark, ChevronLeft, ChevronRight, Send, Volume2, AlertTriangle, BookOpen, Check, ZoomIn, ZoomOut, RotateCcw, X } from 'lucide-react';
+import {
+  Clock,
+  Send,
+  AlertTriangle,
+  ChevronLeft,
+  ChevronRight,
+  Bookmark,
+  Volume2,
+  BookOpen,
+  Check,
+  ZoomIn,
+  ZoomOut,
+  RotateCcw,
+  X,
+  Eye,
+  LogOut,
+  Lock,
+  ArrowRight,
+  ShieldAlert,
+  Info
+} from 'lucide-react';
 import { renderFormattedQuestion } from '../lib/formatQuestion';
+
+const ACTIVE_EXAM_STORAGE_KEY = 'kondang_active_exam_session';
+
+interface StoredExamSession {
+  userId?: string;
+  packageId?: number;
+  currentIndex: number;
+  activeSectionIndex: number;
+  timeLeft: number;
+  answers: [number, UserAnswer][];
+  lastSavedAt: number;
+}
+
+function readStoredExamSession(userId?: string, packageId?: number): StoredExamSession | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    const raw = localStorage.getItem(ACTIVE_EXAM_STORAGE_KEY);
+    if (!raw) return null;
+    const data: StoredExamSession = JSON.parse(raw);
+    if (!data || typeof data !== 'object') return null;
+    if (userId && data.userId && data.userId !== userId) return null;
+    if (packageId && data.packageId && data.packageId !== packageId) return null;
+    return data;
+  } catch {
+    return null;
+  }
+}
 
 interface CbtExamEngineProps {
   questions: Question[];
   onSubmitExam: (answers: UserAnswer[], timeSpentSeconds: number) => void;
   user?: User;
+  onExitExam?: () => void;
   onProgressUpdate?: (progress: {
     currentIndex: number;
     currentNumber: number;
@@ -21,11 +71,48 @@ interface CbtExamEngineProps {
 export const CbtExamEngine: React.FC<CbtExamEngineProps> = ({
   questions,
   onSubmitExam,
+  user,
+  onExitExam,
   onProgressUpdate
 }) => {
   const TOTAL_TIME = 60 * 60; // 60 minutes in seconds
-  const [timeLeft, setTimeLeft] = useState(TOTAL_TIME);
-  const [currentIndex, setCurrentIndex] = useState(0);
+
+  const currentPkgId = questions[0]?.packageId || 1;
+  const initialSaved = readStoredExamSession(user?.id, currentPkgId);
+
+  const initialTimeLeft = (() => {
+    if (initialSaved && typeof initialSaved.timeLeft === 'number' && initialSaved.lastSavedAt) {
+      const elapsed = Math.floor((Date.now() - initialSaved.lastSavedAt) / 1000);
+      return Math.max(1, initialSaved.timeLeft - Math.max(0, elapsed));
+    }
+    return TOTAL_TIME;
+  })();
+
+  const [timeLeft, setTimeLeft] = useState(initialTimeLeft);
+  const [currentIndex, setCurrentIndex] = useState(() => {
+    if (initialSaved && typeof initialSaved.currentIndex === 'number') {
+      return Math.max(0, Math.min(Math.max(0, questions.length - 1), initialSaved.currentIndex));
+    }
+    return 0;
+  });
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+
+  // Group questions by Section (S1, S2, S3, S4)
+  const sections = [
+    { key: 'S1', title: 'S1 - Moji to Goi (文字と語彙)', label: 'S1 - Moji to Goi', ja: '文字と語彙', en: 'Script and Vocabulary' },
+    { key: 'S2', title: 'S2 - Kaiwa (会話と表現)', label: 'S2 - Kaiwa', ja: '会話と表現', en: 'Conversation and Expression' },
+    { key: 'S3', title: 'S3 - Chōkai (聴解 / audio)', label: 'S3 - Chōkai (Audio)', ja: '聴解', en: 'Listening Comprehension' },
+    { key: 'S4', title: 'S4 - Dokkai (読解 / bacaan)', label: 'S4 - Dokkai', ja: '読解', en: 'Reading Comprehension' }
+  ];
+
+  // Active section index (0 = S1, 1 = S2, 2 = S3, 3 = S4) Prometric Section Locking
+  const [activeSectionIndex, setActiveSectionIndex] = useState(() => {
+    if (initialSaved && typeof initialSaved.activeSectionIndex === 'number') {
+      return Math.max(0, Math.min(3, initialSaved.activeSectionIndex));
+    }
+    return 0;
+  });
+  const activeSection = sections[activeSectionIndex] || sections[0];
 
   // Store user answers map: questionId -> UserAnswer
   const [answers, setAnswers] = useState<Map<number, UserAnswer>>(() => {
@@ -33,13 +120,97 @@ export const CbtExamEngine: React.FC<CbtExamEngineProps> = ({
     questions.forEach((q) => {
       map.set(q.id, { questionId: q.id, selectedOption: null, isFlagged: false });
     });
+    if (initialSaved && Array.isArray(initialSaved.answers)) {
+      initialSaved.answers.forEach(([qId, ans]) => {
+        if (map.has(qId)) {
+          map.set(qId, ans);
+        }
+      });
+    }
     return map;
   });
 
+  // Restore saved state when questions arrive after initial render
+  useEffect(() => {
+    if (questions.length === 0) return;
+    const pkg = questions[0]?.packageId || 1;
+    const saved = readStoredExamSession(user?.id, pkg);
+    if (!saved) return;
+
+    setAnswers((prev) => {
+      const map = new Map<number, UserAnswer>();
+      questions.forEach((q) => {
+        map.set(q.id, { questionId: q.id, selectedOption: null, isFlagged: false });
+      });
+      if (Array.isArray(saved.answers)) {
+        saved.answers.forEach(([qId, ans]) => {
+          if (map.has(qId)) {
+            map.set(qId, ans);
+          }
+        });
+      }
+      return map;
+    });
+
+    if (typeof saved.currentIndex === 'number') {
+      setCurrentIndex(Math.max(0, Math.min(questions.length - 1, saved.currentIndex)));
+    }
+    if (typeof saved.activeSectionIndex === 'number') {
+      setActiveSectionIndex(Math.max(0, Math.min(3, saved.activeSectionIndex)));
+    }
+    if (typeof saved.timeLeft === 'number' && saved.lastSavedAt) {
+      const elapsed = Math.floor((Date.now() - saved.lastSavedAt) / 1000);
+      setTimeLeft(Math.max(1, saved.timeLeft - Math.max(0, elapsed)));
+    }
+  }, [questions, user?.id]);
+
+  // Persist live session state to localStorage
+  const saveLiveState = useCallback(() => {
+    if (!user?.id || questions.length === 0) return;
+    try {
+      const pkg = questions[0]?.packageId || 1;
+      const data: StoredExamSession = {
+        userId: user.id,
+        packageId: pkg,
+        currentIndex,
+        activeSectionIndex,
+        timeLeft,
+        answers: Array.from(answers.entries()),
+        lastSavedAt: Date.now()
+      };
+      localStorage.setItem(ACTIVE_EXAM_STORAGE_KEY, JSON.stringify(data));
+    } catch (err) {
+      console.warn('Failed to save exam state to localStorage:', err);
+    }
+  }, [user?.id, questions, currentIndex, activeSectionIndex, timeLeft, answers]);
+
+  useEffect(() => {
+    saveLiveState();
+  }, [saveLiveState]);
+
+  // Beforeunload protection: warn candidate before reload/navigation
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      saveLiveState();
+      e.preventDefault();
+      e.returnValue = 'Ujian CBT sedang berlangsung. Jika Anda memuat ulang, progres jawaban Anda tetap tersimpan.';
+      return 'Ujian CBT sedang berlangsung. Jika Anda memuat ulang, progres jawaban Anda tetap tersimpan.';
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [saveLiveState]);
+
+  // Modals state
   const [confirmModalOpen, setConfirmModalOpen] = useState(false);
+  const [sectionTransitionModalOpen, setSectionTransitionModalOpen] = useState(false);
+  const [exitModalOpen, setExitModalOpen] = useState(false);
+  const [lockedToastMessage, setLockedToastMessage] = useState<string | null>(null);
+
+  // Image zoom lightbox
   const [zoomedImageUrl, setZoomedImageUrl] = useState<string | null>(null);
   const [zoomScale, setZoomScale] = useState(1);
 
+  // Keyboard shortcut for escape
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
@@ -51,6 +222,9 @@ export const CbtExamEngine: React.FC<CbtExamEngineProps> = ({
   }, []);
 
   const handleFinishExam = useCallback(() => {
+    try {
+      localStorage.removeItem(ACTIVE_EXAM_STORAGE_KEY);
+    } catch {}
     const timeSpent = TOTAL_TIME - timeLeft;
     const answerList = Array.from(answers.values());
     onSubmitExam(answerList, timeSpent);
@@ -110,18 +284,18 @@ export const CbtExamEngine: React.FC<CbtExamEngineProps> = ({
     return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
   };
 
-  const currentQ = questions[currentIndex];
-  const currentAnswer = answers.get(currentQ.id) || {
-    questionId: currentQ.id,
+  const currentQ = questions[currentIndex] || questions[0];
+  const currentAnswer = (currentQ && answers.get(currentQ.id)) || {
+    questionId: currentQ?.id || 1,
     selectedOption: null,
     isFlagged: false
   };
 
   const handleSelectOption = (key: 'A' | 'B' | 'C' | 'D') => {
+    if (!currentQ) return;
     setAnswers((prev) => {
       const next = new Map(prev);
       const curr = next.get(currentQ.id) || { questionId: currentQ.id, selectedOption: null, isFlagged: false };
-      // Toggle if already selected
       const newOpt = curr.selectedOption === key ? null : key;
       next.set(currentQ.id, { ...curr, selectedOption: newOpt });
       return next;
@@ -129,6 +303,7 @@ export const CbtExamEngine: React.FC<CbtExamEngineProps> = ({
   };
 
   const handleToggleFlag = () => {
+    if (!currentQ) return;
     setAnswers((prev) => {
       const next = new Map(prev);
       const curr = next.get(currentQ.id) || { questionId: currentQ.id, selectedOption: null, isFlagged: false };
@@ -136,12 +311,9 @@ export const CbtExamEngine: React.FC<CbtExamEngineProps> = ({
       return next;
     });
   };
-  // Derived statistics for palette
-  const answeredCount = Array.from(answers.values()).filter(a => a.selectedOption !== null).length;
-  const flaggedCount = Array.from(answers.values()).filter(a => a.isFlagged).length;
-  const unansweredCount = questions.length - answeredCount;
 
   const handleClearAnswer = () => {
+    if (!currentQ) return;
     setAnswers((prev) => {
       const next = new Map(prev);
       const curr = next.get(currentQ.id) || { questionId: currentQ.id, selectedOption: null, isFlagged: false };
@@ -150,373 +322,731 @@ export const CbtExamEngine: React.FC<CbtExamEngineProps> = ({
     });
   };
 
+  // Section specific questions & indices
+  const activeSectionQuestions = questions
+    .map((q, idx) => ({ ...q, globalIdx: idx }))
+    .filter((q) => q.section === activeSection.key);
 
+  const activeSectionFirstIdx = activeSectionQuestions[0]?.globalIdx ?? 0;
+  const activeSectionLastIdx = activeSectionQuestions[activeSectionQuestions.length - 1]?.globalIdx ?? 0;
 
-  // Stats for palette
-  // (Removed redundant lock state; lock handling is managed at the page level)
+  // Stats for the active section
+  const activeSecAnsweredCount = activeSectionQuestions.filter((q) => {
+    const a = answers.get(q.id);
+    return a && a.selectedOption !== null;
+  }).length;
+  const activeSecFlaggedCount = activeSectionQuestions.filter((q) => {
+    const a = answers.get(q.id);
+    return a && a.isFlagged;
+  }).length;
+  const activeSecUnansweredCount = activeSectionQuestions.length - activeSecAnsweredCount;
 
+  // Overall statistics
+  const totalAnsweredCount = Array.from(answers.values()).filter((a) => a.selectedOption !== null).length;
+  const totalFlaggedCount = Array.from(answers.values()).filter((a) => a.isFlagged).length;
+  const totalUnansweredCount = questions.length - totalAnsweredCount;
 
-
-  // Jump to section
-  const jumpToSection = (sectionKey: 'S1' | 'S2' | 'S3' | 'S4') => {
-    const idx = questions.findIndex((q) => q.section === sectionKey);
-    if (idx !== -1) {
-      setCurrentIndex(idx);
+  // Handle question click from palette (Section Locking Enforcement)
+  const handleSelectQuestion = (globalIdx: number, sectionKey: string) => {
+    if (sectionKey === activeSection.key) {
+      setCurrentIndex(globalIdx);
+    } else {
+      const targetSecIdx = sections.findIndex((s) => s.key === sectionKey);
+      if (targetSecIdx < activeSectionIndex) {
+        showLockedToast(
+          `🔒 Seksi ${sectionKey} telah diselesaikan dan dikunci permanen. Anda tidak dapat kembali mengubah jawaban pada seksi yang telah lewat.`
+        );
+      } else {
+        showLockedToast(
+          `🔒 Seksi ${sectionKey} masih terkunci. Anda harus menyelesaikan Seksi ${activeSection.key} (${activeSection.ja}) terlebih dahulu.`
+        );
+      }
     }
   };
 
+  const showLockedToast = (msg: string) => {
+    setLockedToastMessage(msg);
+    setTimeout(() => {
+      setLockedToastMessage(null);
+    }, 3500);
+  };
+
+  // Navigation handlers
+  const isFirstOfActiveSection = currentIndex === activeSectionFirstIdx;
+  const isLastOfActiveSection = currentIndex === activeSectionLastIdx;
+
+  const handlePrevQuestion = () => {
+    if (!isFirstOfActiveSection) {
+      setCurrentIndex((prev) => Math.max(activeSectionFirstIdx, prev - 1));
+    }
+  };
+
+  const handleNextQuestion = () => {
+    if (!isLastOfActiveSection) {
+      setCurrentIndex((prev) => Math.min(activeSectionLastIdx, prev + 1));
+    } else {
+      // Reached the end of the current section
+      if (activeSectionIndex < sections.length - 1) {
+        setSectionTransitionModalOpen(true);
+      } else {
+        setConfirmModalOpen(true);
+      }
+    }
+  };
+
+  // Advance to next section from confirmation modal
+  const handleProceedToNextSection = () => {
+    const nextSecIdx = activeSectionIndex + 1;
+    if (nextSecIdx < sections.length) {
+      setActiveSectionIndex(nextSecIdx);
+      const nextKey = sections[nextSecIdx].key;
+      const nextFirst = questions.findIndex((q) => q.section === nextKey);
+      if (nextFirst !== -1) {
+        setCurrentIndex(nextFirst);
+      }
+    }
+    setSectionTransitionModalOpen(false);
+  };
+
+  if (!questions || questions.length === 0) {
+    return (
+      <div className="bg-white rounded-3xl border border-stone-200 p-12 text-center max-w-md mx-auto my-12 shadow-sm">
+        <div className="w-10 h-10 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+        <h3 className="font-bold text-stone-900 text-sm">Menyiapkan Lembar Ujian CBT...</h3>
+        <p className="text-xs text-stone-500 mt-1">Mengambil butir soal dan memulihkan sesi ujian Anda.</p>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col select-none font-sans">
-      {/* Top CBT Header */}
-      <header className="bg-slate-900 border-b border-slate-800 px-3 sm:px-6 py-2.5 sm:py-3 flex items-center justify-between shadow-md shrink-0">
-        <div className="flex items-center gap-2 sm:gap-4">
-          <div className="px-2 sm:px-3 py-1 bg-red-600 font-extrabold text-xs sm:text-base md:text-lg text-white rounded tracking-wider shadow shrink-0">
-            JFT CBT
-          </div>
+    <div className="bg-[#f8fafc] text-stone-900 rounded-3xl border border-stone-200/90 shadow-sm flex flex-col md:flex-row overflow-hidden min-h-[84vh] relative">
+      {/* Toast Alert for Section Lock Notification */}
+      {lockedToastMessage && (
+        <div className="fixed top-20 left-1/2 -translate-x-1/2 z-60 bg-stone-900/95 text-white px-5 py-3 rounded-2xl shadow-2xl text-xs font-bold flex items-center gap-2 border border-amber-400/40 animate-in fade-in slide-in-from-top-4 max-w-md text-center">
+          <ShieldAlert className="w-4 h-4 text-amber-400 shrink-0" />
+          <span>{lockedToastMessage}</span>
+        </div>
+      )}
+
+      {/* Left Sidebar: Prometric Navigation with Section Lock */}
+      <aside
+        className={`${
+          sidebarOpen ? 'w-full md:w-72 lg:w-80' : 'w-0 hidden md:hidden'
+        } bg-white border-r border-stone-200 p-4 sm:p-5 flex flex-col space-y-4 overflow-y-auto shrink-0 transition-all duration-200`}
+      >
+        <div className="flex items-center justify-between border-b border-stone-100 pb-3">
           <div>
-            <h1 className="text-xs sm:text-sm font-bold text-white leading-tight">Simulasi JFT-Basic</h1>
-            <p className="text-[10px] sm:text-xs text-slate-400 hidden xs:block">50 Soal • Sesi Aktif</p>
-          </div>
-        </div>
-
-        {/* Section Navigation Tabs */}
-        <div className="hidden lg:flex items-center gap-1 bg-slate-800 p-1 rounded-xl text-xs font-semibold">
-          <button
-            onClick={() => jumpToSection('S1')}
-            className={`px-3 py-1.5 rounded-lg transition ${
-              currentQ.section === 'S1' ? 'bg-indigo-600 text-white shadow font-bold' : 'text-slate-400 hover:text-white'
-            }`}
-          >
-            S1: Moji Goi (12)
-          </button>
-          <button
-            onClick={() => jumpToSection('S2')}
-            className={`px-3 py-1.5 rounded-lg transition ${
-              currentQ.section === 'S2' ? 'bg-indigo-600 text-white shadow font-bold' : 'text-slate-400 hover:text-white'
-            }`}
-          >
-            S2: Kaiwa (12)
-          </button>
-          <button
-            onClick={() => jumpToSection('S3')}
-            className={`px-3 py-1.5 rounded-lg transition ${
-              currentQ.section === 'S3' ? 'bg-indigo-600 text-white shadow font-bold' : 'text-slate-400 hover:text-white'
-            }`}
-          >
-            S3: Chōkai (13)
-          </button>
-          <button
-            onClick={() => jumpToSection('S4')}
-            className={`px-3 py-1.5 rounded-lg transition ${
-              currentQ.section === 'S4' ? 'bg-indigo-600 text-white shadow font-bold' : 'text-slate-400 hover:text-white'
-            }`}
-          >
-            S4: Dokkai (13)
-          </button>
-        </div>
-
-        {/* Timer & Submit */}
-        <div className="flex items-center gap-2 sm:gap-4">
-          <div
-            className={`flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-xl border text-xs sm:text-sm font-mono font-bold shadow ${
-              timeLeft < 300
-                ? 'bg-red-950/80 border-red-600 text-red-400 animate-pulse'
-                : 'bg-slate-800 border-slate-700 text-amber-400'
-            }`}
-          >
-            <Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
-            <span>{formatTime(timeLeft)}</span>
-          </div>
-
-          <button
-            onClick={() => setConfirmModalOpen(true)}
-            className="py-1.5 sm:py-2 px-2.5 sm:px-4 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl shadow-lg transition flex items-center gap-1.5 shrink-0"
-          >
-            <Send className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-            <span className="hidden xs:inline sm:inline">Selesai Ujian</span>
-            <span className="xs:hidden sm:hidden">Kirim</span>
-          </button>
-        </div>
-      </header>
-
-      {/* Main Body */}
-      <div className="flex-1 flex flex-col md:flex-row overflow-hidden">
-        {/* Left / Middle: Question Workspace */}
-        <main className="flex-1 flex flex-col p-3 sm:p-5 md:p-6 overflow-y-auto space-y-4 sm:space-y-6">
-          {/* Question Header Card */}
-          <div className="flex items-center justify-between bg-slate-900 p-4 rounded-2xl border border-slate-800 shadow">
-            <div className="flex items-center gap-3">
-              <span className="w-9 h-9 rounded-xl bg-indigo-600 text-white font-extrabold flex items-center justify-center text-sm">
-                #{currentQ.number}
+            <div className="flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+              <span className="text-[10px] font-black uppercase text-indigo-700 tracking-wider">
+                PROMETRIC CBT ENGINE
               </span>
-              <div>
-                <span className="text-xs font-bold text-indigo-400 uppercase tracking-wider">
-                  {currentQ.sectionTitle}
-                </span>
-                <p className="text-xs text-slate-400">Soal {currentIndex + 1} dari 50</p>
-              </div>
             </div>
+            <h2 className="text-base font-black text-stone-900 leading-tight">
+              Navigasi Soal
+            </h2>
+          </div>
+          <button
+            onClick={() => setSidebarOpen(false)}
+            className="text-xs px-2.5 py-1 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-600 font-bold transition md:hidden cursor-pointer"
+          >
+            Tutup
+          </button>
+        </div>
 
+        {/* Prometric Active Section Indicator Pill */}
+        <div className="p-3 rounded-2xl bg-gradient-to-r from-indigo-50/80 to-sky-50/80 border border-indigo-200/80 space-y-1">
+          <div className="text-[10px] font-black uppercase text-indigo-700 tracking-wide flex items-center justify-between">
+            <span>Seksi Aktif ({activeSectionIndex + 1}/4):</span>
+            <span className="font-mono text-emerald-700 font-bold">Terbuka</span>
+          </div>
+          <div className="font-bold text-xs text-stone-900 flex items-center gap-1.5">
+            <span className="font-japanese text-sm">{activeSection.ja}</span>
+            <span className="text-stone-500 text-[11px]">({activeSection.en})</span>
+          </div>
+          <div className="text-[10px] text-stone-500 leading-tight pt-0.5">
+            Soal terjawab: <strong className="text-indigo-900">{activeSecAnsweredCount}</strong> / {activeSectionQuestions.length}
+          </div>
+        </div>
+
+        {/* Legend Indicator */}
+        <div className="grid grid-cols-2 gap-2 text-[11px] bg-stone-50 p-2.5 rounded-xl border border-stone-200">
+          <div className="flex items-center gap-1.5">
+            <span className="w-2.5 h-2.5 rounded-full bg-indigo-600"></span>
+            <span className="text-stone-700 font-medium">Aktif</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+            <span className="text-stone-700 font-medium">Dijawab</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className="w-2.5 h-2.5 rounded-full bg-amber-400"></span>
+            <span className="text-stone-700 font-medium">Ragu-ragu</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className="w-2.5 h-2.5 rounded-full bg-stone-300"></span>
+            <span className="text-stone-700 font-medium">Belum / Terkunci</span>
+          </div>
+        </div>
+
+        {/* Section Groups (S1, S2, S3, S4) with Locked State Visualization */}
+        <div className="space-y-4 flex-1">
+          {sections.map((sec, secIdx) => {
+            const secQuestions = questions
+              .map((q, idx) => ({ ...q, globalIdx: idx }))
+              .filter((q) => q.section === sec.key);
+
+            if (secQuestions.length === 0) return null;
+
+            const isCurrentSection = secIdx === activeSectionIndex;
+            const isCompletedSection = secIdx < activeSectionIndex;
+            const isFutureSection = secIdx > activeSectionIndex;
+
+            return (
+              <div
+                key={sec.key}
+                className={`space-y-2 p-2.5 rounded-2xl border transition ${
+                  isCurrentSection
+                    ? 'bg-white border-indigo-200 shadow-xs ring-1 ring-indigo-500/10'
+                    : isCompletedSection
+                    ? 'bg-stone-50/70 border-stone-200 opacity-60'
+                    : 'bg-stone-100/50 border-stone-200/80 opacity-50'
+                }`}
+              >
+                {/* Section Header */}
+                <div className="text-xs font-black text-stone-700 flex items-center justify-between border-b border-stone-100 pb-1.5">
+                  <div className="flex items-center gap-1.5">
+                    {isCurrentSection ? (
+                      <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+                    ) : (
+                      <Lock className="w-3 h-3 text-stone-400" />
+                    )}
+                    <span>{sec.label}</span>
+                  </div>
+
+                  <span className="text-[10px] font-mono font-bold">
+                    {isCurrentSection ? (
+                      <span className="text-indigo-600 font-black">SEDANG AKTIF</span>
+                    ) : isCompletedSection ? (
+                      <span className="text-stone-500">DIKUNCI (SELESAI)</span>
+                    ) : (
+                      <span className="text-stone-400">TERKUNCI</span>
+                    )}
+                  </span>
+                </div>
+
+                {/* 4-Column Number Grid */}
+                <div className="grid grid-cols-4 gap-2 pt-0.5">
+                  {secQuestions.map((sq) => {
+                    const ans = answers.get(sq.id);
+                    const isAnswered = ans?.selectedOption !== null;
+                    const isFlagged = ans?.isFlagged;
+                    const isCurrent = sq.globalIdx === currentIndex;
+
+                    let btnClasses = '';
+
+                    if (!isCurrentSection) {
+                      // Disabled/locked question
+                      btnClasses = 'bg-stone-100 border-stone-200 text-stone-400 cursor-not-allowed';
+                    } else if (isCurrent) {
+                      btnClasses = 'bg-indigo-600 border-indigo-600 text-white font-black shadow-sm ring-2 ring-indigo-400/40 cursor-pointer';
+                    } else if (isFlagged) {
+                      btnClasses = 'bg-amber-50 border-amber-400 text-amber-800 font-bold hover:bg-amber-100 cursor-pointer';
+                    } else if (isAnswered) {
+                      btnClasses = 'bg-emerald-50 border-emerald-300 text-emerald-800 font-bold hover:bg-emerald-100 cursor-pointer';
+                    } else {
+                      btnClasses = 'bg-white border-stone-200 text-stone-700 hover:border-indigo-300 hover:bg-indigo-50/40 cursor-pointer';
+                    }
+
+                    return (
+                      <button
+                        key={sq.id}
+                        type="button"
+                        onClick={() => handleSelectQuestion(sq.globalIdx, sec.key)}
+                        className={`h-9 rounded-xl border text-xs font-mono transition flex items-center justify-center relative ${btnClasses}`}
+                        title={
+                          !isCurrentSection
+                            ? isCompletedSection
+                              ? 'Seksi ini telah selesai dan dikunci'
+                              : 'Seksi ini belum terbuka'
+                            : `Soal #${sq.number}`
+                        }
+                      >
+                        {!isCurrentSection && (
+                          <Lock className="w-2.5 h-2.5 absolute top-1 right-1 text-stone-400 opacity-60" />
+                        )}
+                        <span>{sq.number}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Sidebar Action Button */}
+        <div className="pt-2 border-t border-stone-100">
+          {activeSectionIndex < sections.length - 1 ? (
             <button
-              onClick={handleToggleFlag}
-              className={`py-1.5 px-3 rounded-xl border text-xs font-semibold flex items-center gap-1.5 transition ${
-                currentAnswer.isFlagged
-                  ? 'bg-amber-500/20 border-amber-500 text-amber-300 font-bold'
-                  : 'bg-slate-800 border-slate-700 text-slate-400 hover:text-slate-200'
+              onClick={() => setSectionTransitionModalOpen(true)}
+              className="w-full py-2.5 px-3 bg-gradient-to-r from-amber-500 via-orange-500 to-rose-600 hover:from-amber-600 hover:to-rose-700 text-white font-black text-xs rounded-xl shadow-xs transition flex items-center justify-center gap-1.5 cursor-pointer"
+            >
+              <span>Selesai Seksi {activeSection.key} ➔</span>
+            </button>
+          ) : (
+            <button
+              onClick={() => setConfirmModalOpen(true)}
+              className="w-full py-2.5 px-3 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-black text-xs rounded-xl shadow-xs transition flex items-center justify-center gap-1.5 cursor-pointer"
+            >
+              <Send className="w-3.5 h-3.5" />
+              <span>Selesai Seluruh Ujian</span>
+            </button>
+          )}
+        </div>
+      </aside>
+
+      {/* Main CBT Exam Area */}
+      <div className="flex-1 flex flex-col bg-[#f8fafc] overflow-y-auto">
+        {/* Top Header Bar */}
+        <header className="bg-white border-b border-stone-200 px-4 sm:px-6 py-3.5 flex flex-wrap items-center justify-between gap-3 shadow-2xs">
+          <div className="flex items-center gap-3">
+            {!sidebarOpen && (
+              <button
+                onClick={() => setSidebarOpen(true)}
+                className="py-1 px-2.5 rounded-lg bg-stone-100 hover:bg-stone-200 text-stone-700 text-xs font-bold transition flex items-center gap-1 cursor-pointer"
+              >
+                <Eye className="w-3.5 h-3.5 text-indigo-600" />
+                <span className="hidden sm:inline">Navigasi</span>
+              </button>
+            )}
+
+            <div className="flex items-center gap-2">
+              <span className="px-2.5 py-1 rounded-lg bg-indigo-50 border border-indigo-200 text-indigo-700 font-mono text-xs font-black">
+                {activeSection.key}
+              </span>
+              <h1 className="text-sm sm:text-base font-black text-stone-900 tracking-tight">
+                {currentQ?.sectionTitle || activeSection.title} — Soal {currentQ?.number}
+              </h1>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2.5">
+            {/* Timer Badge (Sky Blue Normal, Amber Urgent) */}
+            <div
+              className={`px-3.5 py-1.5 rounded-xl border text-xs font-mono font-black shadow-2xs flex items-center gap-1.5 ${
+                timeLeft < 300
+                  ? 'bg-amber-50 border-amber-300 text-amber-800 animate-pulse'
+                  : 'bg-sky-50 border-sky-200 text-sky-800'
               }`}
             >
-              <Bookmark className="w-4 h-4" />
-              {currentAnswer.isFlagged ? 'Ragu-ragu (Ditandai)' : 'Tandai Ragu-ragu'}
+              <Clock className="w-3.5 h-3.5 text-sky-600" />
+              <span>Waktu: {formatTime(timeLeft)}</span>
+            </div>
+
+            {/* Keluar Button */}
+            <button
+              onClick={() => setExitModalOpen(true)}
+              className="py-1.5 px-3 bg-stone-100 hover:bg-stone-200 text-stone-700 text-xs font-bold rounded-xl border border-stone-200 transition cursor-pointer"
+            >
+              Keluar
             </button>
+
+            {/* Selesai Seksi / Ujian Button */}
+            {activeSectionIndex < sections.length - 1 ? (
+              <button
+                onClick={() => setSectionTransitionModalOpen(true)}
+                className="py-1.5 px-3.5 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white text-xs font-black rounded-xl shadow-xs transition flex items-center gap-1.5 cursor-pointer"
+              >
+                <span>Selesai Seksi {activeSection.key} ➔</span>
+              </button>
+            ) : (
+              <button
+                onClick={() => setConfirmModalOpen(true)}
+                className="py-1.5 px-4 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white text-xs font-black rounded-xl shadow-xs transition flex items-center gap-1.5 cursor-pointer"
+              >
+                <span>Selesai & Nilai</span>
+              </button>
+            )}
+          </div>
+        </header>
+
+        {/* Question Workspace Content */}
+        <main className="flex-1 p-4 sm:p-6 md:p-8 space-y-5 max-w-4xl w-full mx-auto">
+          {/* Section Rule Reminder Banner */}
+          <div className="p-3 bg-amber-50 border border-amber-200 rounded-2xl text-[11px] text-amber-900 font-medium flex items-center justify-between gap-3 shadow-2xs">
+            <div className="flex items-center gap-2">
+              <Info className="w-4 h-4 text-amber-600 shrink-0" />
+              <span>
+                <strong>Aturan Prometric:</strong> Anda saat ini sedang mengerjakan{' '}
+                <strong className="underline">{activeSection.ja} ({activeSection.en})</strong>. Selesaikan seluruh soal pada seksi ini sebelum melanjutkan ke seksi berikutnya.
+              </span>
+            </div>
+            <span className="font-mono text-amber-800 font-bold shrink-0">
+              {activeSecAnsweredCount}/{activeSectionQuestions.length} Terjawab
+            </span>
           </div>
 
-          {/* Reading Passage (Dokkai S4 Split View) */}
-          {currentQ.readingPassage && (
-            <div className="p-4 bg-slate-900/90 rounded-2xl border border-indigo-900/50 space-y-2 text-xs text-slate-200 font-japanese leading-relaxed">
-              <div className="text-[11px] font-bold text-indigo-400 uppercase tracking-wider border-b border-slate-800 pb-1 flex items-center gap-1.5">
-                <BookOpen className="w-3.5 h-3.5" />
-                Teks Bacaan (Dokkai):
+          {/* Question Box Container */}
+          <div className="bg-white border border-stone-200/90 rounded-2xl p-5 sm:p-7 shadow-xs space-y-5">
+            {/* Reading Passage (Dokkai S4) */}
+            {currentQ?.readingPassage && (
+              <div className="p-4 sm:p-5 bg-stone-50 rounded-2xl border border-stone-200 space-y-2 text-xs sm:text-sm text-stone-800 font-japanese leading-relaxed">
+                <div className="text-[11px] font-black text-emerald-700 uppercase tracking-wider border-b border-stone-200 pb-1 flex items-center gap-1.5">
+                  <BookOpen className="w-3.5 h-3.5" />
+                  <span>Teks Bacaan (Dokkai / 読解):</span>
+                </div>
+                <div className="whitespace-pre-line leading-relaxed">
+                  {currentQ.readingPassage}
+                </div>
               </div>
-              <div className="whitespace-pre-line leading-relaxed">{currentQ.readingPassage}</div>
-            </div>
-          )}
-
-          {/* Question Main Text */}
-          <div className="bg-slate-900 p-6 rounded-2xl border border-slate-800 shadow-md space-y-4">
-            <div className="text-base font-semibold text-white leading-relaxed font-japanese whitespace-pre-line">
-              {renderFormattedQuestion(currentQ.questionText)}
-            </div>
+            )}
 
             {/* Audio Player for Chōkai (Listening) */}
-            {currentQ.audioUrl && (
-              <div className="p-4 bg-slate-950 rounded-xl border border-indigo-800/60 space-y-2">
-                <div className="flex items-center justify-between text-xs text-indigo-300 font-semibold">
-                  <span className="flex items-center gap-1">
-                    <Volume2 className="w-4 h-4 text-indigo-400 animate-pulse" />
-                    Pemutar Audio Chōkai (Audio Player)
+            {currentQ?.audioUrl && (
+              <div className="p-4 bg-sky-50/60 rounded-2xl border border-sky-200 space-y-2">
+                <div className="flex items-center justify-between text-xs text-sky-900 font-bold">
+                  <span className="flex items-center gap-1.5">
+                    <Volume2 className="w-4 h-4 text-sky-600 animate-pulse" />
+                    Pemutar Audio Chōkai (聴解 Audio)
                   </span>
-                  <span className="text-[11px] text-slate-400">Putar ulang audio per soal</span>
+                  <span className="text-[11px] text-stone-500 font-normal">
+                    Putar rekaman audio soal JFT
+                  </span>
                 </div>
                 <audio
                   key={currentQ.audioUrl + '_' + currentQ.id}
                   controls
                   preload="auto"
-                  className="w-full h-10 rounded-lg shadow-inner"
+                  className="w-full h-10 rounded-xl"
                   src={currentQ.audioUrl}
                 >
-                  <source src={currentQ.audioUrl} type={currentQ.audioUrl.endsWith('.ogg') ? 'audio/ogg' : 'audio/mpeg'} />
+                  <source
+                    src={currentQ.audioUrl}
+                    type={currentQ.audioUrl.endsWith('.ogg') ? 'audio/ogg' : 'audio/mpeg'}
+                  />
                   Browser Anda tidak mendukung pemutar audio.
                 </audio>
               </div>
             )}
 
             {/* Image attachment if any (Clickable to zoom) */}
-            {currentQ.imageUrl && (
-              <div className="my-3 text-center">
+            {currentQ?.imageUrl && (
+              <div className="text-center py-2">
                 <div
                   onClick={() => {
                     setZoomedImageUrl(currentQ.imageUrl!);
                     setZoomScale(1);
                   }}
-                  className="relative inline-block group cursor-zoom-in rounded-2xl overflow-hidden border border-slate-700 bg-slate-950/60 p-1.5 shadow-lg hover:border-indigo-500 transition"
+                  className="relative inline-block group cursor-zoom-in rounded-2xl overflow-hidden border border-stone-200 bg-stone-50 p-1.5 shadow-xs hover:border-indigo-400 transition"
                   title="Klik untuk memperbesar gambar"
                 >
                   <img
                     src={currentQ.imageUrl}
-                    alt="Attachment Soal"
-                    className="max-h-60 sm:max-h-72 rounded-xl object-contain mx-auto transition transform group-hover:scale-[1.02]"
+                    alt="Lampiran Soal"
+                    className="max-h-60 sm:max-h-72 rounded-xl object-contain mx-auto transition transform group-hover:scale-[1.01]"
                   />
-                  <div className="absolute bottom-3 right-3 px-3 py-1.5 bg-slate-900/90 hover:bg-slate-900 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-xl backdrop-blur-md border border-slate-700 pointer-events-none group-hover:border-indigo-500">
-                    <ZoomIn className="w-3.5 h-3.5 text-indigo-400" />
-                    <span>Klik untuk Perbesar</span>
+                  <div className="absolute bottom-3 right-3 px-3 py-1 bg-white/95 text-stone-800 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-md border border-stone-200 pointer-events-none group-hover:text-indigo-600">
+                    <ZoomIn className="w-3.5 h-3.5 text-indigo-600" />
+                    <span>Perbesar</span>
                   </div>
                 </div>
               </div>
             )}
+
+            {/* Question Text Main */}
+            <div className="text-sm sm:text-base font-semibold text-stone-900 leading-relaxed font-japanese whitespace-pre-line">
+              {renderFormattedQuestion(currentQ?.questionText || '')}
+            </div>
+
+            {/* Options Choice List */}
+            <div className="space-y-3 pt-2">
+              {currentQ?.options?.map((opt) => {
+                const isSelected = currentAnswer.selectedOption === opt.key;
+
+                return (
+                  <button
+                    key={opt.key}
+                    type="button"
+                    onClick={() => handleSelectOption(opt.key)}
+                    className={`w-full p-4 rounded-xl border text-left transition flex items-center justify-between cursor-pointer ${
+                      isSelected
+                        ? 'border-2 border-indigo-600 bg-indigo-50/70 text-stone-900 shadow-2xs ring-1 ring-indigo-500/30'
+                        : 'border border-stone-200 hover:border-indigo-300 hover:bg-stone-50/70 text-stone-800 bg-white'
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <span
+                        className={`w-7 h-7 rounded-lg font-black flex items-center justify-center text-xs transition ${
+                          isSelected
+                            ? 'bg-indigo-600 text-white'
+                            : 'bg-stone-100 text-stone-700 border border-stone-200'
+                        }`}
+                      >
+                        {opt.key}.
+                      </span>
+                      <span className="text-sm font-semibold font-japanese leading-snug">
+                        {opt.text}
+                      </span>
+                    </div>
+
+                    {isSelected && (
+                      <div className="w-5 h-5 rounded-full bg-indigo-600 flex items-center justify-center text-white shrink-0">
+                        <Check className="w-3 h-3 stroke-[3]" />
+                      </div>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
           </div>
 
-          {/* Options Choice Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {currentQ.options.map((opt) => {
-              const isSelected = currentAnswer.selectedOption === opt.key;
-
-              return (
-                <button
-                  key={opt.key}
-                  onClick={() => handleSelectOption(opt.key)}
-                  className={`p-4 rounded-2xl border text-left transition flex items-center justify-between ${
-                    isSelected
-                      ? 'bg-indigo-600/20 border-indigo-500 text-white shadow-lg ring-2 ring-indigo-500/50'
-                      : 'bg-slate-900 border-slate-800 text-slate-300 hover:border-slate-700 hover:bg-slate-850'
-                  }`}
-                >
-                  <div className="flex items-center gap-3">
-                    <div
-                      className={`w-8 h-8 rounded-xl font-bold flex items-center justify-center text-xs transition ${
-                        isSelected
-                          ? 'bg-indigo-600 text-white'
-                          : 'bg-slate-800 text-slate-400 border border-slate-700'
-                      }`}
-                    >
-                      {opt.key}
-                    </div>
-                    <span className="text-sm font-medium font-japanese">{opt.text}</span>
-                  </div>
-
-                  {isSelected && (
-                    <div className="w-4 h-4 rounded-full bg-indigo-500 flex items-center justify-center text-white">
-                      <Check className="w-2.5 h-2.5 stroke-[3]" />
-                    </div>
-                  )}
-                </button>
-              );
-            })}
-          </div>
-
-          {/* Bottom Action Control Bar */}
-          <div className="flex items-center justify-between pt-4 border-t border-slate-800 mt-auto">
+          {/* Bottom Action Bar */}
+          <div className="flex items-center justify-between pt-2">
             <button
-              onClick={() => setCurrentIndex((prev) => Math.max(0, prev - 1))}
-              disabled={currentIndex === 0}
-              className="py-2.5 px-4 bg-slate-900 hover:bg-slate-800 disabled:opacity-40 text-slate-200 text-xs font-semibold rounded-xl border border-slate-800 transition flex items-center gap-1.5"
+              onClick={handlePrevQuestion}
+              disabled={isFirstOfActiveSection}
+              className="py-2.5 px-5 bg-white hover:bg-stone-100 disabled:opacity-40 text-stone-700 text-xs font-bold rounded-xl border border-stone-200 transition flex items-center gap-1.5 cursor-pointer disabled:cursor-not-allowed shadow-2xs"
             >
               <ChevronLeft className="w-4 h-4" />
               Sebelumnya
             </button>
 
-            <button
-              onClick={handleClearAnswer}
-              className="py-2 px-3 text-xs text-slate-400 hover:text-slate-200 hover:bg-slate-900 rounded-lg transition"
-            >
-              Hapus Jawaban
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={handleToggleFlag}
+                className={`py-2 px-3 rounded-xl border text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer ${
+                  currentAnswer.isFlagged
+                    ? 'bg-amber-50 border-amber-300 text-amber-800 font-bold'
+                    : 'bg-white border-stone-200 text-stone-600 hover:bg-stone-100'
+                }`}
+              >
+                <Bookmark className="w-3.5 h-3.5 text-amber-500" />
+                <span>{currentAnswer.isFlagged ? 'Ditandai Ragu' : 'Tandai Ragu'}</span>
+              </button>
 
-            <button
-              onClick={() => setCurrentIndex((prev) => Math.min(questions.length - 1, prev + 1))}
-              disabled={currentIndex === questions.length - 1}
-              className="py-2.5 px-4 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-40 text-white text-xs font-semibold rounded-xl shadow transition flex items-center gap-1.5"
-            >
-              Berikutnya
-              <ChevronRight className="w-4 h-4" />
-            </button>
+              <button
+                onClick={handleClearAnswer}
+                className="py-2 px-3 text-xs text-stone-500 hover:text-stone-800 hover:bg-stone-100 rounded-xl transition cursor-pointer"
+              >
+                Hapus Jawaban
+              </button>
+            </div>
+
+            {isLastOfActiveSection ? (
+              activeSectionIndex < sections.length - 1 ? (
+                <button
+                  onClick={() => setSectionTransitionModalOpen(true)}
+                  className="py-2.5 px-5 bg-gradient-to-r from-amber-500 via-orange-500 to-rose-600 hover:from-amber-600 hover:to-rose-700 text-white text-xs font-black rounded-xl shadow-xs transition flex items-center gap-1.5 cursor-pointer"
+                >
+                  <span>Selesai Seksi {activeSection.key} ➔</span>
+                </button>
+              ) : (
+                <button
+                  onClick={() => setConfirmModalOpen(true)}
+                  className="py-2.5 px-5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white text-xs font-black rounded-xl shadow-xs transition flex items-center gap-1.5 cursor-pointer"
+                >
+                  <span>Selesai & Nilai</span>
+                  <Send className="w-3.5 h-3.5" />
+                </button>
+              )
+            ) : (
+              <button
+                onClick={handleNextQuestion}
+                className="py-2.5 px-5 bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white text-xs font-black rounded-xl shadow-xs transition flex items-center gap-1.5 cursor-pointer"
+              >
+                <span>Berikutnya</span>
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            )}
           </div>
         </main>
-
-        {/* Right Sidebar: Question Palette & Navigation */}
-        <aside className="w-full md:w-80 bg-slate-900 border-l border-slate-800 p-5 flex flex-col space-y-5 overflow-y-auto">
-          <div>
-            <h2 className="text-sm font-bold text-white mb-1">Lembar Nomor Soal</h2>
-            <p className="text-xs text-slate-400">Klik nomor untuk melompat ke soal</p>
-          </div>
-
-          {/* Legend */}
-          <div className="grid grid-cols-2 gap-2 text-[11px] bg-slate-950 p-3 rounded-xl border border-slate-800">
-            <div className="flex items-center gap-2">
-              <span className="w-3 h-3 rounded-full bg-emerald-500"></span>
-              <span className="text-slate-300">Dijawab ({answeredCount})</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="w-3 h-3 rounded-full bg-amber-500"></span>
-              <span className="text-slate-300">Ragu ({flaggedCount})</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="w-3 h-3 rounded-full bg-slate-700"></span>
-              <span className="text-slate-300">Belum ({unansweredCount})</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="w-3 h-3 rounded-full bg-indigo-500 ring-2 ring-white"></span>
-              <span className="text-slate-300">Posisi Saat Ini</span>
-            </div>
-          </div>
-
-          {/* 1 - 50 Grid */}
-          <div className="grid grid-cols-5 gap-2">
-            {questions.map((q, idx) => {
-              const ans = answers.get(q.id);
-              const isAnswered = ans?.selectedOption !== null;
-              const isFlagged = ans?.isFlagged;
-              const isCurrent = idx === currentIndex;
-
-              let btnStyle = 'bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700';
-
-              if (isCurrent) {
-                btnStyle = 'bg-indigo-600 text-white ring-2 ring-white font-extrabold shadow';
-              } else if (isFlagged) {
-                btnStyle = 'bg-amber-500/30 border-amber-500 text-amber-300 font-bold';
-              } else if (isAnswered) {
-                btnStyle = 'bg-emerald-600/30 border-emerald-500 text-emerald-300 font-semibold';
-              }
-
-              return (
-                <button
-                  key={q.id}
-                  onClick={() => setCurrentIndex(idx)}
-                  className={`h-10 rounded-xl text-xs flex flex-col items-center justify-center border transition relative ${btnStyle}`}
-                >
-                  <span>{q.number}</span>
-                  {isFlagged && (
-                    <span className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-amber-400"></span>
-                  )}
-                </button>
-              );
-            })}
-          </div>
-
-          {/* Submit Button in Sidebar */}
-          <div className="pt-4 border-t border-slate-800">
-            <button
-              onClick={() => setConfirmModalOpen(true)}
-              className="w-full py-3 px-4 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-lg transition flex items-center justify-center gap-2"
-            >
-              <Send className="w-4 h-4" />
-              Selesaikan Ujian Sekarang
-            </button>
-          </div>
-        </aside>
       </div>
 
-      {/* Confirmation Modal */}
-      {confirmModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4">
-          <div className="max-w-md w-full bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-2xl space-y-4 text-center">
-            <div className="w-12 h-12 rounded-full bg-amber-500/20 border border-amber-500 text-amber-400 mx-auto flex items-center justify-center">
-              <AlertTriangle className="w-6 h-6" />
+      {/* Prometric Section Transition Confirmation Modal (Lock Enforcement) */}
+      {sectionTransitionModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-stone-900/50 backdrop-blur-xs p-4 animate-in fade-in duration-150">
+          <div className="max-w-md w-full bg-white border border-stone-200 rounded-3xl p-6 sm:p-7 shadow-2xl space-y-4">
+            <div className="w-12 h-12 rounded-2xl bg-amber-50 border border-amber-200 text-amber-600 mx-auto flex items-center justify-center">
+              <Lock className="w-6 h-6" />
             </div>
 
-            <div className="space-y-1">
-              <h3 className="text-lg font-bold text-white">Konfirmasi Penyelesaian Ujian</h3>
-              <p className="text-xs text-slate-400">
-                Apakah Anda yakin ingin mengakhiri sesi simulasi ini?
+            <div className="text-center space-y-1">
+              <span className="text-[10px] font-black uppercase text-amber-700 tracking-wider">
+                PROMETRIC CBT SECTION CONFIRMATION
+              </span>
+              <h3 className="text-lg font-black text-stone-900 font-japanese">
+                セクション終了の確認
+              </h3>
+              <p className="text-xs text-stone-600 font-medium">
+                Konfirmasi Penyelesaian Seksi {activeSection.key}: {activeSection.ja}
               </p>
             </div>
 
-            <div className="p-3 bg-slate-950 rounded-xl border border-slate-800 text-xs text-slate-300 space-y-1">
-              <div className="flex justify-between">
-                <span>Soal Dijawab:</span>
-                <span className="font-bold text-emerald-400">{answeredCount} / {questions.length}</span>
+            {/* Status Statistics for current section */}
+            <div className="p-3.5 bg-stone-50 rounded-2xl border border-stone-200 text-xs text-stone-700 space-y-2">
+              <div className="flex justify-between font-medium">
+                <span>Soal Terjawab pada Seksi Ini:</span>
+                <span className="font-black text-emerald-700">
+                  {activeSecAnsweredCount} / {activeSectionQuestions.length}
+                </span>
               </div>
-              <div className="flex justify-between">
-                <span>Belum Dijawab:</span>
-                <span className="font-bold text-slate-400">{unansweredCount}</span>
+              <div className="flex justify-between font-medium">
+                <span>Belum Terjawab:</span>
+                <span className={`font-bold ${activeSecUnansweredCount > 0 ? 'text-rose-600' : 'text-stone-600'}`}>
+                  {activeSecUnansweredCount} Soal
+                </span>
               </div>
-              <div className="flex justify-between">
-                <span>Ragu-ragu (Ditandai):</span>
-                <span className="font-bold text-amber-400">{flaggedCount}</span>
+              <div className="flex justify-between font-medium">
+                <span>Ditandai Ragu-ragu:</span>
+                <span className="font-bold text-amber-700">{activeSecFlaggedCount} Soal</span>
               </div>
+            </div>
+
+            {/* Prometric Official Warning Callout */}
+            <div className="p-3.5 bg-amber-50 border border-amber-300 rounded-2xl space-y-1 text-xs text-amber-950">
+              <div className="font-bold flex items-center gap-1.5 font-japanese">
+                <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />
+                <span>このセクションを終了して次のセクションに進みますか？</span>
+              </div>
+              <p className="text-[11px] text-amber-900 leading-relaxed pl-5">
+                次のセクションに進むと、前のセクションに戻って回答を確認・変更することはできません。
+              </p>
+              <p className="text-[11px] text-stone-600 leading-relaxed pl-5 font-semibold pt-1">
+                (Setelah melanjutkan ke seksi berikutnya, Anda <strong>TIDAK DAPAT KEMBALI</strong> ke seksi ini untuk mengubah jawaban).
+              </p>
+            </div>
+
+            <div className="flex gap-2.5 pt-2">
+              <button
+                type="button"
+                onClick={() => setSectionTransitionModalOpen(false)}
+                className="flex-1 py-2.5 px-4 bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold text-xs rounded-xl transition cursor-pointer"
+              >
+                Kembali Periksa
+              </button>
+              <button
+                type="button"
+                onClick={handleProceedToNextSection}
+                className="flex-1 py-2.5 px-4 bg-gradient-to-r from-amber-500 via-orange-500 to-rose-600 hover:from-amber-600 hover:to-rose-700 text-white font-black text-xs rounded-xl shadow-xs transition cursor-pointer flex items-center justify-center gap-1"
+              >
+                <span>Lanjut Seksi Berikutnya</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Prometric Final Exam Submission Modal */}
+      {confirmModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-stone-900/50 backdrop-blur-xs p-4 animate-in fade-in duration-150">
+          <div className="max-w-md w-full bg-white border border-stone-200 rounded-3xl p-6 sm:p-7 shadow-2xl space-y-4">
+            <div className="w-12 h-12 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-600 mx-auto flex items-center justify-center">
+              <Check className="w-6 h-6 stroke-[3]" />
+            </div>
+
+            <div className="text-center space-y-1">
+              <span className="text-[10px] font-black uppercase text-emerald-700 tracking-wider">
+                PROMETRIC FINAL SUBMISSION
+              </span>
+              <h3 className="text-lg font-black text-stone-900 font-japanese">
+                試験終了の確認
+              </h3>
+              <p className="text-xs text-stone-600 font-medium">
+                Konfirmasi Pengakhiran Seluruh Ujian CBT
+              </p>
+            </div>
+
+            {/* Total 4 Section Summary */}
+            <div className="p-3.5 bg-stone-50 rounded-2xl border border-stone-200 text-xs text-stone-700 space-y-2">
+              <div className="flex justify-between font-medium">
+                <span>Total Soal Dijawab:</span>
+                <span className="font-black text-emerald-700">
+                  {totalAnsweredCount} / {questions.length}
+                </span>
+              </div>
+              <div className="flex justify-between font-medium">
+                <span>Total Belum Dijawab:</span>
+                <span className="font-bold text-stone-600">{totalUnansweredCount} Soal</span>
+              </div>
+              <div className="flex justify-between font-medium">
+                <span>Total Ragu-ragu:</span>
+                <span className="font-bold text-amber-700">{totalFlaggedCount} Soal</span>
+              </div>
+            </div>
+
+            {/* Prometric Official Warning */}
+            <div className="p-3.5 bg-rose-50 border border-rose-300 rounded-2xl space-y-1 text-xs text-rose-950">
+              <div className="font-bold flex items-center gap-1.5 font-japanese">
+                <AlertTriangle className="w-4 h-4 text-red-600 shrink-0" />
+                <span>すべてのセクションが終了しました。試験を終了しますか？</span>
+              </div>
+              <p className="text-[11px] text-rose-900 leading-relaxed pl-5">
+                試験を終了すると、回答の確認や変更は一切行えなくなります。
+              </p>
+              <p className="text-[11px] text-stone-600 leading-relaxed pl-5 font-semibold pt-1">
+                (Setelah mengonfirmasi, hasil evaluasi dan Lembar Penilaian Resmi akan langsung diterbitkan).
+              </p>
+            </div>
+
+            <div className="flex gap-2.5 pt-2">
+              <button
+                type="button"
+                onClick={() => setConfirmModalOpen(false)}
+                className="flex-1 py-2.5 px-4 bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold text-xs rounded-xl transition cursor-pointer"
+              >
+                Periksa Seksi 4
+              </button>
+              <button
+                type="button"
+                onClick={handleFinishExam}
+                className="flex-1 py-2.5 px-4 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-black text-xs rounded-xl shadow-xs transition cursor-pointer"
+              >
+                Ya, Akhiri Ujian
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Exit Confirmation Modal */}
+      {exitModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-stone-900/40 backdrop-blur-xs p-4 animate-in fade-in duration-150">
+          <div className="max-w-md w-full bg-white border border-stone-200 rounded-3xl p-6 shadow-2xl space-y-4 text-center">
+            <div className="w-12 h-12 rounded-2xl bg-stone-100 text-stone-600 mx-auto flex items-center justify-center">
+              <LogOut className="w-6 h-6" />
+            </div>
+
+            <div className="space-y-1">
+              <h3 className="text-lg font-black text-stone-900">Keluar dari Sesi Ujian?</h3>
+              <p className="text-xs text-stone-500">
+                Pengerjaan saat ini tidak akan disimpan ke rapor bila Anda keluar sebelum menyelesaikan ujian.
+              </p>
             </div>
 
             <div className="flex gap-3 pt-2">
               <button
-                onClick={() => setConfirmModalOpen(false)}
-                className="flex-1 py-2.5 px-4 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold text-xs rounded-xl transition"
+                onClick={() => setExitModalOpen(false)}
+                className="flex-1 py-2.5 px-4 bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold text-xs rounded-xl transition cursor-pointer"
               >
-                Kembali ke Soal
+                Lanjutkan Ujian
               </button>
               <button
-                onClick={handleFinishExam}
-                className="flex-1 py-2.5 px-4 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow transition"
+                onClick={() => {
+                  try {
+                    localStorage.removeItem(ACTIVE_EXAM_STORAGE_KEY);
+                  } catch {}
+                  setExitModalOpen(false);
+                  if (onExitExam) {
+                    onExitExam();
+                  } else {
+                    window.location.reload();
+                  }
+                }}
+                className="flex-1 py-2.5 px-4 bg-red-600 hover:bg-red-700 text-white font-black text-xs rounded-xl transition cursor-pointer"
               >
-                Ya, Selesaikan
+                Keluar ke Dashboard
               </button>
             </div>
           </div>
@@ -526,50 +1056,50 @@ export const CbtExamEngine: React.FC<CbtExamEngineProps> = ({
       {/* Image Zoom Lightbox Modal */}
       {zoomedImageUrl && (
         <div
-          className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-950/90 backdrop-blur-md p-4 animate-in fade-in duration-200"
+          className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-stone-950/80 backdrop-blur-md p-4 animate-in fade-in duration-150"
           onClick={() => setZoomedImageUrl(null)}
         >
           {/* Floating Controls Bar */}
           <div
-            className="fixed top-4 z-50 flex items-center gap-2 p-1.5 bg-slate-900/90 border border-slate-700 rounded-2xl shadow-2xl backdrop-blur-md"
+            className="fixed top-4 z-50 flex items-center gap-2 p-1.5 bg-white border border-stone-200 rounded-2xl shadow-xl"
             onClick={(e) => e.stopPropagation()}
           >
             <button
               type="button"
               onClick={() => setZoomScale((s) => Math.min(3, s + 0.25))}
-              className="p-2 text-slate-300 hover:text-white hover:bg-slate-800 rounded-xl transition flex items-center gap-1 text-xs font-bold"
+              className="p-2 text-stone-700 hover:bg-stone-100 rounded-xl transition flex items-center gap-1 text-xs font-bold cursor-pointer"
               title="Perbesar"
             >
-              <ZoomIn className="w-4 h-4" />
+              <ZoomIn className="w-4 h-4 text-indigo-600" />
               <span className="hidden sm:inline">Perbesar</span>
             </button>
 
             <button
               type="button"
               onClick={() => setZoomScale((s) => Math.max(0.5, s - 0.25))}
-              className="p-2 text-slate-300 hover:text-white hover:bg-slate-800 rounded-xl transition flex items-center gap-1 text-xs font-bold"
+              className="p-2 text-stone-700 hover:bg-stone-100 rounded-xl transition flex items-center gap-1 text-xs font-bold cursor-pointer"
               title="Perkecil"
             >
-              <ZoomOut className="w-4 h-4" />
+              <ZoomOut className="w-4 h-4 text-indigo-600" />
               <span className="hidden sm:inline">Perkecil</span>
             </button>
 
             <button
               type="button"
               onClick={() => setZoomScale(1)}
-              className="p-2 text-slate-300 hover:text-white hover:bg-slate-800 rounded-xl transition flex items-center gap-1 text-xs font-bold"
+              className="p-2 text-stone-700 hover:bg-stone-100 rounded-xl transition flex items-center gap-1 text-xs font-bold cursor-pointer"
               title="Reset Ukuran (100%)"
             >
               <RotateCcw className="w-4 h-4" />
               <span className="hidden sm:inline">{Math.round(zoomScale * 100)}%</span>
             </button>
 
-            <div className="w-px h-5 bg-slate-700 mx-1"></div>
+            <div className="w-px h-5 bg-stone-200 mx-1"></div>
 
             <button
               type="button"
               onClick={() => setZoomedImageUrl(null)}
-              className="p-2 text-rose-400 hover:text-white hover:bg-rose-600 rounded-xl transition flex items-center gap-1 text-xs font-bold"
+              className="p-2 text-rose-600 hover:bg-rose-50 rounded-xl transition flex items-center gap-1 text-xs font-bold cursor-pointer"
               title="Tutup (ESC)"
             >
               <X className="w-4 h-4" />
@@ -577,22 +1107,17 @@ export const CbtExamEngine: React.FC<CbtExamEngineProps> = ({
             </button>
           </div>
 
-          {/* Scaled Image Container */}
           <div
             className="max-w-[95vw] max-h-[85vh] overflow-auto flex items-center justify-center p-2"
             onClick={(e) => e.stopPropagation()}
           >
             <img
               src={zoomedImageUrl}
-              alt="Zoomed Question"
+              alt="Lampiran Soal Diperbesar"
               style={{ transform: `scale(${zoomScale})`, transformOrigin: 'center center' }}
-              className="max-w-full max-h-[80vh] rounded-2xl shadow-2xl object-contain border border-slate-700 transition-transform duration-200"
+              className="max-w-full max-h-[80vh] rounded-2xl shadow-2xl object-contain border border-stone-200 bg-white transition-transform duration-150"
             />
           </div>
-
-          <p className="fixed bottom-4 text-xs text-slate-400 font-medium text-center">
-            Klik di mana saja atau tekan <kbd className="px-1.5 py-0.5 bg-slate-800 rounded border border-slate-700 font-mono text-[10px]">ESC</kbd> untuk menutup
-          </p>
         </div>
       )}
     </div>

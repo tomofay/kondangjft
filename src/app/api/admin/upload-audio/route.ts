@@ -37,18 +37,24 @@ export async function POST(request: Request) {
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
 
-    // Direktori tujuan: public/uploads/audio
-    const uploadDir = path.join(process.cwd(), 'public', 'uploads', 'audio');
-    await mkdir(uploadDir, { recursive: true });
+    let publicUrl = '';
+    try {
+      // Direktori tujuan: public/uploads/audio
+      const uploadDir = path.join(process.cwd(), 'public', 'uploads', 'audio');
+      await mkdir(uploadDir, { recursive: true });
 
-    // Generate nama file unik
-    const cleanExt = ext.replace(/[^a-zA-Z0-9.]/g, '').toLowerCase() || '.mp3';
-    const filename = `chokai-${Date.now()}-${Math.random().toString(36).substring(2, 8)}${cleanExt}`;
-    const filePath = path.join(uploadDir, filename);
+      // Generate nama file unik
+      const cleanExt = ext.replace(/[^a-zA-Z0-9.]/g, '').toLowerCase() || '.mp3';
+      const filename = `chokai-${Date.now()}-${Math.random().toString(36).substring(2, 8)}${cleanExt}`;
+      const filePath = path.join(uploadDir, filename);
 
-    await writeFile(filePath, buffer);
-
-    const publicUrl = `/uploads/audio/${filename}`;
+      await writeFile(filePath, buffer);
+      publicUrl = `/uploads/audio/${filename}`;
+    } catch (fsErr) {
+      console.warn('Filesystem write failed, using data URL fallback for audio:', fsErr);
+      const mime = file.type || 'audio/mpeg';
+      publicUrl = `data:${mime};base64,${buffer.toString('base64')}`;
+    }
 
     return NextResponse.json({
       success: true,

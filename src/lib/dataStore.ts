@@ -1,5 +1,8 @@
-import { User, ExamResult, Transaction, TryoutPackage, Question, PDFQuestionDraft, ExamSet } from '../types';
+import { User, ExamResult, Transaction, TryoutPackage, Question, PDFQuestionDraft, ExamSet } from '../types/index';
 import { JFT_QUESTIONS_BANK } from './jftQuestions';
+
+export const DEFAULT_ANONYMOUS_PHOTO =
+  "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 250' width='200' height='250'><rect width='200' height='250' fill='%23cbd5e1'/><circle cx='100' cy='85' r='42' fill='%2364748b'/><path d='M35 240 C35 165 65 145 100 145 C135 145 165 165 165 240 Z' fill='%23475569'/><path d='M85 145 L100 170 L115 145 Z' fill='%23f8fafc'/><path d='M100 170 L100 240' stroke='%23334155' stroke-width='2'/><rect x='8' y='8' width='184' height='234' fill='none' stroke='%2394a3b8' stroke-width='1.5' stroke-dasharray='4 3'/></svg>";
 
 export const EXAM_SETS: ExamSet[] = [
   {
@@ -113,7 +116,7 @@ globalThis.__kondangStore = globalThis.__kondangStore || {
       role: 'user',
       subscriptionExpiresAt: new Date(Date.now() + 7 * 86400000).toISOString(), // Aktif 7 Hari
       credits: 99,
-      facePhotoUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80',
+      facePhotoUrl: DEFAULT_ANONYMOUS_PHOTO,
       registrationNumber: 'JFT-2026-88912',
       nationality: 'INDONESIA',
       dateOfBirth: '2001/05/14',
@@ -129,7 +132,7 @@ globalThis.__kondangStore = globalThis.__kondangStore || {
       role: 'user',
       subscriptionExpiresAt: new Date(Date.now() + 14 * 86400000).toISOString(), // Aktif 14 Hari
       credits: 99,
-      facePhotoUrl: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=300&q=80',
+      facePhotoUrl: DEFAULT_ANONYMOUS_PHOTO,
       registrationNumber: 'JFT-2026-77821',
       nationality: 'INDONESIA',
       dateOfBirth: '2002/08/21',
@@ -145,7 +148,7 @@ globalThis.__kondangStore = globalThis.__kondangStore || {
       role: 'admin',
       subscriptionExpiresAt: new Date(Date.now() + 365 * 86400000).toISOString(),
       credits: 999,
-      facePhotoUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=300&q=80',
+      facePhotoUrl: DEFAULT_ANONYMOUS_PHOTO,
       registrationNumber: 'ADM-2026-00001',
       nationality: 'INDONESIA',
       dateOfBirth: '1995/10/20',
