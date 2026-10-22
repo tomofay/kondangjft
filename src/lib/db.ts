@@ -55,6 +55,13 @@ let isInitialized = false;
  */
 export async function initDatabase() {
   if (isInitialized) return;
+  // Skip database operations during build phase to avoid ENOTFOUND / connection timeouts
+  if (
+    process.env.IS_DOCKER_BUILD === 'true' ||
+    process.env.NEXT_PHASE === 'phase-production-build'
+  ) {
+    return;
+  }
   try {
     const connection = await pool.getConnection();
     try {

@@ -16,6 +16,7 @@ COPY . .
 ENV NEXT_PUBLIC_BASE_URL=https://kondangsensei.my.id
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV NODE_ENV=production
+ENV IS_DOCKER_BUILD=true
 
 RUN npm run build
 

@@ -12,8 +12,6 @@ interface ExamSetRow extends RowDataPacket {
   totalQuestions: number;
 }
 
-export const dynamic = 'force-dynamic';
-
 // GET: Ambil semua daftar paket ujian dari MySQL (fallback ke memory store)
 export async function GET() {
   try {
