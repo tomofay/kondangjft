@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useRef, useState } from 'react';
-import { ExamResult } from '../types';
+import { ExamResult, User } from '../types';
 import { Download, BookOpen, RefreshCw, CheckCircle2, Printer, FileText, Image as ImageIcon } from 'lucide-react';
 import html2canvas from 'html2canvas-pro';
 import { jsPDF } from 'jspdf';
@@ -9,28 +9,12 @@ import confetti from 'canvas-confetti';
 
 interface JftResultReportProps {
   result: ExamResult;
+  currentUser?: User | null;
   onOpenReview: () => void;
   onRetake: () => void;
 }
 
 import { DEFAULT_ANONYMOUS_PHOTO } from '../lib/dataStore';
-
-// KondangSensei CBT Brand Logos for Report
-const KondangSenseiReportLogo: React.FC<{ className?: string }> = ({ className = 'h-9' }) => (
-  <div className={`flex items-center gap-3 select-none ${className}`}>
-    <div className="px-3 py-1.5 rounded-xl bg-gradient-to-r from-indigo-700 via-indigo-600 to-rose-600 text-white font-black text-lg tracking-tight shadow-2xs">
-      KondangSensei
-    </div>
-    <div className="flex flex-col leading-tight">
-      <span className="font-extrabold text-xs text-stone-900 tracking-tight">
-        KondangSensei CBT
-      </span>
-      <span className="text-[9px] text-stone-500 font-medium">
-        Platform Simulasi Ujian Bahasa Jepang
-      </span>
-    </div>
-  </div>
-);
 
 const KondangInstitutionReportLogo: React.FC<{ className?: string }> = ({ className = 'h-9' }) => (
   <div className={`flex items-center gap-2.5 select-none text-right ${className}`}>
@@ -47,6 +31,7 @@ const KondangInstitutionReportLogo: React.FC<{ className?: string }> = ({ classN
 
 export const JftResultReport: React.FC<JftResultReportProps> = ({
   result,
+  currentUser,
   onOpenReview,
   onRetake
 }) => {
@@ -130,6 +115,22 @@ export const JftResultReport: React.FC<JftResultReportProps> = ({
       isPassed
     };
   }, [result]);
+
+  // Resolve Examinee Photo: Prioritas foto profil peserta aktif / hasil ujian
+  const examineePhoto = React.useMemo(() => {
+    if (currentUser && (!result.userId || currentUser.id === result.userId)) {
+      if (currentUser.facePhotoUrl && !currentUser.facePhotoUrl.includes('unsplash.com')) {
+        return currentUser.facePhotoUrl;
+      }
+    }
+    if (normalizedResult.facePhotoUrl && !normalizedResult.facePhotoUrl.includes('unsplash.com')) {
+      return normalizedResult.facePhotoUrl;
+    }
+    if (currentUser?.facePhotoUrl && !currentUser.facePhotoUrl.includes('unsplash.com')) {
+      return currentUser.facePhotoUrl;
+    }
+    return DEFAULT_ANONYMOUS_PHOTO;
+  }, [currentUser, normalizedResult.facePhotoUrl, result.userId]);
 
   // Trigger confetti if passed
   React.useEffect(() => {
@@ -340,10 +341,9 @@ export const JftResultReport: React.FC<JftResultReportProps> = ({
           className="bg-white text-stone-900 p-8 sm:p-12 shadow-xl border border-stone-300 font-sans space-y-7 relative select-none mx-auto print:shadow-none print:border-none print:p-0 print:m-0 print:w-full"
           style={{ width: '800px', minHeight: '1000px' }}
         >
-          {/* Header Logos */}
+          {/* Header */}
           <div className="flex items-center justify-between border-b border-stone-200 pb-4">
-            <KondangSenseiReportLogo className="h-10" />
-            <div className="px-3 py-1 rounded-xl bg-indigo-50 border border-indigo-200 text-indigo-700 text-[10px] font-black uppercase tracking-wider">
+            <div className="px-3.5 py-1.5 rounded-xl bg-indigo-50 border border-indigo-200 text-indigo-700 text-[11px] font-black uppercase tracking-wider">
               SIMULATION REPORT • LAPORAN EVALUASI
             </div>
             <KondangInstitutionReportLogo className="h-10" />
@@ -364,14 +364,10 @@ export const JftResultReport: React.FC<JftResultReportProps> = ({
 
           {/* Examinee Information Section */}
           <div className="flex items-start gap-8 pt-2 pb-2">
-            {/* Left Photo (Anonymous by default) */}
+            {/* Left Photo */}
             <div className="shrink-0">
               <img
-                src={
-                  normalizedResult.facePhotoUrl && !normalizedResult.facePhotoUrl.includes('unsplash.com')
-                    ? normalizedResult.facePhotoUrl
-                    : DEFAULT_ANONYMOUS_PHOTO
-                }
+                src={examineePhoto}
                 alt="Examinee Photo"
                 className="w-36 h-48 object-cover border border-stone-300 bg-stone-100 rounded-sm shadow-2xs"
               />

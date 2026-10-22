@@ -132,9 +132,21 @@ export async function initDatabase() {
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
       `);
 
-      // Migration: Ensure packageId column exists in exam_results
+      // Migration: Ensure packageId, facePhotoUrl, nationality, dateOfBirth, sex columns exist in exam_results
       try {
         await connection.query(`ALTER TABLE exam_results ADD COLUMN packageId INT NULL AFTER totalTimeSpentSeconds`);
+      } catch {}
+      try {
+        await connection.query(`ALTER TABLE exam_results ADD COLUMN facePhotoUrl TEXT NULL AFTER packageId`);
+      } catch {}
+      try {
+        await connection.query(`ALTER TABLE exam_results ADD COLUMN nationality VARCHAR(64) NULL AFTER userName`);
+      } catch {}
+      try {
+        await connection.query(`ALTER TABLE exam_results ADD COLUMN dateOfBirth VARCHAR(64) NULL AFTER nationality`);
+      } catch {}
+      try {
+        await connection.query(`ALTER TABLE exam_results ADD COLUMN sex VARCHAR(32) NULL AFTER dateOfBirth`);
       } catch {}
 
       // 4. Transactions Table
@@ -340,7 +352,7 @@ export async function syncQuestionsToDatabase(existingConn?: mysql.PoolConnectio
   try {
     const [qCountRows] = await conn.query<any[]>('SELECT COUNT(*) as count FROM questions');
     const qCount = qCountRows?.[0]?.count || 0;
-    if (qCount < 200 || force) {
+    if (qCount === 0 || force) {
       const { generateAllPackageQuestions } = await import('./dataStore');
       const allQuestions = generateAllPackageQuestions();
       console.log(`📥 Menyinkronkan ${allQuestions.length} bank soal ke database MySQL (force: ${force})...`);

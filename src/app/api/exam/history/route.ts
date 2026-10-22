@@ -30,14 +30,21 @@ export async function GET(request: Request) {
     // 1. Try fetching from MySQL
     try {
       const query = isAll
-        ? 'SELECT * FROM exam_results ORDER BY createdAt DESC'
-        : 'SELECT * FROM exam_results WHERE userId = ? ORDER BY createdAt DESC';
+        ? `SELECT er.*, u.facePhotoUrl AS userFacePhotoUrl, u.nationality AS userNationality, u.dateOfBirth AS userDob, u.sex AS userSex
+           FROM exam_results er
+           LEFT JOIN users u ON er.userId = u.id
+           ORDER BY er.createdAt DESC`
+        : `SELECT er.*, u.facePhotoUrl AS userFacePhotoUrl, u.nationality AS userNationality, u.dateOfBirth AS userDob, u.sex AS userSex
+           FROM exam_results er
+           LEFT JOIN users u ON er.userId = u.id
+           WHERE er.userId = ?
+           ORDER BY er.createdAt DESC`;
       const params = isAll ? [] : [userId];
 
       const [rows] = await pool.query<ExamResultRow[]>(query, params);
 
       if (rows && rows.length > 0) {
-        const results: ExamResult[] = rows.map((r) => {
+        const results: ExamResult[] = rows.map((r: any) => {
           let sectionScores = r.sectionScores as any;
           if (typeof sectionScores === 'string') {
             try {
@@ -80,6 +87,10 @@ export async function GET(request: Request) {
             userId: r.userId,
             userName: r.userName,
             registrationNumber: r.registrationNumber,
+            nationality: r.nationality || r.userNationality || 'INDONESIA',
+            dateOfBirth: r.dateOfBirth || r.userDob || '2001/05/14',
+            sex: r.sex || r.userSex || 'MALE',
+            facePhotoUrl: r.facePhotoUrl || r.userFacePhotoUrl,
             packageId: r.packageId || undefined,
             testDate: r.testDate,
             testLocation: r.testLocation,

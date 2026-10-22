@@ -968,6 +968,7 @@ export default function HomePage() {
         {view === 'report' && currentResult && (
           <JftResultReport
             result={currentResult}
+            currentUser={currentUser}
             onOpenReview={() => setView('review')}
             onRetake={() => handleStartExam(selectedPackageId)}
           />

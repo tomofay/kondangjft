@@ -71,6 +71,11 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
     { id: 4, name: 'Paket Ujian #4 (Tryout Spesial Final Test)', code: 'JFT-SET-D', description: '50 Soal komprehensif.', totalQuestions: 50 }
   ];
 
+  const activePackageIds = React.useMemo(() => new Set(allExamSets.map((s) => s.id)), [allExamSets]);
+  const activeQuestions = React.useMemo(() => {
+    return questions.filter((q) => activePackageIds.has(q.packageId || 1));
+  }, [questions, activePackageIds]);
+
   const nextPackageId = Math.max(...allExamSets.map((s) => s.id), 4) + 1;
   const nextLetter = String.fromCharCode(64 + Math.min(nextPackageId, 26));
 
@@ -657,7 +662,7 @@ B：いえ、だいじょうぶですよ。
             }`}
           >
             <Layers className="w-4 h-4" />
-            Bank Soal ({questions.length})
+            Bank Soal ({activeQuestions.length})
           </button>
 
           <button
@@ -1117,13 +1122,13 @@ B：いえ、だいじょうぶですよ。
                 <div className="p-4 bg-stone-50 rounded-2xl border border-stone-200">
                   <div className="text-stone-500 font-semibold">Total Seluruh Soal</div>
                   <div className="text-2xl font-black text-red-600 mt-1">
-                    {questions.length} <span className="text-xs font-normal text-stone-400">Soal Terdaftar</span>
+                    {activeQuestions.length} <span className="text-xs font-normal text-stone-400">Soal Terdaftar</span>
                   </div>
                 </div>
                 <div className="p-4 bg-stone-50 rounded-2xl border border-stone-200">
                   <div className="text-stone-500 font-semibold">Rata-rata per Paket</div>
                   <div className="text-2xl font-black text-emerald-600 mt-1">
-                    ~{allExamSets.length > 0 ? Math.round(questions.length / allExamSets.length) : 0}{' '}
+                    ~{allExamSets.length > 0 ? Math.round(activeQuestions.length / allExamSets.length) : 0}{' '}
                     <span className="text-xs font-normal text-stone-400">Soal/Paket</span>
                   </div>
                 </div>
@@ -2892,6 +2897,7 @@ B：いえ、だいじょうぶですよ。
             <div className="p-4 sm:p-6 overflow-y-auto bg-stone-100">
               <JftResultReport
                 result={previewingExamResult}
+                currentUser={users.find((u) => u.id === previewingExamResult.userId) || null}
                 onOpenReview={() => {}}
                 onRetake={() => {}}
               />

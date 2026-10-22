@@ -79,8 +79,8 @@ export async function POST(request: Request) {
     // Save to MySQL db_kondangsensei
     try {
       await pool.query(
-        `INSERT INTO exam_results (id, userId, userName, registrationNumber, testDate, testLocation, totalScore, assessmentResult, isPassed, sectionScores, answers, totalTimeSpentSeconds, packageId)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        `INSERT INTO exam_results (id, userId, userName, registrationNumber, testDate, testLocation, totalScore, assessmentResult, isPassed, sectionScores, answers, totalTimeSpentSeconds, packageId, facePhotoUrl, nationality, dateOfBirth, sex)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
           examResult.id,
           examResult.userId,
@@ -94,15 +94,19 @@ export async function POST(request: Request) {
           JSON.stringify(examResult.sectionScores),
           JSON.stringify(examResult.answers),
           examResult.totalTimeSpentSeconds,
-          finalPackageId
+          finalPackageId,
+          examResult.facePhotoUrl || null,
+          examResult.nationality || 'INDONESIA',
+          examResult.dateOfBirth || '2001/05/14',
+          examResult.sex || 'MALE'
         ]
       );
     } catch (dbErr) {
-      console.warn('Could not save exam result to MySQL with packageId, trying without:', dbErr);
+      console.warn('Could not save exam result to MySQL with full columns, trying basic insert:', dbErr);
       try {
         await pool.query(
-          `INSERT INTO exam_results (id, userId, userName, registrationNumber, testDate, testLocation, totalScore, assessmentResult, isPassed, sectionScores, answers, totalTimeSpentSeconds)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          `INSERT INTO exam_results (id, userId, userName, registrationNumber, testDate, testLocation, totalScore, assessmentResult, isPassed, sectionScores, answers, totalTimeSpentSeconds, packageId)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
           [
             examResult.id,
             examResult.userId,
@@ -115,7 +119,8 @@ export async function POST(request: Request) {
             examResult.isPassed ? 1 : 0,
             JSON.stringify(examResult.sectionScores),
             JSON.stringify(examResult.answers),
-            examResult.totalTimeSpentSeconds
+            examResult.totalTimeSpentSeconds,
+            finalPackageId
           ]
         );
       } catch (fallbackErr) {

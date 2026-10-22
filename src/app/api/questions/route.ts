@@ -30,8 +30,6 @@ export async function GET(request: Request) {
     try {
       if (syncParam === 'true') {
         await syncQuestionsToDatabase(undefined, true);
-      } else {
-        await syncQuestionsToDatabase();
       }
       let query = 'SELECT * FROM questions';
       const params: any[] = [];
