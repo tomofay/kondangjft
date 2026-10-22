@@ -20,6 +20,8 @@ interface UserRow extends RowDataPacket {
   lastActiveAt: string | null;
 }
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(request: Request) {
   try {
     await initDatabase();

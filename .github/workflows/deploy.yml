@@ -22,7 +22,7 @@ jobs:
           username: ${{ secrets.VPS_USERNAME }}
           key: ${{ secrets.VPS_SSH_KEY }}
           port: ${{ secrets.VPS_PORT || 22 }}
-          command_timeout: 10m
+          command_timeout: 30m
           script_stop: true
           script: |
             set -e
@@ -84,10 +84,10 @@ jobs:
               exit 1
             fi
 
-            echo "🐳 Menjalankan Docker Compose Build & Up..."
-            $COMPOSE_CMD down --remove-orphans || true
-            $COMPOSE_CMD build --pull
-            $COMPOSE_CMD up -d
+            echo "🐳 Menjalankan Docker Compose Build..."
+            $COMPOSE_CMD build
+            echo "🚀 Menjalankan kontainer aplikasi..."
+            $COMPOSE_CMD up -d --remove-orphans
 
             # 6. Bersihkan image lama yang tidak terpakai agar menghemat ruang disk VPS
             echo "🧹 Membersihkan image lama yang tidak terpakai..."

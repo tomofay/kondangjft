@@ -22,6 +22,8 @@ interface UserRow extends RowDataPacket {
   createdAt: string;
 }
 
+export const dynamic = 'force-dynamic';
+
 // GET: Fetch all registered users from MySQL database (with memory store sync)
 export async function GET() {
   try {

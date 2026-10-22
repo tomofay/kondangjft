@@ -7,6 +7,8 @@ import { Transaction, User } from '@/types';
  * GET /api/payments/status?invoiceNumber=INV-xxxx
  * Digunakan oleh frontend untuk mengecek apakah DOKU sudah mengonfirmasi pembayaran (PAID).
  */
+export const dynamic = 'force-dynamic';
+
 export async function GET(request: Request) {
   try {
     await initDatabase();

@@ -19,6 +19,8 @@ interface QuestionRow extends RowDataPacket {
   explanation: string;
 }
 
+export const dynamic = 'force-dynamic';
+
 // GET: Ambil semua soal dari MySQL (dengan fallback ke memory store)
 export async function GET(request: Request) {
   try {

@@ -20,6 +20,8 @@ interface ExamResultRow extends RowDataPacket {
   packageId?: number | null;
 }
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(request: Request) {
   try {
     await initDatabase();

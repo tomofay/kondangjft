@@ -4,3 +4,9 @@ node_modules
 .env*.local
 *.log
 .DS_Store
+public/uploads/*
+!public/uploads/.gitkeep
+.agents
+scratch
+.github
+*.md

@@ -19,6 +19,8 @@ interface TxRow extends RowDataPacket {
   createdAt: string;
 }
 
+export const dynamic = 'force-dynamic';
+
 // GET: Fetch all transactions from MySQL database
 export async function GET() {
   try {
