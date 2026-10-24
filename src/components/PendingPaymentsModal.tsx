@@ -15,18 +15,7 @@ import {
   BookOpen,
   Zap
 } from 'lucide-react';
-import {
-  BriLogo,
-  BniLogo,
-  BsiLogo,
-  CimbLogo,
-  DanamonLogo,
-  MaybankLogo,
-  QrisLogo,
-  DokuLogo,
-  AlfamartLogo,
-  IndomaretLogo
-} from './PaymentLogos';
+import { QrisLogo } from './PaymentLogos';
 
 interface PendingPaymentsModalProps {
   isOpen: boolean;
@@ -273,16 +262,8 @@ export const PendingPaymentsModal: React.FC<PendingPaymentsModalProps> = ({
                   <div className="p-4 bg-gradient-to-br from-amber-50/50 via-white to-sky-50/40 rounded-2xl border border-stone-200 flex flex-wrap items-center justify-between gap-4 shadow-xs">
                     <div className="space-y-1">
                       <div className="text-[11px] text-stone-600 font-bold uppercase tracking-wider flex items-center gap-2">
-                        {tx.paymentMethod.includes('BRI') && <BriLogo className="h-4 w-auto" />}
-                        {tx.paymentMethod.includes('BNI') && <BniLogo className="h-4 w-auto" />}
-                        {tx.paymentMethod.includes('BSI') && <BsiLogo className="h-4 w-auto" />}
-                        {tx.paymentMethod.includes('CIMB') && <CimbLogo className="h-4 w-auto" />}
-                        {tx.paymentMethod.includes('Danamon') && <DanamonLogo className="h-4 w-auto" />}
-                        {tx.paymentMethod.includes('Maybank') && <MaybankLogo className="h-4 w-auto" />}
-                        {tx.paymentMethod.includes('QRIS') && <QrisLogo className="h-4 w-auto" />}
-                        {tx.paymentMethod.includes('Alfa') && <AlfamartLogo className="h-4 w-auto" />}
-                        {tx.paymentMethod.includes('Indomaret') && <IndomaretLogo className="h-4 w-auto" />}
-                        <span className="font-extrabold text-stone-800">{tx.paymentMethod.replace(/\s*-\s*[0-9A-Za-z]+$/, '')}</span>
+                        <QrisLogo className="h-4 w-auto" />
+                        <span className="font-extrabold text-stone-800">QRIS Instant</span>
                       </div>
 
                       {tx.paymentMethod.includes('QRIS') ? (

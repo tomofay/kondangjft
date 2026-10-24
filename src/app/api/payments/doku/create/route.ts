@@ -96,202 +96,33 @@ export async function POST(request: Request) {
     const requestTimestamp = new Date().toISOString().replace(/\.\d{3}Z$/, 'Z');
     const merchantRef = String(Math.floor(100000000 + Math.random() * 900000000)); // 9 digits
 
-    let requestTarget = '/bri-virtual-account/v2/payment-code';
-    let requestBody: any = {};
-    let paymentChannelName = 'BRI Virtual Account';
-
     // Dynamic base URL for hosting compatibility
     const hostHeader = request.headers.get('x-forwarded-host') || request.headers.get('host');
     const protoHeader = request.headers.get('x-forwarded-proto') || 'https';
     const dynamicOrigin = hostHeader ? `${protoHeader}://${hostHeader}` : null;
     const baseUrlWeb = dynamicOrigin || process.env.NEXT_PUBLIC_BASE_URL || 'https://kondangsensei.my.id';
 
-    // Route based on active channel verified in DOKU Back Office
-    switch (channel) {
-      case 'BNI':
-        requestTarget = '/bni-virtual-account/v2/payment-code';
-        paymentChannelName = 'BNI Virtual Account';
-        requestBody = {
-          order: { invoice_number: invoiceNumber, amount: pkg.price },
-          virtual_account_info: {
-            expired_time: 60,
-            reusable_status: false,
-            info1: 'KondangSensei JFT',
-            merchant_unique_reference: merchantRef
-          },
-          customer: { name: user.name, email: user.email }
-        };
-        break;
-
-      case 'BSI':
-        requestTarget = '/bsm-virtual-account/v2/payment-code';
-        paymentChannelName = 'BSI Virtual Account';
-        requestBody = {
-          order: { invoice_number: invoiceNumber, amount: pkg.price },
-          virtual_account_info: {
-            expired_time: 60,
-            reusable_status: false,
-            info1: 'KondangSensei JFT',
-            merchant_unique_reference: merchantRef
-          },
-          customer: { name: user.name, email: user.email }
-        };
-        break;
-
-      case 'CIMB':
-        requestTarget = '/cimb-virtual-account/v2/payment-code';
-        paymentChannelName = 'CIMB Niaga Virtual Account';
-        requestBody = {
-          order: { invoice_number: invoiceNumber, amount: pkg.price },
-          virtual_account_info: {
-            expired_time: 60,
-            reusable_status: false,
-            info1: 'KondangSensei JFT',
-            merchant_unique_reference: merchantRef
-          },
-          customer: { name: user.name, email: user.email }
-        };
-        break;
-
-      case 'DANAMON':
-        requestTarget = '/danamon-virtual-account/v2/payment-code';
-        paymentChannelName = 'Danamon Virtual Account';
-        requestBody = {
-          order: { invoice_number: invoiceNumber, amount: pkg.price },
-          virtual_account_info: {
-            expired_time: 60,
-            reusable_status: false,
-            info1: 'KondangSensei JFT',
-            merchant_unique_reference: merchantRef
-          },
-          customer: { name: user.name, email: user.email }
-        };
-        break;
-
-      case 'MAYBANK':
-        requestTarget = '/maybank-virtual-account/v2/payment-code';
-        paymentChannelName = 'Maybank Virtual Account';
-        requestBody = {
-          order: { invoice_number: invoiceNumber, amount: pkg.price },
-          virtual_account_info: {
-            expired_time: 60,
-            reusable_status: false,
-            info1: 'KondangSensei JFT',
-            merchant_unique_reference: merchantRef
-          },
-          customer: { name: user.name, email: user.email }
-        };
-        break;
-
-      case 'DOKU_EWALLET': {
-        requestTarget = '/checkout/v1/payment';
-        paymentChannelName = 'DOKU Wallet & E-Money';
-        requestBody = {
-          order: {
-            invoice_number: invoiceNumber,
-            amount: pkg.price,
-            callback_url: baseUrlWeb,
-            failed_url: baseUrlWeb,
-            auto_redirect: true
-          },
-          payment: {
-            payment_due_date: 60
-          },
-          customer: {
-            id: user.id,
-            name: user.name,
-            email: user.email,
-            phone: '6281234567890'
-          }
-        };
-        break;
+    const requestTarget = '/checkout/v1/payment';
+    const paymentChannelName = 'QRIS Instant';
+    const requestBody = {
+      order: {
+        invoice_number: invoiceNumber,
+        amount: pkg.price,
+        callback_url: baseUrlWeb,
+        failed_url: baseUrlWeb,
+        auto_redirect: true
+      },
+      payment: {
+        payment_due_date: 60,
+        payment_method_types: ['QRIS']
+      },
+      customer: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        phone: '6281234567890'
       }
-
-      case 'DOKU_VA':
-        requestTarget = '/doku-virtual-account/v2/payment-code';
-        paymentChannelName = 'DOKU Virtual Account';
-        requestBody = {
-          order: { invoice_number: invoiceNumber, amount: pkg.price },
-          virtual_account_info: {
-            expired_time: 60,
-            reusable_status: false,
-            info1: 'KondangSensei JFT',
-            merchant_unique_reference: merchantRef
-          },
-          customer: { name: user.name, email: user.email }
-        };
-        break;
-
-      case 'QRIS': {
-        requestTarget = '/checkout/v1/payment';
-        paymentChannelName = 'QRIS Instant';
-        requestBody = {
-          order: {
-            invoice_number: invoiceNumber,
-            amount: pkg.price,
-            callback_url: baseUrlWeb,
-            failed_url: baseUrlWeb,
-            auto_redirect: true
-          },
-          payment: {
-            payment_due_date: 60,
-            payment_method_types: ['QRIS']
-          },
-          customer: {
-            id: user.id,
-            name: user.name,
-            email: user.email,
-            phone: '6281234567890'
-          }
-        };
-        break;
-      }
-
-
-
-      case 'ALFAMART':
-        requestTarget = '/alfa-online-to-offline/v2/payment-code';
-        paymentChannelName = 'Alfa Group / Alfamart';
-        requestBody = {
-          order: { invoice_number: invoiceNumber, amount: pkg.price },
-          online_to_offline_info: {
-            expired_time: 60,
-            reusable_status: false,
-            info1: 'KondangSensei JFT'
-          },
-          customer: { name: user.name, email: user.email }
-        };
-        break;
-
-      case 'INDOMARET':
-        requestTarget = '/indomaret-online-to-offline/v2/payment-code';
-        paymentChannelName = 'Indomaret';
-        requestBody = {
-          order: { invoice_number: invoiceNumber, amount: pkg.price },
-          online_to_offline_info: {
-            expired_time: 60,
-            reusable_status: false,
-            info1: 'KondangSensei JFT'
-          },
-          customer: { name: user.name, email: user.email }
-        };
-        break;
-
-      case 'BRI':
-      default:
-        requestTarget = '/bri-virtual-account/v2/payment-code';
-        paymentChannelName = 'BRI Virtual Account';
-        requestBody = {
-          order: { invoice_number: invoiceNumber, amount: pkg.price },
-          virtual_account_info: {
-            expired_time: 60,
-            reusable_status: false,
-            info1: 'KondangSensei JFT'
-          },
-          customer: { name: user.name, email: user.email }
-        };
-        break;
-    }
+    };
 
     const rawBody = JSON.stringify(requestBody);
     const signature = generateDokuSignature(
@@ -327,60 +158,20 @@ export async function POST(request: Request) {
       console.warn('DOKU Fetch error:', fetchErr);
     }
 
-    let vaNumber = dokuData?.virtual_account_info?.virtual_account_number;
-    let paymentCode = dokuData?.online_to_offline_info?.payment_code;
-    let walletPageUrl = dokuData?.doku_wallet_payment_page?.url;
     let checkoutPaymentUrl = dokuData?.response?.payment?.url || dokuData?.payment?.url || dokuData?.url;
     let qrString = dokuData?.qr_content || dokuData?.qr_string || dokuData?.payment?.qr_content;
-    let howToPayUrl = walletPageUrl || checkoutPaymentUrl || dokuData?.virtual_account_info?.how_to_pay_page || dokuData?.online_to_offline_info?.how_to_pay_page;
+    let howToPayUrl = checkoutPaymentUrl || 'https://kondangsensei.my.id';
 
-    const hasLiveCode = Boolean(dokuResponse?.ok && (vaNumber || paymentCode || walletPageUrl || checkoutPaymentUrl || qrString));
+    const hasLiveCode = Boolean(dokuResponse?.ok && (checkoutPaymentUrl || qrString));
 
-    // Sandbox Simulator Fallback if DOKU Sandbox API returns error or merchant key is not active on sandbox
-    if (isSandbox && !hasLiveCode) {
-      console.log(`[DOKU SANDBOX SIMULATOR] Generating sandbox payment for channel: ${channel}`);
-      howToPayUrl = 'https://sandbox.doku.com';
-
-      switch (channel) {
-        case 'QRIS':
-          qrString = generateDynamicQris(pkg.price, invoiceNumber, 'KONDANG SENSEI (SANDBOX)');
-          howToPayUrl = 'https://sandbox.doku.com/qris-simulator/';
-          break;
-        case 'BNI':
-          vaNumber = `8291${Math.floor(100000000000 + Math.random() * 900000000000)}`;
-          break;
-        case 'BSI':
-          vaNumber = `6059${Math.floor(100000000000 + Math.random() * 900000000000)}`;
-          break;
-        case 'CIMB':
-          vaNumber = `1899${Math.floor(100000000000 + Math.random() * 900000000000)}`;
-          break;
-        case 'DANAMON':
-          vaNumber = `8922${Math.floor(100000000000 + Math.random() * 900000000000)}`;
-          break;
-        case 'MAYBANK':
-          vaNumber = `7867${Math.floor(100000000000 + Math.random() * 900000000000)}`;
-          break;
-        case 'DOKU_EWALLET':
-          walletPageUrl = `${baseUrlWeb}/api/payments/status?invoiceNumber=${invoiceNumber}`;
-          paymentCode = `DW-${Math.floor(10000000 + Math.random() * 90000000)}`;
-          break;
-        case 'ALFAMART':
-          paymentCode = `917${Math.floor(1000 + Math.random() * 9000)}`;
-          break;
-        case 'INDOMARET':
-          paymentCode = `949${Math.floor(10000 + Math.random() * 90000)}`;
-          break;
-        case 'BRI':
-        default:
-          vaNumber = `1236${Math.floor(100000000000 + Math.random() * 900000000000)}`;
-          break;
-      }
+    // Ensure valid ASPI EMVCo dynamic QR string
+    if (!qrString) {
+      const label = isSandbox ? 'KONDANG SENSEI (SANDBOX)' : 'KONDANG SENSEI';
+      qrString = generateDynamicQris(pkg.price, invoiceNumber, label);
     }
 
-    // Ensure QRIS channel always has a valid ASPI EMVCo dynamic QR string
-    if (channel === 'QRIS' && !qrString) {
-      qrString = generateDynamicQris(pkg.price, invoiceNumber, 'KONDANG SENSEI');
+    if (isSandbox && !checkoutPaymentUrl) {
+      howToPayUrl = 'https://sandbox.doku.com/qris-simulator/';
     }
 
     // Normalize expired date to valid ISO format (DOKU returns 'YYYYMMDDHHmmss' format e.g. '20261018123529')
@@ -407,10 +198,10 @@ export async function POST(request: Request) {
       }
     }
 
-    if (hasLiveCode || isSandbox) {
-      const code = vaNumber || paymentCode || qrString || 'DOKU-CHECKOUT';
+    if (hasLiveCode || isSandbox || qrString) {
+      const code = qrString || checkoutPaymentUrl || 'DOKU-QRIS';
       const sandboxLabel = isSandbox ? ' [SANDBOX]' : '';
-      const fullMethod = `DOKU (${paymentChannelName}${sandboxLabel})${vaNumber || paymentCode ? ` - ${code}` : ''}`;
+      const fullMethod = `QRIS Instant${sandboxLabel}`;
 
       // Save Transaction record with PENDING status, paymentCode, and 1 hour expiry
       const newTx: Transaction = {

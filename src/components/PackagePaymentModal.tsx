@@ -3,36 +3,19 @@
 import React, { useState } from 'react';
 import { TryoutPackage, User } from '../types';
 import {
-  CreditCard,
   ShieldCheck,
   Zap,
   X,
   AlertCircle,
   Copy,
   CheckCircle2,
-  Store,
-  Building2,
-  Wallet,
   QrCode,
-  Smartphone,
   Check,
   Sparkles,
-  Tag,
   Clock,
   ExternalLink
 } from 'lucide-react';
-import {
-  BriLogo,
-  BniLogo,
-  BsiLogo,
-  CimbLogo,
-  DanamonLogo,
-  MaybankLogo,
-  QrisLogo,
-  DokuLogo,
-  AlfamartLogo,
-  IndomaretLogo
-} from './PaymentLogos';
+import { QrisLogo } from './PaymentLogos';
 
 interface PackagePaymentModalProps {
   isOpen: boolean;
@@ -204,7 +187,7 @@ export const PackagePaymentModal: React.FC<PackagePaymentModalProps> = ({
                 Pilih Paket & Pembayaran JFT
               </h2>
               <p className="text-xs text-stone-500 truncate">
-                DOKU Payment Gateway • QRIS, VA Bank & E-Wallet
+                Pembayaran Instan QRIS • Semua Bank & E-Wallet
               </p>
             </div>
           </div>
@@ -226,10 +209,10 @@ export const PackagePaymentModal: React.FC<PackagePaymentModalProps> = ({
               <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-2xl text-center space-y-1">
                 <CheckCircle2 className="w-9 h-9 text-emerald-600 mx-auto" />
                 <h3 className="text-sm font-black text-emerald-800">
-                  Nomor Pembayaran Diterbitkan
+                  Kode QRIS Berhasil Diterbitkan
                 </h3>
                 <p className="text-xs text-stone-600">
-                  Silakan selesaikan pembayaran ke kode rekening / QRIS di bawah ini:
+                  Silakan pindai kode QRIS di bawah ini dengan m-Banking atau E-Wallet Anda:
                 </p>
               </div>
 
@@ -237,16 +220,8 @@ export const PackagePaymentModal: React.FC<PackagePaymentModalProps> = ({
                 <div className="flex justify-between items-center text-xs text-stone-600 border-b border-stone-200 pb-2 font-medium">
                   <span>Metode Pembayaran:</span>
                   <div className="flex items-center gap-2">
-                    {vaResult.channelName.includes('BRI') && <BriLogo className="h-4 w-auto" />}
-                    {vaResult.channelName.includes('BNI') && <BniLogo className="h-4 w-auto" />}
-                    {vaResult.channelName.includes('BSI') && <BsiLogo className="h-4 w-auto" />}
-                    {vaResult.channelName.includes('CIMB') && <CimbLogo className="h-4 w-auto" />}
-                    {vaResult.channelName.includes('Danamon') && <DanamonLogo className="h-4 w-auto" />}
-                    {vaResult.channelName.includes('Maybank') && <MaybankLogo className="h-4 w-auto" />}
-                    {vaResult.channelName.includes('QRIS') && <QrisLogo className="h-4 w-auto" />}
-                    {vaResult.channelName.includes('Alfa') && <AlfamartLogo className="h-4 w-auto" />}
-                    {vaResult.channelName.includes('Indomaret') && <IndomaretLogo className="h-4 w-auto" />}
-                    <span className="font-bold text-stone-900">{vaResult.channelName}</span>
+                    <QrisLogo className="h-4 w-auto" />
+                    <span className="font-bold text-stone-900">QRIS Instant</span>
                   </div>
                 </div>
 
@@ -498,146 +473,36 @@ export const PackagePaymentModal: React.FC<PackagePaymentModalProps> = ({
                 </div>
               </div>
 
-              {/* DOKU Channels Selector with Real Logos */}
-              <div className="space-y-3 pt-2">
+              {/* 2. Metode Pembayaran: QRIS Only */}
+              <div className="space-y-2 pt-1">
                 <div className="flex items-center justify-between">
                   <label className="text-xs font-black text-stone-800 uppercase tracking-wider flex items-center gap-1.5">
-                    <span className="w-2 h-2 rounded-full bg-red-600"></span>
-                    2. Pilih Saluran Pembayaran:
+                    <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+                    2. Metode Pembayaran:
                   </label>
-                  <span className="text-[10px] text-stone-500 font-bold bg-stone-100 px-2 py-0.5 rounded-md">
+                  <span className="text-[10px] text-emerald-800 font-bold bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md">
                     Verifikasi Otomatis 24 Jam
                   </span>
                 </div>
 
-                {/* Instant & E-Wallets */}
-                <div className="space-y-1.5">
-                  <span className="text-[11px] font-bold text-stone-600 flex items-center gap-1.5">
-                    <Wallet className="w-3.5 h-3.5 text-red-600" /> Dompet Digital & QRIS (Instan):
-                  </span>
-                  <div className="grid grid-cols-2 sm:grid-cols-2 gap-2">
-                    {[
-                      { id: 'QRIS', name: 'QRIS Instan', sub: 'Semua E-Wallet & Bank', logo: QrisLogo },
-                      { id: 'DOKU_EWALLET', name: 'DOKU Wallet', sub: 'Saldo DOKU', logo: DokuLogo }
-                    ].map((ch) => {
-                      const LogoComp = ch.logo;
-                      const active = selectedChannel === ch.id;
-                      return (
-                        <button
-                          key={ch.id}
-                          type="button"
-                          onClick={() => setSelectedChannel(ch.id)}
-                          className={`relative p-2.5 rounded-2xl border-2 text-left flex flex-col justify-between transition cursor-pointer min-h-[72px] ${
-                            active
-                              ? 'bg-indigo-50/70 border-indigo-600 text-stone-900 shadow-2xs ring-2 ring-indigo-500/20'
-                              : 'bg-white border-stone-200/90 text-stone-700 hover:border-indigo-300 hover:shadow-2xs'
-                          }`}
-                        >
-                          {active && (
-                            <span className="absolute top-1.5 right-1.5 w-4 h-4 rounded-full bg-indigo-600 text-white flex items-center justify-center">
-                              <Check className="w-2.5 h-2.5 stroke-[3]" />
-                            </span>
-                          )}
-                          <div className="h-6 flex items-center">
-                            <LogoComp className="h-5 w-auto max-w-[90px]" />
-                          </div>
-                          <div className="mt-1">
-                            <div className="font-black text-xs text-stone-900 leading-tight">{ch.name}</div>
-                            <div className="text-[9px] text-stone-400 font-medium truncate">{ch.sub}</div>
-                          </div>
-                        </button>
-                      );
-                    })}
+                <div className="p-3.5 rounded-2xl border-2 border-emerald-500 bg-gradient-to-r from-emerald-50/70 via-white to-teal-50/30 shadow-xs flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="w-14 h-10 rounded-xl bg-white border border-stone-200 flex items-center justify-center p-1.5 shrink-0 shadow-2xs">
+                      <QrisLogo className="h-6 w-auto" />
+                    </div>
+                    <div className="min-w-0">
+                      <div className="font-black text-xs sm:text-sm text-stone-900 flex items-center gap-1.5">
+                        <span>QRIS Instant</span>
+                        <span className="px-1.5 py-0.5 bg-emerald-600 text-white text-[9px] rounded-full font-bold">Resmi</span>
+                      </div>
+                      <p className="text-[11px] text-stone-500 truncate font-medium">
+                        BCA, Mandiri, BRI, BNI, GoPay, OVO, DANA, ShopeePay
+                      </p>
+                    </div>
                   </div>
-                </div>
 
-                {/* Virtual Accounts with Real Bank Logos */}
-                <div className="space-y-1.5 pt-1">
-                  <span className="text-[11px] font-bold text-stone-600 flex items-center gap-1.5">
-                    <Building2 className="w-3.5 h-3.5 text-indigo-600" /> Virtual Account Bank (Bebas Antri & Otomatis):
-                  </span>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                    {[
-                      { id: 'BRI', name: 'Bank BRI', sub: 'Virtual Account', logo: BriLogo },
-                      { id: 'BNI', name: 'Bank BNI', sub: 'Virtual Account', logo: BniLogo },
-                      { id: 'BSI', name: 'Bank Syariah BSI', sub: 'Virtual Account', logo: BsiLogo },
-                      { id: 'CIMB', name: 'CIMB Niaga', sub: 'Virtual Account', logo: CimbLogo },
-                      { id: 'DANAMON', name: 'Bank Danamon', sub: 'Virtual Account', logo: DanamonLogo },
-                      { id: 'MAYBANK', name: 'Maybank', sub: 'Virtual Account', logo: MaybankLogo }
-                    ].map((b) => {
-                      const LogoComp = b.logo;
-                      const active = selectedChannel === b.id;
-                      return (
-                        <button
-                          key={b.id}
-                          type="button"
-                          onClick={() => setSelectedChannel(b.id)}
-                          className={`relative p-2.5 rounded-2xl border-2 text-left flex items-center justify-between gap-2.5 transition cursor-pointer ${
-                            active
-                              ? 'bg-indigo-50/70 border-indigo-600 shadow-2xs ring-2 ring-indigo-500/20'
-                              : 'bg-white border-stone-200/90 hover:border-indigo-300 hover:shadow-2xs'
-                          }`}
-                        >
-                          <div className="flex items-center gap-2.5 min-w-0">
-                            <div className="w-16 h-8 rounded-lg bg-stone-50 border border-stone-200/60 flex items-center justify-center p-1 shrink-0">
-                              <LogoComp className="h-5 w-auto max-w-[56px] object-contain" />
-                            </div>
-                            <div className="min-w-0">
-                              <div className="font-black text-xs text-stone-900 truncate leading-tight">{b.name}</div>
-                              <div className="text-[9px] text-stone-400 font-medium truncate">{b.sub}</div>
-                            </div>
-                          </div>
-                          <div className={`w-4 h-4 rounded-full border flex items-center justify-center shrink-0 ${
-                            active ? 'bg-indigo-600 border-indigo-600 text-white' : 'border-stone-300 bg-white'
-                          }`}>
-                            {active && <Check className="w-2.5 h-2.5 stroke-[3]" />}
-                          </div>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                {/* Retail Store with Real Logos */}
-                <div className="space-y-1.5 pt-1">
-                  <span className="text-[11px] font-bold text-stone-600 flex items-center gap-1.5">
-                    <Store className="w-3.5 h-3.5 text-amber-600" /> Gerai Retail (Bayar di Kasir Minimarket):
-                  </span>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                    {[
-                      { id: 'ALFAMART', name: 'Alfamart', sub: 'Bayar di Kasir Toko', logo: AlfamartLogo },
-                      { id: 'INDOMARET', name: 'Indomaret', sub: 'Bayar di Kasir Toko', logo: IndomaretLogo }
-                    ].map((r) => {
-                      const LogoComp = r.logo;
-                      const active = selectedChannel === r.id;
-                      return (
-                        <button
-                          key={r.id}
-                          type="button"
-                          onClick={() => setSelectedChannel(r.id)}
-                          className={`relative p-2.5 rounded-2xl border-2 text-left flex items-center justify-between gap-3 transition cursor-pointer ${
-                            active
-                              ? 'bg-indigo-50/70 border-indigo-600 shadow-2xs ring-2 ring-indigo-500/20'
-                              : 'bg-white border-stone-200/90 hover:border-indigo-300 hover:shadow-2xs'
-                          }`}
-                        >
-                          <div className="flex items-center gap-2.5 min-w-0">
-                            <div className="w-20 h-8 rounded-lg bg-stone-50 border border-stone-200/60 flex items-center justify-center p-1 shrink-0">
-                              <LogoComp className="h-5 w-auto max-w-[70px] object-contain" />
-                            </div>
-                            <div className="min-w-0">
-                              <div className="font-black text-xs text-stone-900 truncate leading-tight">{r.name}</div>
-                              <div className="text-[9px] text-stone-400 font-medium truncate">{r.sub}</div>
-                            </div>
-                          </div>
-                          <div className={`w-4 h-4 rounded-full border flex items-center justify-center shrink-0 ${
-                            active ? 'bg-indigo-600 border-indigo-600 text-white' : 'border-stone-300 bg-white'
-                          }`}>
-                            {active && <Check className="w-2.5 h-2.5 stroke-[3]" />}
-                          </div>
-                        </button>
-                      );
-                    })}
+                  <div className="w-5 h-5 rounded-full bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-2xs">
+                    <Check className="w-3 h-3 stroke-[3]" />
                   </div>
                 </div>
               </div>
@@ -672,9 +537,10 @@ export const PackagePaymentModal: React.FC<PackagePaymentModalProps> = ({
             <button
               onClick={handlePay}
               disabled={isProcessing || !selectedPkg}
-              className="py-3 px-5 sm:px-6 bg-gradient-to-r from-amber-500 via-rose-500 to-indigo-600 hover:from-amber-600 hover:to-indigo-700 text-white font-black text-xs rounded-xl shadow-md shadow-rose-500/20 transition flex items-center gap-2 disabled:opacity-50 cursor-pointer"
+              className="py-3 px-6 bg-gradient-to-r from-red-600 via-rose-600 to-red-700 hover:from-red-700 hover:to-rose-800 text-white font-black text-xs rounded-xl shadow-md shadow-red-600/25 transition flex items-center gap-2 disabled:opacity-50 cursor-pointer"
             >
-              {isProcessing ? 'Memproses...' : `Lanjut Bayar (${selectedChannel})`}
+              <QrCode className="w-4 h-4" />
+              <span>{isProcessing ? 'Memproses...' : 'Bayar Sekarang via QRIS'}</span>
             </button>
           </div>
         )}
