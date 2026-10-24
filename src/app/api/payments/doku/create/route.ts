@@ -160,13 +160,39 @@ export async function POST(request: Request) {
 
     let checkoutPaymentUrl = dokuData?.response?.payment?.url || dokuData?.payment?.url || dokuData?.url;
     let qrString = dokuData?.qr_content || dokuData?.qr_string || dokuData?.payment?.qr_content;
-    let howToPayUrl = checkoutPaymentUrl || 'https://kondangsensei.my.id';
+    const tokenId = dokuData?.response?.payment?.token_id;
 
-    const hasLiveCode = Boolean(dokuResponse?.ok && (checkoutPaymentUrl || qrString));
+    // Fetch official direct DOKU QRIS (ASPI/EMVCo compliant) so users can scan directly in GoPay/m-Banking
+    if (tokenId) {
+      try {
+        const checkoutHost = isProd ? 'https://checkout.doku.com' : 'https://checkout-sandbox.doku.com';
+        const directQrRes = await fetch(`${checkoutHost}/checkout/v1/payment/${tokenId}/generate-qris`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'Referer': `${checkoutHost}/checkout-link-v2/${tokenId}`,
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'
+          },
+          body: JSON.stringify({ token_id: tokenId })
+        });
+        if (directQrRes.ok) {
+          const directQrJson = await directQrRes.json();
+          if (directQrJson?.qr_code) {
+            qrString = directQrJson.qr_code;
+          }
+        }
+      } catch (directQrErr) {
+        console.warn('Direct DOKU QRIS generation warning:', directQrErr);
+      }
+    }
+
+    let howToPayUrl = checkoutPaymentUrl || 'https://kondangsensei.my.id';
+    const hasLiveCode = Boolean(qrString || (dokuResponse?.ok && checkoutPaymentUrl));
 
     // Ensure valid ASPI EMVCo dynamic QR string
     if (!qrString) {
-      const label = isSandbox ? 'KONDANG SENSEI (SANDBOX)' : 'KONDANG SENSEI';
+      const label = isSandbox ? 'KONDANG SENSEI (SANDBOX)' : 'Kondang Sensei Education';
       qrString = generateDynamicQris(pkg.price, invoiceNumber, label);
     }
 
@@ -199,7 +225,7 @@ export async function POST(request: Request) {
     }
 
     if (hasLiveCode || isSandbox || qrString) {
-      const code = qrString || checkoutPaymentUrl || 'DOKU-QRIS';
+      const code = qrString || 'DOKU-QRIS';
       const sandboxLabel = isSandbox ? ' [SANDBOX]' : '';
       const fullMethod = `QRIS Instant${sandboxLabel}`;
 

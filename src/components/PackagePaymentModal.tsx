@@ -237,16 +237,14 @@ export const PackagePaymentModal: React.FC<PackagePaymentModalProps> = ({
                   {vaResult.channelName.includes('QRIS') ? (
                     <div className="flex flex-col items-center justify-center p-3.5 bg-white rounded-2xl w-fit mx-auto border border-stone-200 shadow-sm my-2">
                       <img
-                        src={`https://api.qrserver.com/v1/create-qr-code/?size=260x260&data=${encodeURIComponent(
-                          vaResult.paymentCode && vaResult.paymentCode.startsWith('000201')
-                            ? vaResult.paymentCode
-                            : vaResult.howToPayUrl || vaResult.paymentCode
+                        src={`https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(
+                          vaResult.paymentCode
                         )}`}
                         alt="QRIS Code"
-                        className="w-44 h-44 sm:w-52 sm:h-52 rounded-xl shadow-2xs"
+                        className="w-48 h-48 sm:w-56 sm:h-56 rounded-xl shadow-2xs bg-white p-1"
                       />
-                      <span className="text-[11px] text-stone-600 font-bold mt-2">
-                        Pindai via BCA, Mandiri, BRI, BNI, GoPay, OVO, Dana, ShopeePay
+                      <span className="text-[11px] text-stone-700 font-extrabold mt-2 text-center">
+                        Scan langsung untuk bayar via GoPay, BCA, Mandiri, BRI, OVO, Dana, ShopeePay
                       </span>
                     </div>
                   ) : (
@@ -314,20 +312,14 @@ export const PackagePaymentModal: React.FC<PackagePaymentModalProps> = ({
                   </button>
                 )}
 
-                {vaResult.howToPayUrl && (
+                {vaResult.isSandbox && vaResult.channelName.includes('QRIS') && vaResult.howToPayUrl && (
                   <a
                     href={vaResult.howToPayUrl}
                     target="_blank"
                     rel="noreferrer"
-                    className="w-full py-2.5 bg-red-600 hover:bg-red-700 text-white font-black text-xs rounded-xl shadow-xs transition flex items-center justify-center gap-1.5 text-center cursor-pointer"
+                    className="w-full py-2.5 bg-amber-600 hover:bg-amber-700 text-white font-black text-xs rounded-xl shadow-xs transition flex items-center justify-center gap-1.5 text-center cursor-pointer"
                   >
-                    <span>
-                      {vaResult.isSandbox && vaResult.channelName.includes('QRIS')
-                        ? 'Buka DOKU QRIS Simulator'
-                        : vaResult.channelName.includes('QRIS') || vaResult.channelName.includes('Wallet')
-                        ? 'Buka Halaman Pembayaran Resmi DOKU'
-                        : 'Buka Halaman Panduan Resmi DOKU'}
-                    </span>
+                    <span>Buka DOKU QRIS Simulator</span>
                     <ExternalLink className="w-3.5 h-3.5 text-white" />
                   </a>
                 )}
