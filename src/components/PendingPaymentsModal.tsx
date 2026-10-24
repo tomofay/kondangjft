@@ -48,6 +48,7 @@ export const PendingPaymentsModal: React.FC<PendingPaymentsModalProps> = ({
   const [statusMessage, setStatusMessage] = useState<{ [invoice: string]: string }>({});
   const [nowTime, setNowTime] = useState<number>(Date.now());
   const [guideModalTx, setGuideModalTx] = useState<Transaction | null>(null);
+  const [simulatingId, setSimulatingId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -96,8 +97,6 @@ export const PendingPaymentsModal: React.FC<PendingPaymentsModalProps> = ({
       setCheckingInvoice(null);
     }
   };
-
-  const [simulatingId, setSimulatingId] = useState<string | null>(null);
 
   const handleSimulatePayment = async (tx: Transaction) => {
     setSimulatingId(tx.id);
