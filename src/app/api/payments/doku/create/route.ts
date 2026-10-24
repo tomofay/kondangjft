@@ -378,6 +378,11 @@ export async function POST(request: Request) {
       }
     }
 
+    // Ensure QRIS channel always has a valid ASPI EMVCo dynamic QR string
+    if (channel === 'QRIS' && !qrString) {
+      qrString = generateDynamicQris(pkg.price, invoiceNumber, 'KONDANG SENSEI');
+    }
+
     // Normalize expired date to valid ISO format (DOKU returns 'YYYYMMDDHHmmss' format e.g. '20261018123529')
     const rawExpired = dokuData?.virtual_account_info?.expired_date || dokuData?.online_to_offline_info?.expired_date;
     let expiredAt = new Date(Date.now() + 60 * 60 * 1000).toISOString();

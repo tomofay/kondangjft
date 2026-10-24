@@ -285,7 +285,22 @@ export const PendingPaymentsModal: React.FC<PendingPaymentsModalProps> = ({
                         <span className="font-extrabold text-stone-800">{tx.paymentMethod.replace(/\s*-\s*[0-9A-Za-z]+$/, '')}</span>
                       </div>
 
-                      {paymentCode ? (
+                      {tx.paymentMethod.includes('QRIS') ? (
+                        <div className="flex flex-col items-start gap-1.5 pt-1">
+                          <img
+                            src={`https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(
+                              paymentCode && paymentCode.startsWith('000201')
+                                ? paymentCode
+                                : tx.howToPayUrl || paymentCode || tx.id
+                            )}`}
+                            alt="QRIS Code"
+                            className="w-28 h-28 sm:w-32 sm:h-32 rounded-lg border border-stone-200 bg-white p-1 shadow-2xs"
+                          />
+                          <span className="text-[10px] text-stone-500 font-semibold">
+                            Pindai via BCA, Mandiri, GoPay, OVO, Dana, ShopeePay
+                          </span>
+                        </div>
+                      ) : paymentCode ? (
                         <div className="flex items-center gap-2.5">
                           <span className="text-2xl sm:text-3xl font-black text-indigo-950 font-mono tracking-wider">
                             {paymentCode}

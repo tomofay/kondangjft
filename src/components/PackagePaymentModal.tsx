@@ -259,19 +259,19 @@ export const PackagePaymentModal: React.FC<PackagePaymentModalProps> = ({
                       : 'Nomor Virtual Account'}
                   </div>
 
-                  {vaResult.channelName.includes('QRIS') &&
-                  vaResult.paymentCode &&
-                  vaResult.paymentCode.startsWith('000201') ? (
-                    <div className="flex flex-col items-center justify-center p-3 bg-white rounded-2xl w-fit mx-auto border border-stone-200 shadow-sm my-2">
+                  {vaResult.channelName.includes('QRIS') ? (
+                    <div className="flex flex-col items-center justify-center p-3.5 bg-white rounded-2xl w-fit mx-auto border border-stone-200 shadow-sm my-2">
                       <img
-                        src={`https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(
-                          vaResult.paymentCode
+                        src={`https://api.qrserver.com/v1/create-qr-code/?size=260x260&data=${encodeURIComponent(
+                          vaResult.paymentCode && vaResult.paymentCode.startsWith('000201')
+                            ? vaResult.paymentCode
+                            : vaResult.howToPayUrl || vaResult.paymentCode
                         )}`}
                         alt="QRIS Code"
-                        className="w-36 h-36 sm:w-44 sm:h-44 rounded-lg"
+                        className="w-44 h-44 sm:w-52 sm:h-52 rounded-xl shadow-2xs"
                       />
-                      <span className="text-[10px] text-stone-500 font-bold mt-1">
-                        Scan BCA, GoPay, OVO, Dana, ShopeePay
+                      <span className="text-[11px] text-stone-600 font-bold mt-2">
+                        Pindai via BCA, Mandiri, BRI, BNI, GoPay, OVO, Dana, ShopeePay
                       </span>
                     </div>
                   ) : (
