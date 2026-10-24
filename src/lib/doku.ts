@@ -76,3 +76,76 @@ export function getDokuBaseUrl(): string {
   const isProd = process.env.DOKU_IS_PRODUCTION === 'true';
   return isProd ? 'https://api.doku.com' : 'https://api-sandbox.doku.com';
 }
+
+/**
+ * Generate DOKU HMAC-SHA256 Signature for HTTP GET requests (without Digest)
+ */
+export function generateDokuGetSignature(
+  clientId: string,
+  requestId: string,
+  requestTimestamp: string,
+  requestTarget: string,
+  secretKey: string
+): string {
+  const signatureComponent = [
+    `Client-Id:${clientId}`,
+    `Request-Id:${requestId}`,
+    `Request-Timestamp:${requestTimestamp}`,
+    `Request-Target:${requestTarget}`
+  ].join('\n');
+  const hmac = crypto.createHmac('sha256', secretKey).update(signatureComponent).digest('base64');
+  return `HMACSHA256=${hmac}`;
+}
+
+/**
+ * Query official DOKU order status via Jokul/Checkout API
+ */
+export async function checkDokuOrderStatus(invoiceNumber: string): Promise<{
+  isSuccess: boolean;
+  status: string;
+  data?: any;
+}> {
+  try {
+    const clientId = process.env.DOKU_CLIENT_ID || 'BRN-0217-1792292490991';
+    const secretKey = process.env.DOKU_SECRET_KEY || 'SK-exfHwYOtzTIzZi16bxSz';
+    const baseUrl = getDokuBaseUrl();
+    const requestTarget = `/orders/v1/status/${invoiceNumber}`;
+    const requestId = `REQ-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
+    const requestTimestamp = new Date().toISOString().replace(/\.\d{3}Z$/, 'Z');
+
+    const signature = generateDokuGetSignature(
+      clientId,
+      requestId,
+      requestTimestamp,
+      requestTarget,
+      secretKey
+    );
+
+    const res = await fetch(`${baseUrl}${requestTarget}`, {
+      method: 'GET',
+      headers: {
+        'Client-Id': clientId,
+        'Request-Id': requestId,
+        'Request-Timestamp': requestTimestamp,
+        Signature: signature
+      }
+    });
+
+    if (!res.ok) {
+      return { isSuccess: false, status: 'NOT_FOUND' };
+    }
+
+    const json = await res.json();
+    const transactionStatus = json?.transaction?.status; // e.g. "SUCCESS"
+    const isSuccess = transactionStatus === 'SUCCESS';
+
+    return {
+      isSuccess,
+      status: transactionStatus || json?.order?.status || 'UNKNOWN',
+      data: json
+    };
+  } catch (error) {
+    console.warn('Error checking DOKU order status:', error);
+    return { isSuccess: false, status: 'ERROR' };
+  }
+}

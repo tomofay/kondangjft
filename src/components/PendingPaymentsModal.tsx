@@ -48,6 +48,34 @@ export const PendingPaymentsModal: React.FC<PendingPaymentsModalProps> = ({
     return () => clearInterval(interval);
   }, [isOpen]);
 
+  // Auto-poll status when modal is open and has pending transactions
+  useEffect(() => {
+    if (!isOpen || !pendingTransactions || pendingTransactions.length === 0) return;
+
+    const pendingTxList = pendingTransactions.filter((t) => t.status === 'PENDING');
+    if (pendingTxList.length === 0) return;
+
+    const interval = setInterval(async () => {
+      for (const tx of pendingTxList) {
+        try {
+          const res = await fetch(`/api/payments/status?invoiceNumber=${encodeURIComponent(tx.id)}`);
+          const data = await res.json();
+          if (data.success && (data.isPaid || data.status === 'PAID')) {
+            clearInterval(interval);
+            setStatusMessage((prev) => ({ ...prev, [tx.id]: '✅ Pembayaran BERHASIL terkonfirmasi!' }));
+            onPaymentSuccess(tx.packageId, tx.paymentMethod);
+            setTimeout(() => {
+              onRefresh();
+            }, 1200);
+            break;
+          }
+        } catch {}
+      }
+    }, 4000);
+
+    return () => clearInterval(interval);
+  }, [isOpen, pendingTransactions, onPaymentSuccess, onRefresh]);
+
   if (!isOpen) return null;
 
   const handleCopy = (text: string, id: string) => {
@@ -65,12 +93,12 @@ export const PendingPaymentsModal: React.FC<PendingPaymentsModalProps> = ({
       const res = await fetch(`/api/payments/status?invoiceNumber=${encodeURIComponent(tx.id)}`);
       const data = await res.json();
 
-      if (data.success && data.isPaid) {
-        setStatusMessage((prev) => ({ ...prev, [tx.id]: 'Pembayaran BERHASIL terkonfirmasi!' }));
+      if (data.success && (data.isPaid || data.status === 'PAID')) {
+        setStatusMessage((prev) => ({ ...prev, [tx.id]: '✅ Pembayaran BERHASIL terkonfirmasi!' }));
         onPaymentSuccess(tx.packageId, tx.paymentMethod);
         setTimeout(() => {
           onRefresh();
-        }, 1500);
+        }, 1200);
       } else {
         setStatusMessage((prev) => ({
           ...prev,

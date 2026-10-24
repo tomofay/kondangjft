@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { TryoutPackage, User } from '../types';
 import {
   ShieldCheck,
@@ -52,6 +52,31 @@ export const PackagePaymentModal: React.FC<PackagePaymentModalProps> = ({
   const [isCheckingPayment, setIsCheckingPayment] = useState(false);
   const [isSimulating, setIsSimulating] = useState(false);
   const [checkStatusMessage, setCheckStatusMessage] = useState('');
+
+  // Auto-poll payment status while QR is displayed
+  useEffect(() => {
+    if (!isOpen || !vaResult?.invoiceNumber) return;
+
+    const interval = setInterval(async () => {
+      try {
+        const res = await fetch(`/api/payments/status?invoiceNumber=${encodeURIComponent(vaResult.invoiceNumber)}`);
+        const data = await res.json();
+        if (data.success && (data.status === 'PAID' || data.isPaid)) {
+          clearInterval(interval);
+          setCheckStatusMessage('✅ PEMBAYARAN BERHASIL DIVERIFIKASI! Masa aktif akun Anda telah diperpanjang.');
+          if (selectedPkg) {
+            onPaymentSuccess(selectedPkg.id, vaResult.channelName);
+          }
+          setTimeout(() => {
+            setVaResult(null);
+            onClose();
+          }, 1200);
+        }
+      } catch {}
+    }, 3500);
+
+    return () => clearInterval(interval);
+  }, [isOpen, vaResult?.invoiceNumber, selectedPkg, onPaymentSuccess, onClose]);
 
   if (!isOpen) return null;
 
@@ -126,8 +151,11 @@ export const PackagePaymentModal: React.FC<PackagePaymentModalProps> = ({
       const res = await fetch(`/api/payments/status?invoiceNumber=${encodeURIComponent(vaResult.invoiceNumber)}`);
       const data = await res.json();
 
-      if (data.success && data.status === 'PAID') {
+      if (data.success && (data.status === 'PAID' || data.isPaid)) {
         setCheckStatusMessage('✅ PEMBAYARAN BERHASIL DIVERIFIKASI! Masa aktif akun Anda telah diperpanjang.');
+        if (selectedPkg) {
+          onPaymentSuccess(selectedPkg.id, vaResult.channelName);
+        }
         setTimeout(() => {
           setVaResult(null);
           onClose();
