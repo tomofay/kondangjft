@@ -64,12 +64,38 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
   const draftSpecificImageInputRef = useRef<HTMLInputElement | null>(null);
   const [activeDraftIdForImage, setActiveDraftIdForImage] = useState<string | null>(null);
 
-  const allExamSets = examSets && examSets.length > 0 ? examSets : [
-    { id: 1, name: 'Paket Ujian #1 (Simulasi Utama)', code: 'JFT-SET-A', description: '50 Soal standar asli JFT-Basic.', totalQuestions: 50 },
-    { id: 2, name: 'Paket Ujian #2 (Intensif Kosakata & Tata Bahasa)', code: 'JFT-SET-B', description: '50 Soal variasi tata bahasa A2.', totalQuestions: 50 },
-    { id: 3, name: 'Paket Ujian #3 (Master Chōkai Pendengaran)', code: 'JFT-SET-C', description: '50 Soal simulasi audio.', totalQuestions: 50 },
-    { id: 4, name: 'Paket Ujian #4 (Tryout Spesial Final Test)', code: 'JFT-SET-D', description: '50 Soal komprehensif.', totalQuestions: 50 }
-  ];
+  // 1-second dynamic ticker to keep time and relative status ("Baru saja", "x dtk lalu") live
+  const [, setTick] = useState(0);
+  useEffect(() => {
+    const timer = setInterval(() => setTick((t) => t + 1), 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  // Realtime background sync polling every 2.5 seconds when AdminPortal is open
+  useEffect(() => {
+    if (!onRefreshData) return;
+    const interval = setInterval(() => {
+      onRefreshData();
+    }, 2500);
+    return () => clearInterval(interval);
+  }, [onRefreshData]);
+
+  const allExamSets = React.useMemo(() => {
+    const baseSets = examSets && examSets.length > 0 ? examSets : [
+      { id: 1, name: 'Paket Ujian #1 (Simulasi Utama)', code: 'JFT-SET-A', description: 'Simulasi standar JFT-Basic.', totalQuestions: 50 },
+      { id: 2, name: 'Paket Ujian #2 (Intensif Kosakata & Tata Bahasa)', code: 'JFT-SET-B', description: 'Variasi tata bahasa & kosakata A2.', totalQuestions: 50 },
+      { id: 3, name: 'Paket Ujian #3 (Master Chōkai Pendengaran)', code: 'JFT-SET-C', description: 'Simulasi audio percakapan & pengumuman.', totalQuestions: 50 },
+      { id: 4, name: 'Paket Ujian #4 (Tryout Spesial Final Test)', code: 'JFT-SET-D', description: 'Komprehensif tes akhir sebelum ujian resmi.', totalQuestions: 50 }
+    ];
+
+    return baseSets.map((s) => {
+      const qCount = questions.filter((q) => (q.packageId || 1) === s.id).length;
+      return {
+        ...s,
+        totalQuestions: qCount > 0 ? qCount : s.totalQuestions || 50
+      };
+    });
+  }, [examSets, questions]);
 
   const activePackageIds = React.useMemo(() => new Set(allExamSets.map((s) => s.id)), [allExamSets]);
   const activeQuestions = React.useMemo(() => {
@@ -640,7 +666,7 @@ B：いえ、だいじょうぶですよ。
             Superadmin Control Panel
           </span>
           <h1 className="text-2xl font-black tracking-tight mt-1.5 text-stone-900">Portal Administrator KondangSensei</h1>
-          <p className="text-xs text-stone-500">Kelola Bank Soal 50 Soal, Sesi Single Lock, Transaksi & Parser PDF</p>
+          <p className="text-xs text-stone-500">Kelola Bank Soal ({activeQuestions.length} Butir Soal Terpasang), Sesi Single Lock, Transaksi & Parser PDF</p>
         </div>
 
         {/* Tab Buttons with Distinct KondangSensei Color Identity */}
@@ -724,41 +750,55 @@ B：いえ、だいじょうぶですよ。
           {/* Realtime Live Monitoring Banner */}
           {(() => {
             const now = Date.now();
-            const onlineCount = users.filter((u) => Boolean(u.activeSessionId && u.lastActiveAt && (now - Number(u.lastActiveAt) < 15000))).length;
-            const examCount = users.filter((u) => {
-              const isOnline = Boolean(u.activeSessionId && u.lastActiveAt && (now - Number(u.lastActiveAt) < 15000));
-              return isOnline && u.currentActivity?.view === 'exam';
-            }).length;
+            const parseLastActive = (val?: string | null) => {
+              if (!val) return 0;
+              const num = Number(val);
+              if (!isNaN(num) && num > 1000000000) return num;
+              const dateMs = new Date(val).getTime();
+              return isNaN(dateMs) ? 0 : dateMs;
+            };
+
+            const onlineUsers = users.filter((u) => {
+              const lastMs = parseLastActive(u.lastActiveAt);
+              return Boolean(u.activeSessionId && lastMs > 0 && (now - lastMs < 12000));
+            });
+            const onlineCount = onlineUsers.length;
+            const examCount = onlineUsers.filter((u) => u.currentActivity?.view === 'exam').length;
 
             return (
-              <div className="p-4 rounded-2xl bg-emerald-50/80 border border-emerald-200 text-emerald-900 flex flex-wrap items-center justify-between gap-3 shadow-sm">
-                <div className="flex items-center gap-2.5">
-                  <span className="relative flex h-3 w-3">
+              <div className="p-4 rounded-2xl bg-emerald-50/90 border border-emerald-200 text-emerald-950 flex flex-wrap items-center justify-between gap-3 shadow-xs">
+                <div className="flex items-center gap-3">
+                  <span className="relative flex h-3.5 w-3.5">
                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
+                    <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-emerald-500 shadow-sm"></span>
                   </span>
                   <div>
-                    <div className="text-xs font-black text-emerald-800 flex items-center gap-1.5">
-                      <span>Live Realtime Monitor Aktif</span>
-                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 font-mono">Sync 2s</span>
+                    <div className="text-xs font-black text-emerald-900 flex items-center gap-2">
+                      <span>Live Realtime Monitor Terhubung</span>
+                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-200 text-emerald-800 font-mono font-bold">
+                        Auto-Sync 2.5s
+                      </span>
                     </div>
-                    <div className="text-[11px] text-emerald-700/80">
-                      Data aktivitas siswa diperbarui otomatis secara langsung tanpa perlu memuat ulang halaman.
+                    <div className="text-[11px] text-emerald-800/80 mt-0.5">
+                      Memantau aktivitas siswa langsung dari server tanpa perlu refresh halaman browser.
                     </div>
                   </div>
                 </div>
 
                 <div className="flex items-center gap-2 flex-wrap text-xs">
-                  <div className="px-3 py-1.5 rounded-xl bg-white border border-emerald-300 text-emerald-800 shadow-xs font-bold flex items-center gap-1.5">
-                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                  <div className="px-3 py-1.5 rounded-xl bg-white border border-emerald-300 text-emerald-900 shadow-xs font-bold flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
                     <span>{onlineCount} Siswa Online</span>
                   </div>
                   {examCount > 0 && (
-                    <div className="px-3 py-1.5 rounded-xl bg-rose-50 border border-rose-300 text-red-800 shadow-xs font-bold flex items-center gap-1.5 animate-pulse">
+                    <div className="px-3 py-1.5 rounded-xl bg-rose-50 border border-rose-300 text-red-900 shadow-xs font-bold flex items-center gap-1.5 animate-pulse">
                       <Activity className="w-3.5 h-3.5 text-red-600" />
                       <span>{examCount} Sedang Mengerjakan CBT</span>
                     </div>
                   )}
+                  <div className="px-3 py-1.5 rounded-xl bg-stone-100 border border-stone-200 text-stone-700 font-semibold">
+                    <span>{users.length} Total Akun</span>
+                  </div>
                 </div>
               </div>
             );
@@ -771,7 +811,7 @@ B：いえ、だいじょうぶですよ。
                   <th className="p-3">Nama & No. Reg</th>
                   <th className="p-3">Email Akun</th>
                   <th className="p-3">Role</th>
-                  <th className="p-3 min-w-[220px]">Status & Aktivitas Realtime</th>
+                  <th className="p-3 min-w-[240px]">Status & Aktivitas Realtime</th>
                   <th className="p-3">Masa Aktif Akses</th>
                   <th className="p-3">Progres & Riwayat Tes</th>
                   <th className="p-3 text-right">Kelola Akun</th>
@@ -849,67 +889,142 @@ B：いえ、だいじょうぶですよ。
 
                         <td className="p-3">
                           {(() => {
-                            const isOnline = Boolean(u.activeSessionId && u.lastActiveAt && (Date.now() - Number(u.lastActiveAt) < 15000));
+                            const now = Date.now();
+                            const parseLastActive = (val?: string | null) => {
+                              if (!val) return 0;
+                              const num = Number(val);
+                              if (!isNaN(num) && num > 1000000000) return num;
+                              const dateMs = new Date(val).getTime();
+                              return isNaN(dateMs) ? 0 : dateMs;
+                            };
+                            const formatTimeAgo = (ms: number) => {
+                              if (!ms || ms <= 0) return null;
+                              const diffSec = Math.max(0, Math.floor((now - ms) / 1000));
+                              if (diffSec < 4) return 'Baru saja';
+                              if (diffSec < 60) return `${diffSec} dtk lalu`;
+                              const diffMin = Math.floor(diffSec / 60);
+                              if (diffMin < 60) return `${diffMin} mnt lalu`;
+                              const diffHours = Math.floor(diffMin / 60);
+                              if (diffHours < 24) return `${diffHours} jam lalu`;
+                              const diffDays = Math.floor(diffHours / 24);
+                              return `${diffDays} hr lalu`;
+                            };
+
+                            const lastMs = parseLastActive(u.lastActiveAt);
+                            const isOnline = Boolean(u.activeSessionId && lastMs > 0 && (now - lastMs < 12000));
                             const act = u.currentActivity;
+                            const timeAgo = formatTimeAgo(lastMs);
+
+                            const sectionNameMap: Record<string, string> = {
+                              S1: 'S1: 文字と語彙 (Moji to Goi)',
+                              S2: 'S2: 会話と表現 (Kaiwa)',
+                              S3: 'S3: 聴解 (Chōkai Audio)',
+                              S4: 'S4: 読解 (Dokkai Bacaan)'
+                            };
 
                             if (isOnline) {
                               return (
-                                <div className="space-y-1.5 py-1">
-                                  <div className="flex items-center gap-1.5">
+                                <div className="space-y-2 py-1 max-w-[260px]">
+                                  <div className="flex items-center gap-1.5 flex-wrap">
                                     <span className="relative flex h-2.5 w-2.5">
                                       <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                                       <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
                                     </span>
-                                    <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 font-mono text-[10px] font-black border border-emerald-300">
-                                      Online • Sesi Aktif
+                                    <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-mono text-[10px] font-black border border-emerald-300">
+                                      Online • {timeAgo || 'Aktif'}
                                     </span>
                                   </div>
 
                                   {/* Live What They Are Doing */}
                                   {act?.view === 'exam' ? (
-                                    <div className="p-2.5 rounded-xl bg-rose-50 border border-rose-200 text-xs space-y-1 shadow-xs">
-                                      <div className="flex items-center gap-1.5 font-black text-red-700 text-[11px]">
-                                        <span className="w-2 h-2 rounded-full bg-red-600 animate-pulse"></span>
-                                        <span>Mengerjakan: {act.packageName || 'Paket Ujian'}</span>
+                                    <div className="p-2.5 rounded-xl bg-rose-50 border border-rose-200 text-xs space-y-1.5 shadow-xs">
+                                      <div className="flex items-center justify-between gap-1 text-[11px]">
+                                        <div className="flex items-center gap-1.5 font-black text-red-700 truncate" title={act.packageName}>
+                                          <span className="w-2 h-2 rounded-full bg-red-600 animate-pulse shrink-0"></span>
+                                          <span className="truncate">{act.packageName || 'CBT Ujian'}</span>
+                                        </div>
+                                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-rose-100 text-red-800 font-mono font-bold shrink-0">
+                                          {act.packageCode || 'SET'}
+                                        </span>
                                       </div>
-                                      <div className="font-extrabold text-stone-800 text-[11px] flex items-center gap-1">
+
+                                      <div className="font-extrabold text-stone-800 text-[11px] flex items-center justify-between">
                                         <span>Soal No. {act.currentNumber || 1}</span>
-                                        <span className="text-[10px] text-red-600 font-mono">({act.currentSection || 'S1'})</span>
-                                      </div>
-                                      <div className="flex items-center gap-2 text-[10px] text-stone-500 flex-wrap">
-                                        <span className="font-semibold text-stone-700">
-                                          ✓ {act.answeredCount || 0}/{act.totalQuestions || 50} Soal
-                                        </span>
-                                        <span>•</span>
-                                        <span className="text-amber-600 font-bold font-mono">
-                                          ⏱ Sisa {Math.floor((act.timeLeftSeconds || 0) / 60)}m {(act.timeLeftSeconds || 0) % 60}s
+                                        <span className="text-[10px] text-red-600 font-mono">
+                                          {sectionNameMap[act.currentSection || 'S1'] || act.currentSection || 'S1'}
                                         </span>
                                       </div>
+
+                                      {/* Dynamic Mini Progress Bar */}
+                                      {(() => {
+                                        const total = act.totalQuestions || 50;
+                                        const answered = act.answeredCount || 0;
+                                        const pct = Math.min(100, Math.max(0, Math.round((answered / total) * 100)));
+                                        return (
+                                          <div className="space-y-1">
+                                            <div className="w-full bg-rose-200/60 h-1.5 rounded-full overflow-hidden">
+                                              <div
+                                                className="bg-red-600 h-full rounded-full transition-all duration-300"
+                                                style={{ width: `${pct}%` }}
+                                              />
+                                            </div>
+                                            <div className="flex items-center justify-between text-[10px] text-stone-600 flex-wrap">
+                                              <span className="font-semibold text-stone-700">
+                                                ✓ {answered}/{total} ({pct}%)
+                                              </span>
+                                              <span className="text-amber-700 font-bold font-mono">
+                                                ⏱ {Math.floor((act.timeLeftSeconds || 0) / 60)}m {(act.timeLeftSeconds || 0) % 60}s
+                                              </span>
+                                            </div>
+                                          </div>
+                                        );
+                                      })()}
                                     </div>
                                   ) : act?.view === 'dashboard' ? (
-                                    <div className="px-2.5 py-1 rounded-xl bg-blue-50 border border-blue-200 text-blue-700 text-[11px] font-semibold flex items-center gap-1.5 w-max">
-                                      <span className="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
-                                      Di Dashboard Utama
+                                    <div className="p-2 rounded-xl bg-blue-50 border border-blue-200 text-blue-900 text-[11px] space-y-0.5">
+                                      <div className="font-bold flex items-center gap-1.5 text-blue-800">
+                                        <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span>
+                                        Di Dashboard Utama
+                                      </div>
+                                      <div className="text-[10px] text-blue-700/80">
+                                        Memilih paket ujian / melihat riwayat
+                                      </div>
                                     </div>
                                   ) : act?.view === 'report' ? (
-                                    <div className="px-2.5 py-1 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-700 text-[11px] font-semibold flex items-center gap-1.5 w-max">
-                                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                                      Melihat Rapor Hasil Ujian
+                                    <div className="p-2 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-[11px] space-y-0.5">
+                                      <div className="font-bold flex items-center gap-1.5 text-emerald-800">
+                                        <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                                        Melihat Rapor Hasil Ujian
+                                      </div>
+                                      <div className="text-[10px] text-emerald-700/80">
+                                        Menganalisis sertifikat kelulusan
+                                      </div>
                                     </div>
                                   ) : act?.view === 'review' ? (
-                                    <div className="px-2.5 py-1 rounded-xl bg-amber-50 border border-amber-200 text-amber-700 text-[11px] font-semibold flex items-center gap-1.5 w-max">
-                                      <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
-                                      Melihat Pembahasan Soal
+                                    <div className="p-2 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-[11px] space-y-0.5">
+                                      <div className="font-bold flex items-center gap-1.5 text-amber-800">
+                                        <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+                                        Melihat Pembahasan Soal
+                                      </div>
+                                      <div className="text-[10px] text-amber-700/80">
+                                        Mempelajari kunci jawaban & penjelasan
+                                      </div>
                                     </div>
                                   ) : act?.view === 'admin' ? (
-                                    <div className="px-2.5 py-1 rounded-xl bg-stone-100 text-stone-600 text-[11px] font-semibold flex items-center gap-1.5 w-max">
-                                      <span className="w-1.5 h-1.5 rounded-full bg-stone-400"></span>
-                                      Di Portal Admin
+                                    <div className="p-2 rounded-xl bg-stone-100 border border-stone-200 text-stone-800 text-[11px] space-y-0.5">
+                                      <div className="font-bold flex items-center gap-1.5 text-stone-700">
+                                        <span className="w-2 h-2 rounded-full bg-stone-500"></span>
+                                        Di Portal Admin
+                                      </div>
+                                      <div className="text-[10px] text-stone-500">
+                                        Mengelola sistem atau bank soal
+                                      </div>
                                     </div>
                                   ) : (
-                                    <span className="text-[11px] text-stone-500">
+                                    <div className="px-2.5 py-1 rounded-xl bg-stone-100 text-stone-700 text-[11px] font-semibold flex items-center gap-1.5">
+                                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
                                       Aktif di Aplikasi
-                                    </span>
+                                    </div>
                                   )}
                                 </div>
                               );
@@ -917,14 +1032,17 @@ B：いえ、だいじょうぶですよ。
 
                             if (u.activeSessionId) {
                               return (
-                                <div className="space-y-1">
-                                  <span className="px-2 py-0.5 rounded-md bg-amber-50 text-amber-700 text-[10px] font-semibold border border-amber-200 flex items-center gap-1 w-max">
-                                    <span className="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+                                <div className="space-y-1 py-1 max-w-[260px]">
+                                  <span className="px-2 py-0.5 rounded-md bg-amber-50 text-amber-800 text-[10px] font-semibold border border-amber-200 flex items-center gap-1.5 w-max">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
                                     Sesi Terkunci (Tab Ditutup / Idle)
                                   </span>
+                                  <div className="text-[10px] text-stone-500 font-mono">
+                                    {timeAgo ? `Terakhir aktif: ${timeAgo}` : 'Sesi tersimpan'}
+                                  </div>
                                   {act?.packageName && (
-                                    <div className="text-[10px] text-stone-400 truncate max-w-[170px]" title={act.packageName}>
-                                      Terakhir: {act.packageName}
+                                    <div className="text-[10px] text-stone-500 truncate" title={act.packageName}>
+                                      Sesi terakhir: {act.packageName}
                                     </div>
                                   )}
                                 </div>
@@ -932,10 +1050,17 @@ B：いえ、だいじょうぶですよ。
                             }
 
                             return (
-                              <span className="text-stone-400 text-[11px] flex items-center gap-1.5">
-                                <span className="w-1.5 h-1.5 rounded-full bg-stone-200"></span>
-                                Offline
-                              </span>
+                              <div className="space-y-0.5 py-1">
+                                <span className="text-stone-400 text-[11px] flex items-center gap-1.5">
+                                  <span className="w-1.5 h-1.5 rounded-full bg-stone-300"></span>
+                                  Offline
+                                </span>
+                                {timeAgo && (
+                                  <div className="text-[10px] text-stone-400 font-mono">
+                                    {timeAgo}
+                                  </div>
+                                )}
+                              </div>
                             );
                           })()}
                         </td>

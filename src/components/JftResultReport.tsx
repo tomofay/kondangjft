@@ -156,7 +156,7 @@ export const JftResultReport: React.FC<JftResultReportProps> = ({
         backgroundColor: '#ffffff',
         logging: false,
         windowWidth: 1200,
-        onclone: (clonedDoc) => {
+        onclone: (clonedDoc: Document) => {
           const el = clonedDoc.getElementById('jft-certificate-container');
           if (el) {
             el.style.width = '800px';

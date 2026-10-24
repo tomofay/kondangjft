@@ -79,6 +79,7 @@ export default function HomePage() {
   const [adminUsers, setAdminUsers] = useState<User[]>(() => getStore().users);
   const [adminExamResults, setAdminExamResults] = useState<ExamResult[]>([]);
   const examLiveProgressRef = useRef<{
+    view?: string;
     currentIndex: number;
     currentNumber: number;
     currentSection: string;
@@ -86,6 +87,7 @@ export default function HomePage() {
     answeredCount: number;
     totalQuestions: number;
     timeLeftSeconds: number;
+    [key: string]: any;
   } | null>(null);
 
   // Memoize questions for the currently selected package to prevent unnecessary array reference changes
@@ -333,19 +335,37 @@ export default function HomePage() {
     }
   }, [currentUser?.id, loadPendingPayments, loadExamHistory]);
 
-  // Background Session Verification Heartbeat (Single Session Lock Protection)
+  // Reset live exam progress when leaving exam view
+  useEffect(() => {
+    if (view !== 'exam') {
+      examLiveProgressRef.current = null;
+    }
+  }, [view]);
+
+  // Background Session Verification Heartbeat & Realtime Live Activity (pings every 2.5s)
   useEffect(() => {
     if (!currentUser || !sessionId) return;
 
-    const interval = setInterval(async () => {
+    const sendHeartbeat = async () => {
       try {
+        const curPkg = examSets.find((s) => s.id === selectedPackageId);
+        const liveExam = examLiveProgressRef.current;
+        const activityPayload = {
+          view,
+          packageId: selectedPackageId,
+          packageName: curPkg?.name || `Paket Ujian #${selectedPackageId}`,
+          packageCode: curPkg?.code || `JFT-SET-${selectedPackageId}`,
+          ...(view === 'exam' && liveExam ? liveExam : {}),
+          updatedAt: Date.now()
+        };
+
         const res = await fetch('/api/auth/session-check', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             userId: currentUser.id,
-            sessionId: sessionId,
-            activity: view === 'exam' ? examLiveProgressRef.current : null
+            sessionId,
+            activity: activityPayload
           })
         });
         const data = await res.json();
@@ -356,10 +376,13 @@ export default function HomePage() {
       } catch (err) {
         console.warn('Heartbeat session check failed:', err);
       }
-    }, 5000);
+    };
+
+    sendHeartbeat();
+    const interval = setInterval(sendHeartbeat, 2500);
 
     return () => clearInterval(interval);
-  }, [currentUser, sessionId, view]);
+  }, [currentUser, sessionId, view, selectedPackageId, examSets]);
 
   // Load admin data
   const loadAdminData = useCallback(async () => {
@@ -384,10 +407,16 @@ export default function HomePage() {
     }
   }, []);
 
+  // Realtime Live Polling for Admin Portal: syncs every 2.5 seconds
   useEffect(() => {
-    if (view === 'admin') {
+    if (view !== 'admin') return;
+
+    loadAdminData();
+    const interval = setInterval(() => {
       loadAdminData();
-    }
+    }, 2500);
+
+    return () => clearInterval(interval);
   }, [view, loadAdminData]);
 
   // Start exam handler (Prometric Pre-Exam Check)
@@ -959,7 +988,10 @@ export default function HomePage() {
             user={currentUser}
             onExitExam={() => setView('dashboard')}
             onProgressUpdate={(prog) => {
-              examLiveProgressRef.current = prog;
+              examLiveProgressRef.current = {
+                ...prog,
+                view: 'exam'
+              };
             }}
           />
         )}
@@ -1419,7 +1451,7 @@ export default function HomePage() {
                     Pilihan Paket Bank Soal Simulasi JFT-Basic ({examSets.length} Paket Tersedia)
                   </h2>
                   <p className="text-xs text-stone-500">
-                    Pilih paket tryout yang ingin Anda kerjakan. Setiap paket berisi 50 butir soal lengkap S1 - S4.
+                    Pilih paket tryout yang ingin Anda kerjakan. Dilengkapi bank soal komprehensif dengan simulasi resmi seksi S1 - S4.
                   </p>
                 </div>
 
