@@ -58,7 +58,9 @@ export const PendingPaymentsModal: React.FC<PendingPaymentsModalProps> = ({
     const interval = setInterval(async () => {
       for (const tx of pendingTxList) {
         try {
-          const res = await fetch(`/api/payments/status?invoiceNumber=${encodeURIComponent(tx.id)}`);
+          const res = await fetch(
+            `/api/payments/status?invoiceNumber=${encodeURIComponent(tx.id)}&userId=${encodeURIComponent(tx.userId || '')}&packageId=${encodeURIComponent(tx.packageId || '')}`
+          );
           const data = await res.json();
           if (data.success && (data.isPaid || data.status === 'PAID')) {
             clearInterval(interval);
@@ -90,7 +92,9 @@ export const PendingPaymentsModal: React.FC<PendingPaymentsModalProps> = ({
     setStatusMessage((prev) => ({ ...prev, [tx.id]: '' }));
 
     try {
-      const res = await fetch(`/api/payments/status?invoiceNumber=${encodeURIComponent(tx.id)}`);
+      const res = await fetch(
+        `/api/payments/status?invoiceNumber=${encodeURIComponent(tx.id)}&userId=${encodeURIComponent(tx.userId || '')}&packageId=${encodeURIComponent(tx.packageId || '')}`
+      );
       const data = await res.json();
 
       if (data.success && (data.isPaid || data.status === 'PAID')) {

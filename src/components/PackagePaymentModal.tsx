@@ -59,7 +59,12 @@ export const PackagePaymentModal: React.FC<PackagePaymentModalProps> = ({
 
     const interval = setInterval(async () => {
       try {
-        const res = await fetch(`/api/payments/status?invoiceNumber=${encodeURIComponent(vaResult.invoiceNumber)}`);
+        const queryParams = new URLSearchParams({
+          invoiceNumber: vaResult.invoiceNumber,
+          ...(currentUser?.id ? { userId: currentUser.id } : {}),
+          ...(selectedPkg?.id ? { packageId: selectedPkg.id } : {})
+        });
+        const res = await fetch(`/api/payments/status?${queryParams.toString()}`);
         const data = await res.json();
         if (data.success && (data.status === 'PAID' || data.isPaid)) {
           clearInterval(interval);
@@ -148,7 +153,12 @@ export const PackagePaymentModal: React.FC<PackagePaymentModalProps> = ({
     setCheckStatusMessage('');
 
     try {
-      const res = await fetch(`/api/payments/status?invoiceNumber=${encodeURIComponent(vaResult.invoiceNumber)}`);
+      const queryParams = new URLSearchParams({
+        invoiceNumber: vaResult.invoiceNumber,
+        ...(currentUser?.id ? { userId: currentUser.id } : {}),
+        ...(selectedPkg?.id ? { packageId: selectedPkg.id } : {})
+      });
+      const res = await fetch(`/api/payments/status?${queryParams.toString()}`);
       const data = await res.json();
 
       if (data.success && (data.status === 'PAID' || data.isPaid)) {

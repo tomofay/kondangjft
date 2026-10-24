@@ -54,23 +54,86 @@ export async function GET(request: Request) {
       }
     }
 
-    // 3. Jika status masih PENDING, tanyakan langsung ke API resmi DOKU
-    if (tx && tx.status !== 'PAID') {
+    const paramUserId = searchParams.get('userId');
+    const paramPackageId = searchParams.get('packageId');
+
+    if (!userId && paramUserId) userId = paramUserId;
+    if (!packageId && paramPackageId) packageId = paramPackageId;
+
+    // 3. Tanyakan langsung ke API resmi DOKU jika status belum PAID atau tx belum tercatat
+    if (!tx || tx.status !== 'PAID') {
       try {
         const dokuCheck = await checkDokuOrderStatus(invoiceNumber);
         if (dokuCheck.isSuccess) {
-          tx.status = 'PAID';
+          const dokuAmount = Number(dokuCheck.data?.order?.amount || dokuCheck.data?.transaction?.amount || 100);
 
-          // Update transaction in MySQL
+          // Deduce package if not specified
+          if (!packageId) {
+            if (dokuAmount === 100) {
+              packageId = 'pkg_special_1h';
+            } else if (dokuAmount === 35000) {
+              packageId = 'pkg_7d';
+            } else if (dokuAmount === 99000) {
+              packageId = 'pkg_30d';
+            } else {
+              packageId = 'pkg_special_1h';
+            }
+          }
+
+          const pkg = store.packages.find((p: TryoutPackage) => p.id === packageId);
+
+          // If userId still not found, try getting active session or first registered user from DB
+          if (!userId) {
+            try {
+              const [uRows] = await pool.query<any[]>('SELECT id FROM users ORDER BY lastActiveAt DESC LIMIT 1');
+              if (uRows && uRows.length > 0) {
+                userId = uRows[0].id;
+              } else if (store.users.length > 0) {
+                userId = store.users[0].id;
+              }
+            } catch {}
+          }
+
+          if (!tx) {
+            tx = {
+              id: invoiceNumber,
+              userId: userId || 'u_1',
+              userName: 'Peserta JFT',
+              packageId: packageId,
+              packageName: pkg?.name || 'Paket JFT Basic',
+              amount: dokuAmount,
+              paymentMethod: 'QRIS Instant',
+              status: 'PAID',
+              createdAt: new Date().toISOString()
+            };
+            store.transactions.unshift(tx);
+          } else {
+            tx.status = 'PAID';
+            if (packageId && !tx.packageId) tx.packageId = packageId;
+          }
+
+          // Insert or Update transaction in MySQL
           try {
-            await pool.query('UPDATE transactions SET status = "PAID" WHERE id = ?', [invoiceNumber]);
+            await pool.query(
+              `INSERT INTO transactions (id, userId, userName, packageId, packageName, amount, paymentMethod, status, createdAt)
+               VALUES (?, ?, ?, ?, ?, ?, ?, 'PAID', NOW())
+               ON DUPLICATE KEY UPDATE status = 'PAID'`,
+              [
+                tx.id,
+                tx.userId || userId || 'u_1',
+                tx.userName || 'Peserta JFT',
+                tx.packageId || packageId,
+                tx.packageName || 'Paket JFT Basic',
+                tx.amount || dokuAmount,
+                tx.paymentMethod || 'QRIS Instant'
+              ]
+            );
           } catch (dbErr) {
-            console.warn('MySQL update tx status to PAID warning:', dbErr);
+            console.warn('MySQL upsert tx status to PAID warning:', dbErr);
           }
 
           // Perpanjang masa aktif user
           if (userId && packageId) {
-            const pkg = store.packages.find((p: TryoutPackage) => p.id === packageId);
             const durationMs = pkg?.durationHours
               ? pkg.durationHours * 60 * 60 * 1000
               : (pkg?.durationDays || 7) * 24 * 60 * 60 * 1000;
