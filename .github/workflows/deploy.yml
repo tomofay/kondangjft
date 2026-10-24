@@ -84,14 +84,19 @@ jobs:
               exit 1
             fi
 
-            echo "🐳 Menjalankan Docker Compose Build..."
+            # Aktifkan Docker BuildKit Engine untuk caching maksimal & build paralel super cepat
+            export DOCKER_BUILDKIT=1
+            export COMPOSE_DOCKER_CLI_BUILD=1
+
+            echo "🐳 Menjalankan Docker Compose Build dengan Cache..."
             $COMPOSE_CMD build
             echo "🚀 Menjalankan kontainer aplikasi..."
             $COMPOSE_CMD up -d --remove-orphans
 
-            # 6. Bersihkan image lama yang tidak terpakai agar menghemat ruang disk VPS
-            echo "🧹 Membersihkan image lama yang tidak terpakai..."
-            docker image prune -f || true
+            # 6. Bersihkan image usang (>48 jam) tanpa menghapus layer build cache yang aktif
+            echo "🧹 Membersihkan image usang (>48 jam) agar disk hemat dan cache tetap terjaga..."
+            docker image prune -f --filter "until=48h" || true
+            docker builder prune -f --keep-storage 2GB --filter "until=72h" || true
 
             # 7. Tampilkan status kontainer yang sedang berjalan
             echo "=================================================="

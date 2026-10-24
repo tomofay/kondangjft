@@ -1,10 +1,12 @@
+# syntax=docker/dockerfile:1
 # Stage 1: Dependencies
 FROM node:22-alpine AS deps
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
 COPY package.json package-lock.json* ./
-RUN npm ci --prefer-offline --no-audit || npm install --no-audit
+RUN --mount=type=cache,target=/root/.npm \
+    npm ci --prefer-offline --no-audit || npm install --no-audit
 
 # Stage 2: Builder
 FROM node:22-alpine AS builder
@@ -18,7 +20,9 @@ ENV NEXT_TELEMETRY_DISABLED=1
 ENV NODE_ENV=production
 ENV IS_DOCKER_BUILD=true
 
-RUN npm run build
+# Enable Next.js incremental compilation cache mount
+RUN --mount=type=cache,target=/app/.next/cache \
+    npm run build
 
 # Stage 3: Runner
 FROM node:22-alpine AS runner
