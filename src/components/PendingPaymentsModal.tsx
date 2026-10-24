@@ -12,7 +12,8 @@ import {
   RefreshCw,
   AlertTriangle,
   ExternalLink,
-  BookOpen
+  BookOpen,
+  Zap
 } from 'lucide-react';
 import {
   BriLogo,
@@ -93,6 +94,35 @@ export const PendingPaymentsModal: React.FC<PendingPaymentsModalProps> = ({
       }));
     } finally {
       setCheckingInvoice(null);
+    }
+  };
+
+  const [simulatingId, setSimulatingId] = useState<string | null>(null);
+
+  const handleSimulatePayment = async (tx: Transaction) => {
+    setSimulatingId(tx.id);
+    setStatusMessage((prev) => ({ ...prev, [tx.id]: '' }));
+
+    try {
+      const res = await fetch('/api/payments/simulate-pay', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ invoiceNumber: tx.id })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setStatusMessage((prev) => ({ ...prev, [tx.id]: '✅ Simulasi Pembayaran BERHASIL! Paket telah aktif.' }));
+        onPaymentSuccess(tx.packageId, tx.paymentMethod);
+        setTimeout(() => {
+          onClose();
+        }, 1200);
+      } else {
+        setStatusMessage((prev) => ({ ...prev, [tx.id]: data.message || 'Gagal memproses simulasi.' }));
+      }
+    } catch {
+      setStatusMessage((prev) => ({ ...prev, [tx.id]: 'Gagal menghubungi server.' }));
+    } finally {
+      setSimulatingId(null);
     }
   };
 
@@ -336,6 +366,17 @@ export const PendingPaymentsModal: React.FC<PendingPaymentsModalProps> = ({
                         <span>
                           {checkingInvoice === tx.id ? 'Memeriksa...' : 'Cek Pembayaran'}
                         </span>
+                      </button>
+
+                      {/* Button 4: Simulasi Sandbox Testing */}
+                      <button
+                        type="button"
+                        onClick={() => handleSimulatePayment(tx)}
+                        disabled={simulatingId === tx.id}
+                        className="col-span-full py-2 px-3 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white text-xs font-black rounded-xl transition flex items-center justify-center gap-1.5 shadow-xs cursor-pointer disabled:opacity-50 mt-0.5"
+                      >
+                        <Zap className="w-3.5 h-3.5 fill-white" />
+                        <span>{simulatingId === tx.id ? 'Memproses Simulasi...' : '⚡ Simulasikan Pembayaran Berhasil (Sandbox Testing)'}</span>
                       </button>
                     </div>
                   )}

@@ -3,6 +3,7 @@ import { getStore } from '@/lib/dataStore';
 import { pool, initDatabase } from '@/lib/db';
 import { User, TryoutPackage, Transaction } from '@/types';
 import { generateDokuSignature, getDokuBaseUrl } from '@/lib/doku';
+import { generateDynamicQris } from '@/lib/qris';
 
 export async function POST(request: Request) {
   try {
@@ -251,71 +252,7 @@ export async function POST(request: Request) {
         break;
       }
 
-      case 'GOOGLE_PAY': {
-        requestTarget = '/checkout/v1/payment';
-        paymentChannelName = 'Google Pay';
-        requestBody = {
-          order: {
-            invoice_number: invoiceNumber,
-            amount: pkg.price,
-            callback_url: baseUrlWeb,
-            failed_url: baseUrlWeb,
-            auto_redirect: true
-          },
-          payment: {
-            payment_due_date: 60,
-            payment_method_types: ['GOOGLE_PAY']
-          },
-          customer: {
-            id: user.id,
-            name: user.name,
-            email: user.email,
-            phone: '6281234567890'
-          }
-        };
-        break;
-      }
 
-      case 'AKULAKU': {
-        requestTarget = '/akulaku-peer-to-peer/v2/generate-order';
-        paymentChannelName = 'Akulaku PayLater';
-        // Akulaku line_items.name strictly allows alphanumeric and spaces (no brackets/parentheses)
-        const sanitizedItemName = (pkg.name || 'Paket Tryout JFT Basic')
-          .replace(/[^a-zA-Z0-9 ]/g, ' ')
-          .replace(/\s+/g, ' ')
-          .trim()
-          .substring(0, 50);
-
-        requestBody = {
-          order: {
-            invoice_number: invoiceNumber,
-            amount: pkg.price,
-            line_items: [
-              {
-                name: sanitizedItemName,
-                price: pkg.price,
-                quantity: 1,
-                sku: (pkg.id || 'JFT01').replace(/[^a-zA-Z0-9]/g, ''),
-                category: 'Education'
-              }
-            ],
-            callback_url: baseUrlWeb
-          },
-          payment: {
-            merchant_unique_reference: `MUR-${invoiceNumber}`
-          },
-          customer: {
-            id: user.id,
-            name: (user.name || 'Peserta JFT').replace(/[^a-zA-Z0-9 ]/g, ' ').trim(),
-            phone: '6281234567890',
-            address: 'Indonesia',
-            city: 'Jakarta',
-            state: 'DKI Jakarta',
-            postcode: '10110'
-          }
-        };
-        break;
-      }
 
       case 'ALFAMART':
         requestTarget = '/alfa-online-to-offline/v2/payment-code';
@@ -371,30 +308,83 @@ export async function POST(request: Request) {
       secretKey
     );
 
-    // Call DOKU Direct API
-    const dokuResponse = await fetch(`${baseUrl}${requestTarget}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Client-Id': clientId,
-        'Request-Id': requestId,
-        'Request-Timestamp': requestTimestamp,
-        Signature: signature
-      },
-      body: rawBody
-    });
+    const isProd = process.env.DOKU_IS_PRODUCTION === 'true';
+    const isSandbox = !isProd;
 
-    const dokuData = await dokuResponse.json();
+    let dokuResponse: Response | null = null;
+    let dokuData: any = null;
 
-    const vaNumber = dokuData.virtual_account_info?.virtual_account_number;
-    const paymentCode = dokuData.online_to_offline_info?.payment_code;
-    const walletPageUrl = dokuData.doku_wallet_payment_page?.url;
-    const checkoutPaymentUrl = dokuData.response?.payment?.url || dokuData.payment?.url || dokuData.url;
-    const qrString = dokuData.qr_content || dokuData.qr_string || dokuData.payment?.qr_content;
-    const howToPayUrl = walletPageUrl || checkoutPaymentUrl || dokuData.virtual_account_info?.how_to_pay_page || dokuData.online_to_offline_info?.how_to_pay_page;
-    
+    try {
+      // Call DOKU API (sandbox or production)
+      dokuResponse = await fetch(`${baseUrl}${requestTarget}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Client-Id': clientId,
+          'Request-Id': requestId,
+          'Request-Timestamp': requestTimestamp,
+          Signature: signature
+        },
+        body: rawBody
+      });
+      dokuData = await dokuResponse.json();
+    } catch (fetchErr) {
+      console.warn('DOKU Fetch error:', fetchErr);
+    }
+
+    let vaNumber = dokuData?.virtual_account_info?.virtual_account_number;
+    let paymentCode = dokuData?.online_to_offline_info?.payment_code;
+    let walletPageUrl = dokuData?.doku_wallet_payment_page?.url;
+    let checkoutPaymentUrl = dokuData?.response?.payment?.url || dokuData?.payment?.url || dokuData?.url;
+    let qrString = dokuData?.qr_content || dokuData?.qr_string || dokuData?.payment?.qr_content;
+    let howToPayUrl = walletPageUrl || checkoutPaymentUrl || dokuData?.virtual_account_info?.how_to_pay_page || dokuData?.online_to_offline_info?.how_to_pay_page;
+
+    const hasLiveCode = Boolean(dokuResponse?.ok && (vaNumber || paymentCode || walletPageUrl || checkoutPaymentUrl || qrString));
+
+    // Sandbox Simulator Fallback if DOKU Sandbox API returns error or merchant key is not active on sandbox
+    if (isSandbox && !hasLiveCode) {
+      console.log(`[DOKU SANDBOX SIMULATOR] Generating sandbox payment for channel: ${channel}`);
+      howToPayUrl = 'https://sandbox.doku.com';
+
+      switch (channel) {
+        case 'QRIS':
+          qrString = generateDynamicQris(pkg.price, invoiceNumber, 'KONDANG SENSEI (SANDBOX)');
+          howToPayUrl = 'https://sandbox.doku.com/qris-simulator/';
+          break;
+        case 'BNI':
+          vaNumber = `8291${Math.floor(100000000000 + Math.random() * 900000000000)}`;
+          break;
+        case 'BSI':
+          vaNumber = `6059${Math.floor(100000000000 + Math.random() * 900000000000)}`;
+          break;
+        case 'CIMB':
+          vaNumber = `1899${Math.floor(100000000000 + Math.random() * 900000000000)}`;
+          break;
+        case 'DANAMON':
+          vaNumber = `8922${Math.floor(100000000000 + Math.random() * 900000000000)}`;
+          break;
+        case 'MAYBANK':
+          vaNumber = `7867${Math.floor(100000000000 + Math.random() * 900000000000)}`;
+          break;
+        case 'DOKU_EWALLET':
+          walletPageUrl = `${baseUrlWeb}/api/payments/status?invoiceNumber=${invoiceNumber}`;
+          paymentCode = `DW-${Math.floor(10000000 + Math.random() * 90000000)}`;
+          break;
+        case 'ALFAMART':
+          paymentCode = `917${Math.floor(1000 + Math.random() * 9000)}`;
+          break;
+        case 'INDOMARET':
+          paymentCode = `949${Math.floor(10000 + Math.random() * 90000)}`;
+          break;
+        case 'BRI':
+        default:
+          vaNumber = `1236${Math.floor(100000000000 + Math.random() * 900000000000)}`;
+          break;
+      }
+    }
+
     // Normalize expired date to valid ISO format (DOKU returns 'YYYYMMDDHHmmss' format e.g. '20261018123529')
-    const rawExpired = dokuData.virtual_account_info?.expired_date || dokuData.online_to_offline_info?.expired_date;
+    const rawExpired = dokuData?.virtual_account_info?.expired_date || dokuData?.online_to_offline_info?.expired_date;
     let expiredAt = new Date(Date.now() + 60 * 60 * 1000).toISOString();
     if (rawExpired && typeof rawExpired === 'string') {
       if (/^\d{14}$/.test(rawExpired)) {
@@ -417,9 +407,10 @@ export async function POST(request: Request) {
       }
     }
 
-    if (dokuResponse.ok && (vaNumber || paymentCode || walletPageUrl || checkoutPaymentUrl || qrString)) {
+    if (hasLiveCode || isSandbox) {
       const code = vaNumber || paymentCode || qrString || 'DOKU-CHECKOUT';
-      const fullMethod = `DOKU (${paymentChannelName})${vaNumber || paymentCode ? ` - ${code}` : ''}`;
+      const sandboxLabel = isSandbox ? ' [SANDBOX]' : '';
+      const fullMethod = `DOKU (${paymentChannelName}${sandboxLabel})${vaNumber || paymentCode ? ` - ${code}` : ''}`;
 
       // Save Transaction record with PENDING status, paymentCode, and 1 hour expiry
       const newTx: Transaction = {
@@ -478,14 +469,15 @@ export async function POST(request: Request) {
         expiredDate: expiredAt,
         amount: pkg.price,
         invoiceNumber,
-        message: `Nomor Pembayaran DOKU (${paymentChannelName}) berhasil diterbitkan.`
+        isSandbox,
+        message: `Nomor Pembayaran DOKU (${paymentChannelName}${sandboxLabel}) berhasil diterbitkan.`
       });
     }
 
     console.warn('DOKU API Response Error:', dokuData);
     return NextResponse.json({
       success: false,
-      message: dokuData.error?.message || (Array.isArray(dokuData.message) ? dokuData.message.join(', ') : dokuData.message) || 'Gagal membuat nomor pembayaran DOKU.',
+      message: dokuData?.error?.message || (Array.isArray(dokuData?.message) ? dokuData?.message.join(', ') : dokuData?.message) || 'Gagal membuat nomor pembayaran DOKU.',
       details: dokuData
     }, { status: 400 });
   } catch (error) {

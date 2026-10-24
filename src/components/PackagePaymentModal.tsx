@@ -18,7 +18,8 @@ import {
   Check,
   Sparkles,
   Tag,
-  Clock
+  Clock,
+  ExternalLink
 } from 'lucide-react';
 import {
   BriLogo,
@@ -29,8 +30,6 @@ import {
   MaybankLogo,
   QrisLogo,
   DokuLogo,
-  GooglePayLogo,
-  AkulakuLogo,
   AlfamartLogo,
   IndomaretLogo
 } from './PaymentLogos';
@@ -63,10 +62,12 @@ export const PackagePaymentModal: React.FC<PackagePaymentModalProps> = ({
     amount: number;
     howToPayUrl?: string;
     invoiceNumber: string;
+    isSandbox?: boolean;
   } | null>(null);
 
   const [copied, setCopied] = useState(false);
   const [isCheckingPayment, setIsCheckingPayment] = useState(false);
+  const [isSimulating, setIsSimulating] = useState(false);
   const [checkStatusMessage, setCheckStatusMessage] = useState('');
 
   if (!isOpen) return null;
@@ -90,7 +91,7 @@ export const PackagePaymentModal: React.FC<PackagePaymentModalProps> = ({
 
         const data = await res.json();
         if (data.success && (data.paymentCode || data.howToPayUrl)) {
-          if ((selectedChannel === 'DOKU_EWALLET' || selectedChannel === 'AKULAKU') && data.howToPayUrl) {
+          if (selectedChannel === 'DOKU_EWALLET' && data.howToPayUrl && !data.isSandbox) {
             window.location.href = data.howToPayUrl;
             return;
           }
@@ -100,7 +101,8 @@ export const PackagePaymentModal: React.FC<PackagePaymentModalProps> = ({
             paymentCode: data.paymentCode,
             amount: data.amount,
             howToPayUrl: data.howToPayUrl,
-            invoiceNumber: data.invoiceNumber
+            invoiceNumber: data.invoiceNumber,
+            isSandbox: data.isSandbox
           });
           return;
         } else {
@@ -154,6 +156,37 @@ export const PackagePaymentModal: React.FC<PackagePaymentModalProps> = ({
       setCheckStatusMessage('Gagal mengecek status pembayaran. Coba beberapa saat lagi.');
     } finally {
       setIsCheckingPayment(false);
+    }
+  };
+
+  const handleSimulatePayment = async () => {
+    if (!vaResult) return;
+    setIsSimulating(true);
+    setCheckStatusMessage('');
+
+    try {
+      const res = await fetch('/api/payments/simulate-pay', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ invoiceNumber: vaResult.invoiceNumber })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setCheckStatusMessage('✅ SIMULASI PEMBAYARAN BERHASIL! Paket aktif & masa aktif akun telah diperpanjang.');
+        setTimeout(() => {
+          setVaResult(null);
+          if (selectedPkg) {
+            onPaymentSuccess(selectedPkg.id, vaResult.channelName);
+          }
+          onClose();
+        }, 1200);
+      } else {
+        setCheckStatusMessage(data.message || 'Gagal memproses simulasi pembayaran.');
+      }
+    } catch {
+      setCheckStatusMessage('Gagal menghubungi server.');
+    } finally {
+      setIsSimulating(false);
     }
   };
 
@@ -293,6 +326,30 @@ export const PackagePaymentModal: React.FC<PackagePaymentModalProps> = ({
                     ? 'Mengecek Status Pembayaran ke DOKU...'
                     : 'Cek Status Pembayaran (Sudah Bayar)'}
                 </button>
+
+                {vaResult.isSandbox && (
+                  <button
+                    type="button"
+                    disabled={isSimulating}
+                    onClick={handleSimulatePayment}
+                    className="w-full py-2.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-black text-xs rounded-xl shadow-xs transition flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50"
+                  >
+                    <Zap className="w-3.5 h-3.5 fill-white" />
+                    <span>{isSimulating ? 'Memproses Simulasi...' : '⚡ Simulasikan Pembayaran Berhasil (Sandbox Testing)'}</span>
+                  </button>
+                )}
+
+                {vaResult.channelName.includes('QRIS') && vaResult.howToPayUrl && (
+                  <a
+                    href={vaResult.howToPayUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="w-full py-2 bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold text-[11px] rounded-xl border border-stone-200 transition flex items-center justify-center gap-1.5 text-center cursor-pointer"
+                  >
+                    <span>Buka DOKU QRIS Simulator</span>
+                    <ExternalLink className="w-3 h-3 text-stone-500" />
+                  </a>
+                )}
               </div>
             </div>
           ) : (
@@ -452,12 +509,10 @@ export const PackagePaymentModal: React.FC<PackagePaymentModalProps> = ({
                   <span className="text-[11px] font-bold text-stone-600 flex items-center gap-1.5">
                     <Wallet className="w-3.5 h-3.5 text-red-600" /> Dompet Digital & QRIS (Instan):
                   </span>
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                  <div className="grid grid-cols-2 sm:grid-cols-2 gap-2">
                     {[
-                      { id: 'QRIS', name: 'QRIS Instan', sub: 'Semua E-Wallet', logo: QrisLogo },
-                      { id: 'DOKU_EWALLET', name: 'DOKU Wallet', sub: 'Saldo DOKU', logo: DokuLogo },
-                      { id: 'GOOGLE_PAY', name: 'Google Pay', sub: 'GPay & Kartu', logo: GooglePayLogo },
-                      { id: 'AKULAKU', name: 'Akulaku', sub: 'PayLater Cicil', logo: AkulakuLogo }
+                      { id: 'QRIS', name: 'QRIS Instan', sub: 'Semua E-Wallet & Bank', logo: QrisLogo },
+                      { id: 'DOKU_EWALLET', name: 'DOKU Wallet', sub: 'Saldo DOKU', logo: DokuLogo }
                     ].map((ch) => {
                       const LogoComp = ch.logo;
                       const active = selectedChannel === ch.id;
