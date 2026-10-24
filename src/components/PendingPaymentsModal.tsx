@@ -367,16 +367,18 @@ export const PendingPaymentsModal: React.FC<PendingPaymentsModalProps> = ({
                         </span>
                       </button>
 
-                      {/* Button 4: Simulasi Sandbox Testing */}
-                      <button
-                        type="button"
-                        onClick={() => handleSimulatePayment(tx)}
-                        disabled={simulatingId === tx.id}
-                        className="col-span-full py-2 px-3 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white text-xs font-black rounded-xl transition flex items-center justify-center gap-1.5 shadow-xs cursor-pointer disabled:opacity-50 mt-0.5"
-                      >
-                        <Zap className="w-3.5 h-3.5 fill-white" />
-                        <span>{simulatingId === tx.id ? 'Memproses Simulasi...' : '⚡ Simulasikan Pembayaran Berhasil (Sandbox Testing)'}</span>
-                      </button>
+                      {/* Button 4: Simulasi Sandbox Testing (Hanya tampil untuk transaksi Sandbox) */}
+                      {(tx.paymentMethod.includes('SANDBOX') || tx.paymentMethod.includes('Sandbox')) && (
+                        <button
+                          type="button"
+                          onClick={() => handleSimulatePayment(tx)}
+                          disabled={simulatingId === tx.id}
+                          className="col-span-full py-2 px-3 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white text-xs font-black rounded-xl transition flex items-center justify-center gap-1.5 shadow-xs cursor-pointer disabled:opacity-50 mt-0.5"
+                        >
+                          <Zap className="w-3.5 h-3.5 fill-white" />
+                          <span>{simulatingId === tx.id ? 'Memproses Simulasi...' : '⚡ Simulasikan Pembayaran Berhasil (Sandbox Testing)'}</span>
+                        </button>
+                      )}
                     </div>
                   )}
                 </div>

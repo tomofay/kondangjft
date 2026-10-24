@@ -339,15 +339,21 @@ export const PackagePaymentModal: React.FC<PackagePaymentModalProps> = ({
                   </button>
                 )}
 
-                {vaResult.channelName.includes('QRIS') && vaResult.howToPayUrl && (
+                {vaResult.howToPayUrl && (
                   <a
                     href={vaResult.howToPayUrl}
                     target="_blank"
                     rel="noreferrer"
-                    className="w-full py-2 bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold text-[11px] rounded-xl border border-stone-200 transition flex items-center justify-center gap-1.5 text-center cursor-pointer"
+                    className="w-full py-2.5 bg-red-600 hover:bg-red-700 text-white font-black text-xs rounded-xl shadow-xs transition flex items-center justify-center gap-1.5 text-center cursor-pointer"
                   >
-                    <span>Buka DOKU QRIS Simulator</span>
-                    <ExternalLink className="w-3 h-3 text-stone-500" />
+                    <span>
+                      {vaResult.isSandbox && vaResult.channelName.includes('QRIS')
+                        ? 'Buka DOKU QRIS Simulator'
+                        : vaResult.channelName.includes('QRIS') || vaResult.channelName.includes('Wallet')
+                        ? 'Buka Halaman Pembayaran Resmi DOKU'
+                        : 'Buka Halaman Panduan Resmi DOKU'}
+                    </span>
+                    <ExternalLink className="w-3.5 h-3.5 text-white" />
                   </a>
                 )}
               </div>

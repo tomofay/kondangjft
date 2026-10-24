@@ -184,23 +184,18 @@ export async function POST(request: Request) {
         break;
 
       case 'DOKU_EWALLET': {
-        requestTarget = '/dokuwallet-emoney/v1/payment';
-        paymentChannelName = 'DOKU e-Wallet';
+        requestTarget = '/checkout/v1/payment';
+        paymentChannelName = 'DOKU Wallet & E-Money';
         requestBody = {
           order: {
             invoice_number: invoiceNumber,
             amount: pkg.price,
-            line_items: [
-              {
-                name: pkg.name,
-                price: pkg.price,
-                quantity: 1
-              }
-            ],
             callback_url: baseUrlWeb,
             failed_url: baseUrlWeb,
-            notify_url: `${baseUrlWeb}/api/payments/doku/webhook`,
             auto_redirect: true
+          },
+          payment: {
+            payment_due_date: 60
           },
           customer: {
             id: user.id,
