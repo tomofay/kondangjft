@@ -65,18 +65,18 @@ export async function GET(request: Request) {
       try {
         const dokuCheck = await checkDokuOrderStatus(invoiceNumber);
         if (dokuCheck.isSuccess) {
-          const dokuAmount = Number(dokuCheck.data?.order?.amount || dokuCheck.data?.transaction?.amount || 100);
+          const dokuAmount = Number(dokuCheck.data?.order?.amount || dokuCheck.data?.transaction?.amount || 35000);
 
           // Deduce package if not specified
           if (!packageId) {
-            if (dokuAmount === 100) {
-              packageId = 'pkg_special_1h';
-            } else if (dokuAmount === 35000) {
+            if (dokuAmount === 35000) {
               packageId = 'pkg_7d';
+            } else if (dokuAmount === 59000) {
+              packageId = 'pkg_14d';
             } else if (dokuAmount === 99000) {
               packageId = 'pkg_30d';
             } else {
-              packageId = 'pkg_special_1h';
+              packageId = 'pkg_7d';
             }
           }
 

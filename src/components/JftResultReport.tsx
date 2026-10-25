@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { ExamResult, User } from '../types';
-import { Download, BookOpen, RefreshCw, CheckCircle2, Printer, FileText, Image as ImageIcon, ArrowLeftRight } from 'lucide-react';
+import { BookOpen, RefreshCw, CheckCircle2, Printer, FileText, Image as ImageIcon } from 'lucide-react';
 import html2canvas from 'html2canvas-pro';
 import { jsPDF } from 'jspdf';
 import confetti from 'canvas-confetti';
@@ -35,9 +35,13 @@ export const JftResultReport: React.FC<JftResultReportProps> = ({
   onOpenReview,
   onRetake
 }) => {
+  const wrapperRef = useRef<HTMLDivElement>(null);
   const certificateRef = useRef<HTMLDivElement>(null);
   const [downloadingPdf, setDownloadingPdf] = useState(false);
   const [downloadingPng, setDownloadingPng] = useState(false);
+  const [scale, setScale] = useState(1);
+  const [certHeight, setCertHeight] = useState(1180);
+  const [zoomMode, setZoomMode] = useState<'fit' | 'full'>('fit');
 
   // Normalize result
   const normalizedResult = React.useMemo(() => {
@@ -118,22 +122,17 @@ export const JftResultReport: React.FC<JftResultReportProps> = ({
 
   // Resolve Examinee Photo: Prioritas foto profil peserta aktif / hasil ujian
   const examineePhoto = React.useMemo(() => {
-    if (currentUser && (!result.userId || currentUser.id === result.userId)) {
-      if (currentUser.facePhotoUrl && !currentUser.facePhotoUrl.includes('unsplash.com')) {
-        return currentUser.facePhotoUrl;
-      }
+    if (result.facePhotoUrl && result.facePhotoUrl.length > 5) {
+      return result.facePhotoUrl;
     }
-    if (normalizedResult.facePhotoUrl && !normalizedResult.facePhotoUrl.includes('unsplash.com')) {
-      return normalizedResult.facePhotoUrl;
-    }
-    if (currentUser?.facePhotoUrl && !currentUser.facePhotoUrl.includes('unsplash.com')) {
+    if (currentUser?.facePhotoUrl && currentUser.facePhotoUrl.length > 5) {
       return currentUser.facePhotoUrl;
     }
     return DEFAULT_ANONYMOUS_PHOTO;
   }, [currentUser, normalizedResult.facePhotoUrl, result.userId]);
 
   // Trigger confetti if passed
-  React.useEffect(() => {
+  useEffect(() => {
     if (normalizedResult.isPassed) {
       confetti({
         particleCount: 80,
@@ -142,6 +141,44 @@ export const JftResultReport: React.FC<JftResultReportProps> = ({
       });
     }
   }, [normalizedResult.isPassed]);
+
+  // Dynamic A4 auto-scale calculation to fit any screen
+  useEffect(() => {
+    const updateDimensions = () => {
+      if (certificateRef.current) {
+        const h = certificateRef.current.offsetHeight;
+        if (h > 200) setCertHeight(h);
+      }
+      if (wrapperRef.current) {
+        const availableWidth = wrapperRef.current.clientWidth;
+        if (availableWidth > 0) {
+          if (zoomMode === 'fit') {
+            // Standard A4 width is 800px. If screen is smaller, scale down seamlessly
+            const targetScale = Math.min(1, availableWidth / 800);
+            setScale(targetScale);
+          } else {
+            setScale(1);
+          }
+        }
+      }
+    };
+
+    updateDimensions();
+    const timer = setTimeout(updateDimensions, 150);
+
+    window.addEventListener('resize', updateDimensions);
+    let ro: ResizeObserver | null = null;
+    if (typeof ResizeObserver !== 'undefined' && wrapperRef.current) {
+      ro = new ResizeObserver(updateDimensions);
+      ro.observe(wrapperRef.current);
+    }
+
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener('resize', updateDimensions);
+      if (ro) ro.disconnect();
+    };
+  }, [zoomMode, result]);
 
   // Direct PDF Download via html2canvas-pro + jsPDF
   const handleDownloadPdf = async () => {
@@ -160,6 +197,7 @@ export const JftResultReport: React.FC<JftResultReportProps> = ({
           const el = clonedDoc.getElementById('jft-certificate-container');
           if (el) {
             el.style.width = '800px';
+            el.style.transform = 'none';
             el.style.boxShadow = 'none';
           }
         }
@@ -181,9 +219,9 @@ export const JftResultReport: React.FC<JftResultReportProps> = ({
       const contentHeight = (canvas.height * contentWidth) / canvas.width;
 
       if (contentHeight > (pdfHeight - margin * 2)) {
-        const scale = (pdfHeight - margin * 2) / contentHeight;
-        const finalWidth = contentWidth * scale;
-        const finalHeight = contentHeight * scale;
+        const scaleFactor = (pdfHeight - margin * 2) / contentHeight;
+        const finalWidth = contentWidth * scaleFactor;
+        const finalHeight = contentHeight * scaleFactor;
         const xOffset = (pdfWidth - finalWidth) / 2;
         pdf.addImage(imgData, 'JPEG', xOffset, margin, finalWidth, finalHeight, undefined, 'FAST');
       } else {
@@ -217,6 +255,7 @@ export const JftResultReport: React.FC<JftResultReportProps> = ({
           const el = clonedDoc.getElementById('jft-certificate-container');
           if (el) {
             el.style.width = '800px';
+            el.style.transform = 'none';
             el.style.boxShadow = 'none';
           }
         }
@@ -340,326 +379,367 @@ export const JftResultReport: React.FC<JftResultReportProps> = ({
         </div>
       </div>
 
-      {/* Official JFT Notification of Assessment Results Document (Fully Responsive & Scalable) */}
-      <div className="w-full">
+      {/* Official JFT Notification of Assessment Results Document (Authentic A4 Format with Responsive Dynamic Scaling) */}
+      <div className="w-full flex flex-col items-center">
+        {/* Subtle responsive info pill when viewed on small screens */}
+        {scale < 1 && (
+          <div className="w-full flex items-center justify-between pb-2.5 px-2 text-[11px] text-stone-500 font-medium">
+            <span className="flex items-center gap-1.5">
+              <span className="inline-block w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+              Sertifikat A4 otomatis disesuaikan ({Math.round(scale * 100)}%)
+            </span>
+            <button
+              type="button"
+              onClick={() => setZoomMode(zoomMode === 'fit' ? 'full' : 'fit')}
+              className="px-2.5 py-1 rounded-lg bg-stone-200 hover:bg-stone-300 text-stone-800 text-[11px] font-bold transition flex items-center gap-1 cursor-pointer"
+            >
+              {zoomMode === 'fit' ? 'Perbesar 100%' : 'Pas Layar'}
+            </button>
+          </div>
+        )}
+
         <div
-          ref={certificateRef}
-          id="jft-certificate-container"
-          className="w-full max-w-3xl bg-white text-stone-900 p-4 sm:p-8 md:p-12 shadow-xl border border-stone-300 font-sans space-y-5 sm:space-y-7 relative select-none mx-auto print:shadow-none print:border-none print:p-0 print:m-0 print:w-full print:max-w-none rounded-2xl"
+          ref={wrapperRef}
+          className={`w-full flex justify-center ${zoomMode === 'full' ? 'overflow-x-auto pb-4' : 'overflow-hidden'}`}
+          style={{
+            height: zoomMode === 'fit' && scale < 1 ? `${Math.ceil(certHeight * scale)}px` : 'auto',
+          }}
         >
-          {/* Header */}
-          <div className="flex flex-col xs:flex-row items-center justify-between border-b border-stone-200 pb-3 sm:pb-4 gap-2">
-            <div className="px-3.5 py-1.5 rounded-xl bg-indigo-50 border border-indigo-200 text-indigo-700 text-[10px] sm:text-[11px] font-black uppercase tracking-wider text-center">
-              SIMULATION REPORT • LAPORAN EVALUASI
-            </div>
-            <KondangInstitutionReportLogo className="h-10" />
-          </div>
-
-          {/* Centered Document Titles */}
-          <div className="text-center space-y-1.5 pt-1">
-            <h1 className="text-base xs:text-lg sm:text-2xl font-black tracking-wide text-stone-900 font-japanese leading-tight">
-              KondangSensei CBT 日本語能力判定結果通知書
-            </h1>
-            <p className="text-xs sm:text-[13px] text-stone-700 font-medium">
-              KondangSensei CBT Japanese Assessment Test — Simulation Result Report
-            </p>
-            <p className="text-[10px] text-stone-500 font-medium">
-              * Dokumen ini diterbitkan resmi oleh KondangSensei sebagai lembar evaluasi hasil simulasi mandiri siswa.
-            </p>
-          </div>
-
-          {/* Examinee Information Section */}
-          <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 sm:gap-8 pt-2 pb-2">
-            {/* Left Photo */}
-            <div className="shrink-0">
-              <img
-                src={examineePhoto}
-                alt="Examinee Photo"
-                className="w-28 h-36 sm:w-36 sm:h-48 object-cover border border-stone-300 bg-stone-100 rounded-sm shadow-2xs"
-              />
-            </div>
-
-            {/* Right Information Rows */}
-            <div className="w-full flex-1 space-y-2 text-xs sm:text-[13px] text-stone-900">
-              {/* Reg No */}
-              <div className="grid grid-cols-[110px_1fr] sm:grid-cols-[160px_1fr] items-start">
-                <div>
-                  <span className="font-bold font-japanese">受験番号</span>
-                  <div className="text-[10px] text-stone-600">Registration Number</div>
+          <div
+            style={{
+              width: '800px',
+              transform: zoomMode === 'fit' && scale < 1 ? `scale(${scale})` : undefined,
+              transformOrigin: 'top center',
+              flexShrink: 0,
+            }}
+          >
+            <div
+              ref={certificateRef}
+              id="jft-certificate-container"
+              style={{ width: '800px', minHeight: '1050px' }}
+              className="bg-white text-stone-900 p-10 sm:p-12 shadow-xl border border-stone-300 font-sans space-y-6 relative select-none mx-auto print:shadow-none print:border-none print:p-0 print:m-0 print:w-full print:transform-none rounded-2xl"
+            >
+              {/* Header */}
+              <div className="flex items-center justify-between border-b border-stone-200 pb-4">
+                <div className="px-3.5 py-1.5 rounded-xl bg-indigo-50 border border-indigo-200 text-indigo-700 text-xs font-black uppercase tracking-wider">
+                  SIMULATION REPORT • LAPORAN EVALUASI
                 </div>
-                <div className="font-mono font-bold text-stone-950 flex items-center gap-1.5 pt-0.5">
-                  <span>:</span>
-                  <span>{normalizedResult.registrationNumber || '4892716382'}</span>
-                </div>
+                <KondangInstitutionReportLogo className="h-10" />
               </div>
 
-              {/* Name */}
-              <div className="grid grid-cols-[110px_1fr] sm:grid-cols-[160px_1fr] items-start">
-                <div>
-                  <span className="font-bold font-japanese">氏名</span>
-                  <div className="text-[10px] text-stone-600">Name</div>
-                </div>
-                <div className="font-bold uppercase text-stone-950 flex items-center gap-1.5 pt-0.5">
-                  <span>:</span>
-                  <span>{normalizedResult.userName}</span>
-                </div>
+              {/* Centered Document Titles */}
+              <div className="text-center space-y-1.5 pt-1">
+                <h1 className="text-2xl font-black tracking-wide text-stone-900 font-japanese leading-tight">
+                  KondangSensei CBT 日本語能力判定結果通知書
+                </h1>
+                <p className="text-[13px] text-stone-700 font-medium">
+                  KondangSensei CBT Japanese Assessment Test — Simulation Result Report
+                </p>
+                <p className="text-[10px] text-stone-500 font-medium">
+                  * Dokumen ini diterbitkan resmi oleh KondangSensei sebagai lembar evaluasi hasil simulasi mandiri siswa.
+                </p>
               </div>
 
-              {/* Nationality */}
-              <div className="grid grid-cols-[110px_1fr] sm:grid-cols-[160px_1fr] items-start">
-                <div>
-                  <span className="font-bold font-japanese">国籍</span>
-                  <div className="text-[10px] text-stone-600">Nationality</div>
-                </div>
-                <div className="font-medium text-stone-950 flex items-center gap-1.5 pt-0.5">
-                  <span>:</span>
-                  <span>{normalizedResult.nationality || 'Indonesia'}</span>
-                </div>
-              </div>
-
-              {/* Date of Birth */}
-              <div className="grid grid-cols-[110px_1fr] sm:grid-cols-[160px_1fr] items-start">
-                <div>
-                  <span className="font-bold font-japanese">生年月日</span>
-                  <div className="text-[10px] text-stone-600">Date of Birth</div>
-                </div>
-                <div className="font-mono text-stone-950 flex items-center gap-1.5 pt-0.5">
-                  <span>:</span>
-                  <span>{formatYmd(normalizedResult.dateOfBirth)}</span>
-                </div>
-              </div>
-
-              {/* Sex */}
-              <div className="grid grid-cols-[110px_1fr] sm:grid-cols-[160px_1fr] items-start">
-                <div>
-                  <span className="font-bold font-japanese">性別</span>
-                  <div className="text-[10px] text-stone-600">Sex</div>
-                </div>
-                <div className="font-medium text-stone-950 flex items-center gap-1.5 pt-0.5">
-                  <span>:</span>
-                  <span>{normalizedResult.sex === 'FEMALE' ? 'Female' : 'Male'}</span>
-                </div>
-              </div>
-
-              {/* Test Location */}
-              <div className="grid grid-cols-[110px_1fr] sm:grid-cols-[160px_1fr] items-start">
-                <div>
-                  <span className="font-bold font-japanese">受験地</span>
-                  <div className="text-[10px] text-stone-600">Test Location</div>
-                </div>
-                <div className="font-medium text-stone-950 flex items-center gap-1.5 pt-0.5">
-                  <span>:</span>
-                  <span>{normalizedResult.testLocation || 'Indonesia'}</span>
-                </div>
-              </div>
-
-              {/* Test Date */}
-              <div className="grid grid-cols-[110px_1fr] sm:grid-cols-[160px_1fr] items-start">
-                <div>
-                  <span className="font-bold font-japanese">受験日</span>
-                  <div className="text-[10px] text-stone-600">Test Date</div>
-                </div>
-                <div className="font-mono text-stone-950 flex items-center gap-1.5 pt-0.5">
-                  <span>:</span>
-                  <span>{formatYmd(normalizedResult.testDate)}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Assessment Results Section Box (Exact Replica) */}
-          <div className="border border-stone-300 p-4 sm:p-6 md:p-7 bg-white space-y-4 sm:space-y-6">
-            {/* Top Score & Result Header */}
-            <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
-              <div className="space-y-4">
-                {/* Total Score */}
-                <div className="flex items-start gap-4">
-                  <div className="w-28">
-                    <div className="font-bold font-japanese text-sm text-stone-900 leading-tight">総合得点:</div>
-                    <div className="text-[11px] text-stone-600">Total Score</div>
-                  </div>
-                  <div className="text-3xl sm:text-4xl font-black text-stone-950 tracking-tight font-mono leading-none">
-                    {normalizedResult.totalScore}
-                  </div>
+              {/* Examinee Information Section (Authentic A4 Side-by-Side Layout) */}
+              <div className="flex items-start gap-8 pt-2 pb-2">
+                {/* Left Photo */}
+                <div className="shrink-0">
+                  <img
+                    src={examineePhoto}
+                    alt="Examinee Photo"
+                    onLoad={() => {
+                      if (certificateRef.current) {
+                        const h = certificateRef.current.offsetHeight;
+                        if (h > 200) setCertHeight(h);
+                      }
+                    }}
+                    className="w-36 h-48 object-cover border border-stone-300 bg-stone-100 rounded-sm shadow-2xs"
+                  />
                 </div>
 
-                {/* Assessment Result Level */}
-                <div className="flex items-start gap-4">
-                  <div className="w-28">
-                    <div className="font-bold font-japanese text-sm text-stone-900 leading-tight">判定結果:</div>
-                    <div className="text-[11px] text-stone-600">Assessment Results</div>
-                  </div>
-                  <div>
-                    <div className="text-2xl sm:text-3xl font-black text-stone-950 tracking-tight leading-none">
-                      {normalizedResult.assessmentResult}
+                {/* Right Information Rows */}
+                <div className="flex-1 space-y-2 text-[13px] text-stone-900">
+                  {/* Reg No */}
+                  <div className="grid grid-cols-[160px_1fr] items-start">
+                    <div>
+                      <span className="font-bold font-japanese">受験番号</span>
+                      <div className="text-[10px] text-stone-600">Registration Number</div>
                     </div>
-                    <div className="text-xs font-bold text-stone-700 mt-1">
-                      {normalizedResult.assessmentSub}
+                    <div className="font-mono font-bold text-stone-950 flex items-center gap-1.5 pt-0.5">
+                      <span>:</span>
+                      <span>{normalizedResult.registrationNumber || '4892716382'}</span>
+                    </div>
+                  </div>
+
+                  {/* Name */}
+                  <div className="grid grid-cols-[160px_1fr] items-start">
+                    <div>
+                      <span className="font-bold font-japanese">氏名</span>
+                      <div className="text-[10px] text-stone-600">Name</div>
+                    </div>
+                    <div className="font-bold uppercase text-stone-950 flex items-center gap-1.5 pt-0.5">
+                      <span>:</span>
+                      <span>{normalizedResult.userName}</span>
+                    </div>
+                  </div>
+
+                  {/* Nationality */}
+                  <div className="grid grid-cols-[160px_1fr] items-start">
+                    <div>
+                      <span className="font-bold font-japanese">国籍</span>
+                      <div className="text-[10px] text-stone-600">Nationality</div>
+                    </div>
+                    <div className="font-medium text-stone-950 flex items-center gap-1.5 pt-0.5">
+                      <span>:</span>
+                      <span>{normalizedResult.nationality || 'Indonesia'}</span>
+                    </div>
+                  </div>
+
+                  {/* Date of Birth */}
+                  <div className="grid grid-cols-[160px_1fr] items-start">
+                    <div>
+                      <span className="font-bold font-japanese">生年月日</span>
+                      <div className="text-[10px] text-stone-600">Date of Birth</div>
+                    </div>
+                    <div className="font-mono text-stone-950 flex items-center gap-1.5 pt-0.5">
+                      <span>:</span>
+                      <span>{formatYmd(normalizedResult.dateOfBirth)}</span>
+                    </div>
+                  </div>
+
+                  {/* Sex */}
+                  <div className="grid grid-cols-[160px_1fr] items-start">
+                    <div>
+                      <span className="font-bold font-japanese">性別</span>
+                      <div className="text-[10px] text-stone-600">Sex</div>
+                    </div>
+                    <div className="font-medium text-stone-950 flex items-center gap-1.5 pt-0.5">
+                      <span>:</span>
+                      <span>{normalizedResult.sex === 'FEMALE' ? 'Female' : 'Male'}</span>
+                    </div>
+                  </div>
+
+                  {/* Test Location */}
+                  <div className="grid grid-cols-[160px_1fr] items-start">
+                    <div>
+                      <span className="font-bold font-japanese">受験地</span>
+                      <div className="text-[10px] text-stone-600">Test Location</div>
+                    </div>
+                    <div className="font-medium text-stone-950 flex items-center gap-1.5 pt-0.5">
+                      <span>:</span>
+                      <span>{normalizedResult.testLocation || 'Indonesia'}</span>
+                    </div>
+                  </div>
+
+                  {/* Test Date */}
+                  <div className="grid grid-cols-[160px_1fr] items-start">
+                    <div>
+                      <span className="font-bold font-japanese">受験日</span>
+                      <div className="text-[10px] text-stone-600">Test Date</div>
+                    </div>
+                    <div className="font-mono text-stone-950 flex items-center gap-1.5 pt-0.5">
+                      <span>:</span>
+                      <span>{formatYmd(normalizedResult.testDate)}</span>
                     </div>
                   </div>
                 </div>
               </div>
 
-              {/* Right Passing Benchmark Standards */}
-              <div className="text-left sm:text-right text-[11px] sm:text-xs text-stone-800 space-y-1 pt-2 sm:pt-0 border-t sm:border-t-0 border-stone-100">
-                <div>
-                  <span className="font-japanese">得点範囲:</span> 10-250
-                  <div className="text-[10px] text-stone-500">Range of Scores</div>
-                </div>
-                <div className="pt-1">
-                  <span className="font-japanese">判定基準点</span> A1: 145, A2.1: 175, A2.2(A2): 200
-                  <div className="text-[10px] text-stone-500">Passing Score</div>
-                </div>
-              </div>
-            </div>
+              {/* Assessment Results Section Box (Exact Replica) */}
+              <div className="border border-stone-300 p-6 sm:p-7 bg-white space-y-6">
+                {/* Top Score & Result Header */}
+                <div className="flex items-start justify-between">
+                  <div className="space-y-4">
+                    {/* Total Score */}
+                    <div className="flex items-start gap-4">
+                      <div className="w-28">
+                        <div className="font-bold font-japanese text-sm text-stone-900 leading-tight">総合得点:</div>
+                        <div className="text-[11px] text-stone-600">Total Score</div>
+                      </div>
+                      <div className="text-4xl font-black text-stone-950 tracking-tight font-mono leading-none">
+                        {normalizedResult.totalScore}
+                      </div>
+                    </div>
 
-            {/* Scale Gauge Bar (Exact Replica) */}
-            <div className="pt-7 pb-4">
-              <div className="relative">
-                {/* Horizontal Gradient Bar with Centered Indicator */}
-                <div className="h-4 w-full rounded-xs bg-gradient-to-r from-[#f9a8d4] via-[#f59e0b] to-[#84cc16] relative">
-                  {/* Pin Score Tag directly above the marker */}
-                  <div
-                    className="absolute -top-6 -translate-x-1/2 z-20 font-black text-xs sm:text-sm text-stone-950 font-mono pointer-events-none"
-                    style={{ left: `${pinPercent}%` }}
-                  >
-                    {normalizedResult.totalScore}
-                  </div>
-
-                  {/* Pin Circular Indicator Centered on the Bar */}
-                  <div
-                    className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 z-20 pointer-events-none"
-                    style={{ left: `${pinPercent}%` }}
-                  >
-                    <div className="w-4 h-4 rounded-full bg-amber-400 border-2 border-white shadow-xs ring-1 ring-stone-400"></div>
-                  </div>
-
-                  {/* Tick 10 (Left Edge) */}
-                  <div className="absolute left-0 -top-1.5 -bottom-1.5 w-[2px] bg-black"></div>
-
-                  {/* Tick 145 (A1) */}
-                  <div className="absolute left-[56.25%] -top-1.5 -bottom-1.5 w-[2px] bg-black"></div>
-
-                  {/* Tick 175 (A2.1) */}
-                  <div className="absolute left-[68.75%] -top-1.5 -bottom-1.5 w-[2px] bg-black"></div>
-
-                  {/* Tick 200 (A2.2) */}
-                  <div className="absolute left-[79.17%] -top-1.5 -bottom-1.5 w-[2px] bg-black"></div>
-
-                  {/* Tick 250 (Right Edge) */}
-                  <div className="absolute right-0 -top-1.5 -bottom-1.5 w-[2px] bg-black"></div>
-                </div>
-
-                {/* Tick Labels Below */}
-                <div className="relative h-10 text-[10px] sm:text-xs text-stone-900 font-mono mt-1.5">
-                  <span className="absolute left-0 top-0">10</span>
-
-                  <div className="absolute left-[56.25%] -translate-x-1/2 top-0 text-center leading-tight">
-                    <div>145</div>
-                    <div className="font-bold font-sans text-[11px]">A1</div>
-                  </div>
-
-                  <div className="absolute left-[68.75%] -translate-x-1/2 top-0 text-center leading-tight">
-                    <div>175</div>
-                    <div className="font-bold font-sans text-[11px]">A2.1</div>
-                  </div>
-
-                  <div className="absolute left-[79.17%] -translate-x-1/2 top-0 text-center leading-tight">
-                    <div>200</div>
-                    <div className="font-bold font-sans text-[11px]">A2.2(A2)</div>
-                  </div>
-
-                  <span className="absolute right-0 top-0">250</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Section Breakdown Percentage Sliders (Exact Replica of Image 2) */}
-            <div className="space-y-4 pt-2">
-              <div className="text-xs sm:text-[13px] text-stone-900 font-medium">
-                <span className="font-bold font-japanese">セクション毎の正答率 :</span>
-                <span className="text-[11px] text-stone-600 ml-1.5">
-                  Percentage of Correct Answers for Each Section
-                </span>
-              </div>
-
-              {/* 4 Section Rows */}
-              <div className="space-y-3.5">
-                {[
-                  {
-                    code: 'S1',
-                    ja: '文字と語彙',
-                    en: 'Script and Vocabulary',
-                    data: normalizedResult.sectionScores?.S1
-                  },
-                  {
-                    code: 'S2',
-                    ja: '会話と表現',
-                    en: 'Conversation and Expression',
-                    data: normalizedResult.sectionScores?.S2
-                  },
-                  {
-                    code: 'S3',
-                    ja: '聴解',
-                    en: 'Listening Comprehension',
-                    data: normalizedResult.sectionScores?.S3
-                  },
-                  {
-                    code: 'S4',
-                    ja: '読解',
-                    en: 'Reading Comprehension',
-                    data: normalizedResult.sectionScores?.S4
-                  }
-                ].map((sec) => {
-                  const pct = sec.data?.percentage ?? 0;
-                  return (
-                    <div key={sec.code} className="grid grid-cols-1 sm:grid-cols-[200px_1fr] items-center gap-1 sm:gap-4">
-                      {/* Left: Titles */}
+                    {/* Assessment Result Level */}
+                    <div className="flex items-start gap-4">
+                      <div className="w-28">
+                        <div className="font-bold font-japanese text-sm text-stone-900 leading-tight">判定結果:</div>
+                        <div className="text-[11px] text-stone-600">Assessment Results</div>
+                      </div>
                       <div>
-                        <div className="font-bold font-japanese text-xs sm:text-[13px] text-stone-900 leading-tight">
-                          {sec.ja}
+                        <div className="text-3xl font-black text-stone-950 tracking-tight leading-none">
+                          {normalizedResult.assessmentResult}
                         </div>
-                        <div className="text-[10px] text-stone-600 leading-tight">
-                          {sec.en}
+                        <div className="text-xs font-bold text-stone-700 mt-1">
+                          {normalizedResult.assessmentSub}
                         </div>
                       </div>
+                    </div>
+                  </div>
 
-                      {/* Right: Grey Track with Orange Pin & Percentage above */}
-                      <div className="relative pt-4 pb-1">
-                        {/* Percentage above pin */}
-                        <div
-                          className="absolute top-0 -translate-x-1/2 text-[11px] font-mono font-bold text-stone-900"
-                          style={{ left: `${pct}%` }}
-                        >
-                          {pct}%
-                        </div>
+                  {/* Right Passing Benchmark Standards */}
+                  <div className="text-right text-xs text-stone-800 space-y-1">
+                    <div>
+                      <span className="font-japanese">得点範囲:</span> 10-250
+                      <div className="text-[10px] text-stone-500">Range of Scores</div>
+                    </div>
+                    <div className="pt-1">
+                      <span className="font-japanese">判定基準点</span> A1: 145, A2.1: 175, A2.2(A2): 200
+                      <div className="text-[10px] text-stone-500">Passing Score</div>
+                    </div>
+                  </div>
+                </div>
 
-                        {/* Grey Track */}
-                        <div className="h-3 w-full bg-stone-200 rounded-none relative">
-                          {/* Orange Pin */}
-                          <div
-                            className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2"
-                            style={{ left: `${pct}%` }}
-                          >
-                            <div className="w-3.5 h-3.5 rounded-full bg-amber-400 border-2 border-white shadow-xs ring-1 ring-stone-400"></div>
+                {/* Scale Gauge Bar */}
+                <div className="pt-7 pb-4">
+                  <div className="relative">
+                    {/* Horizontal Gradient Bar with Centered Indicator */}
+                    <div className="h-4 w-full rounded-xs bg-gradient-to-r from-[#f9a8d4] via-[#f59e0b] to-[#84cc16] relative">
+                      {/* Pin Score Tag directly above the marker */}
+                      <div
+                        className="absolute -top-6 -translate-x-1/2 z-20 font-black text-sm text-stone-950 font-mono pointer-events-none"
+                        style={{ left: `${pinPercent}%` }}
+                      >
+                        {normalizedResult.totalScore}
+                      </div>
+
+                      {/* Pin Circular Indicator Centered on the Bar */}
+                      <div
+                        className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 z-20 pointer-events-none"
+                        style={{ left: `${pinPercent}%` }}
+                      >
+                        <div className="w-4 h-4 rounded-full bg-amber-400 border-2 border-white shadow-xs ring-1 ring-stone-400"></div>
+                      </div>
+
+                      {/* Tick 10 (Left Edge) */}
+                      <div className="absolute left-0 -top-1.5 -bottom-1.5 w-[2px] bg-black"></div>
+
+                      {/* Tick 145 (A1) */}
+                      <div className="absolute left-[56.25%] -top-1.5 -bottom-1.5 w-[2px] bg-black"></div>
+
+                      {/* Tick 175 (A2.1) */}
+                      <div className="absolute left-[68.75%] -top-1.5 -bottom-1.5 w-[2px] bg-black"></div>
+
+                      {/* Tick 200 (A2.2) */}
+                      <div className="absolute left-[79.17%] -top-1.5 -bottom-1.5 w-[2px] bg-black"></div>
+
+                      {/* Tick 250 (Right Edge) */}
+                      <div className="absolute right-0 -top-1.5 -bottom-1.5 w-[2px] bg-black"></div>
+                    </div>
+
+                    {/* Tick Labels Below */}
+                    <div className="relative h-10 text-xs text-stone-900 font-mono mt-1.5">
+                      <span className="absolute left-0 top-0">10</span>
+
+                      <div className="absolute left-[56.25%] -translate-x-1/2 top-0 text-center leading-tight">
+                        <div>145</div>
+                        <div className="font-bold font-sans text-[11px]">A1</div>
+                      </div>
+
+                      <div className="absolute left-[68.75%] -translate-x-1/2 top-0 text-center leading-tight">
+                        <div>175</div>
+                        <div className="font-bold font-sans text-[11px]">A2.1</div>
+                      </div>
+
+                      <div className="absolute left-[79.17%] -translate-x-1/2 top-0 text-center leading-tight">
+                        <div>200</div>
+                        <div className="font-bold font-sans text-[11px]">A2.2(A2)</div>
+                      </div>
+
+                      <span className="absolute right-0 top-0">250</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Section Breakdown Percentage Sliders */}
+                <div className="space-y-4 pt-2">
+                  <div className="text-[13px] text-stone-900 font-medium">
+                    <span className="font-bold font-japanese">セクション毎の正答率 :</span>
+                    <span className="text-[11px] text-stone-600 ml-1.5">
+                      Percentage of Correct Answers for Each Section
+                    </span>
+                  </div>
+
+                  {/* 4 Section Rows */}
+                  <div className="space-y-3.5">
+                    {[
+                      {
+                        code: 'S1',
+                        ja: '文字と語彙',
+                        en: 'Script and Vocabulary',
+                        data: normalizedResult.sectionScores?.S1
+                      },
+                      {
+                        code: 'S2',
+                        ja: '会話と表現',
+                        en: 'Conversation and Expression',
+                        data: normalizedResult.sectionScores?.S2
+                      },
+                      {
+                        code: 'S3',
+                        ja: '聴解',
+                        en: 'Listening Comprehension',
+                        data: normalizedResult.sectionScores?.S3
+                      },
+                      {
+                        code: 'S4',
+                        ja: '読解',
+                        en: 'Reading Comprehension',
+                        data: normalizedResult.sectionScores?.S4
+                      }
+                    ].map((sec) => {
+                      const pct = sec.data?.percentage ?? 0;
+                      return (
+                        <div key={sec.code} className="grid grid-cols-[220px_1fr] items-center gap-4">
+                          {/* Left: Titles */}
+                          <div>
+                            <div className="font-bold font-japanese text-[13px] text-stone-900 leading-tight">
+                              {sec.ja}
+                            </div>
+                            <div className="text-[10px] text-stone-600 leading-tight">
+                              {sec.en}
+                            </div>
+                          </div>
+
+                          {/* Right: Grey Track with Orange Pin & Percentage above */}
+                          <div className="relative pt-4 pb-1">
+                            {/* Percentage above pin */}
+                            <div
+                              className="absolute top-0 -translate-x-1/2 text-[11px] font-mono font-bold text-stone-900"
+                              style={{ left: `${pct}%` }}
+                            >
+                              {pct}%
+                            </div>
+
+                            {/* Grey Track */}
+                            <div className="h-3 w-full bg-stone-200 rounded-none relative">
+                              {/* Orange Pin */}
+                              <div
+                                className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2"
+                                style={{ left: `${pct}%` }}
+                              >
+                                <div className="w-3.5 h-3.5 rounded-full bg-amber-400 border-2 border-white shadow-xs ring-1 ring-stone-400"></div>
+                              </div>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    </div>
-                  );
-                })}
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+
+              {/* Certificate Footer Notice */}
+              <div className="pt-6 border-t border-stone-200 text-center space-y-1">
+                <div className="text-xs font-bold text-stone-700">
+                  Diterbitkan oleh Platform Simulasi KondangSensei CBT • Hak Cipta © KondangSensei Indonesia
+                </div>
+                <p className="text-[10px] text-stone-400">
+                  Pemberitahuan: Dokumen ini diterbitkan oleh KondangSensei Indonesia sebagai lembar evaluasi hasil simulasi mandiri siswa dan bukan merupakan dokumen sertifikasi dari lembaga negara/pihak ketiga manapun.
+                </p>
               </div>
             </div>
-          </div>
-
-          {/* Certificate Footer Notice */}
-          <div className="pt-5 sm:pt-6 border-t border-stone-200 text-center space-y-1">
-            <div className="text-[11px] sm:text-xs font-bold text-stone-700">
-              Diterbitkan oleh Platform Simulasi KondangSensei CBT • Hak Cipta © KondangSensei Indonesia
-            </div>
-            <p className="text-[9px] sm:text-[10px] text-stone-400">
-              Pemberitahuan: Dokumen ini diterbitkan oleh KondangSensei Indonesia sebagai lembar evaluasi hasil simulasi mandiri siswa dan bukan merupakan dokumen sertifikasi dari lembaga negara/pihak ketiga manapun.
-            </p>
           </div>
         </div>
       </div>

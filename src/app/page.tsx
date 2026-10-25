@@ -12,6 +12,8 @@ import { PackagePaymentModal } from '../components/PackagePaymentModal';
 import { PendingPaymentsModal } from '../components/PendingPaymentsModal';
 import { AdminPortal } from '../components/AdminPortal';
 import { ProfileModal } from '../components/ProfileModal';
+import { LandingPage } from '../components/LandingPage';
+import { MiniTryoutExperience } from '../components/MiniTryoutExperience';
 import {
   Play,
   Award,
@@ -66,6 +68,8 @@ export default function HomePage() {
   const [loginLoading, setLoginLoading] = useState(false);
   const [loginError, setLoginError] = useState('');
   const [copiedRegNo, setCopiedRegNo] = useState(false);
+  const [miniTryoutOpen, setMiniTryoutOpen] = useState(false);
+  const [authModalOpen, setAuthModalOpen] = useState(false);
 
   // Active view: 'dashboard' | 'exam' | 'report' | 'review' | 'admin'
   const [view, setView] = useState<'dashboard' | 'exam' | 'report' | 'review' | 'admin'>('dashboard');
@@ -141,6 +145,7 @@ export default function HomePage() {
         setCurrentUser(data.user);
         setSessionId(data.sessionId);
         setIsSessionLocked(false);
+        setAuthModalOpen(false);
         try {
           localStorage.setItem('kondang_user_id', data.user.id);
           localStorage.setItem('kondang_session_id', data.sessionId);
@@ -177,6 +182,7 @@ export default function HomePage() {
         setCurrentUser(data.user);
         setSessionId(data.sessionId);
         setIsSessionLocked(false);
+        setAuthModalOpen(false);
         try {
           localStorage.setItem('kondang_user_id', data.user.id);
           localStorage.setItem('kondang_session_id', data.sessionId);
@@ -754,213 +760,264 @@ export default function HomePage() {
     );
   }
 
-  // AUTHENTICATION SCREEN: Clean Fresh White with KondangSensei Aesthetic
+  // UNAUTHENTICATED VISITOR SCREEN: High-converting Landing Page with Mini Tryout & Auth Modal
   if (!currentUser) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-stone-50 via-rose-50/30 to-stone-100 text-stone-900 flex items-center justify-center p-4">
-        <div className="max-w-md w-full bg-white border border-stone-200/90 rounded-3xl p-6 sm:p-8 shadow-xl shadow-stone-200/50 space-y-6">
-          {/* Header Brand */}
-          <div className="text-center space-y-2">
-            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-red-600 via-rose-600 to-red-700 flex items-center justify-center mx-auto text-white shadow-lg shadow-red-500/25">
-              <GraduationCap className="w-8 h-8" />
-            </div>
-            <div>
-              <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-rose-50 text-red-700 border border-rose-200 text-[10px] font-black uppercase tracking-wider mb-1">
-                <span>KONDANGSENSEI</span>
-                <span>•</span>
-                <span>Platform Simulasi JFT-Basic A2</span>
-              </div>
-              <h1 className="text-2xl font-black text-stone-900 tracking-tight">
-                Kondang<span className="text-red-600">Sensei</span> CBT
-              </h1>
-              <p className="text-xs text-stone-500 mt-1">
-                Masuk untuk mengakses Ujian Simulasi & Analisis Rapor JFT-Basic A2
-              </p>
-            </div>
-          </div>
+      <div className="min-h-screen bg-[#f8fafc] text-stone-900 flex flex-col font-sans">
+        <LandingPage
+          packages={packages}
+          onOpenMiniTryout={() => setMiniTryoutOpen(true)}
+          onOpenLogin={() => {
+            setAuthMode('login');
+            setLoginError('');
+            setAuthModalOpen(true);
+          }}
+          onOpenSignup={() => {
+            setAuthMode('signup');
+            setLoginError('');
+            setAuthModalOpen(true);
+          }}
+          onSelectPackage={(pkg) => {
+            setAuthMode('signup');
+            setLoginError(`Silakan buat akun atau masuk terlebih dahulu untuk membeli ${pkg.name}. Akun langsung aktif!`);
+            setAuthModalOpen(true);
+          }}
+        />
 
-          {/* Error Alert */}
-          {loginError && (
-            <div className="p-3.5 bg-rose-50 border border-rose-200 text-rose-800 rounded-2xl text-xs font-semibold flex items-center gap-2">
-              <AlertCircle className="w-4 h-4 shrink-0 text-red-600" />
-              <span>{loginError}</span>
-            </div>
-          )}
+        {/* 1 Mini Tryout Gratis (10–15 Soal) Modal / Experience */}
+        {miniTryoutOpen && (
+          <MiniTryoutExperience
+            currentUser={null}
+            onOpenFullPackagePayment={() => {
+              setMiniTryoutOpen(false);
+              setAuthMode('signup');
+              setLoginError('Buat akun atau masuk untuk membuka akses 5 Paket Simulasi Full & mulai latihan!');
+              setAuthModalOpen(true);
+            }}
+            onClose={() => setMiniTryoutOpen(false)}
+          />
+        )}
 
-          {/* Auth Tab Switcher */}
-          <div className="flex p-1 bg-stone-100 rounded-2xl border border-stone-200">
-            <button
-              type="button"
-              onClick={() => {
-                setAuthMode('login');
-                setLoginError('');
-              }}
-              className={`flex-1 py-2 rounded-xl font-bold text-xs transition flex items-center justify-center gap-1.5 ${
-                authMode === 'login'
-                  ? 'bg-white text-red-600 font-black shadow-xs'
-                  : 'text-stone-500 hover:text-stone-900'
-              }`}
-            >
-              <LogIn className="w-3.5 h-3.5" />
-              Masuk (Login)
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setAuthMode('signup');
-                setLoginError('');
-              }}
-              className={`flex-1 py-2 rounded-xl font-bold text-xs transition flex items-center justify-center gap-1.5 ${
-                authMode === 'signup'
-                  ? 'bg-gradient-to-r from-red-600 to-rose-600 text-white shadow-xs font-black'
-                  : 'text-stone-500 hover:text-stone-900'
-              }`}
-            >
-              <UserPlus className="w-3.5 h-3.5" />
-              Daftar Akun Baru
-            </button>
-          </div>
+        {/* Auth Modal (Login / Signup) */}
+        {authModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-stone-950/60 backdrop-blur-xs p-4 overflow-y-auto animate-in fade-in duration-150">
+            <div className="relative max-w-md w-full bg-white border border-stone-200/90 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6 my-8 animate-in zoom-in-95 duration-200">
+              {/* Close Button */}
+              <button
+                type="button"
+                onClick={() => setAuthModalOpen(false)}
+                className="absolute top-5 right-5 p-2 rounded-xl text-stone-400 hover:text-stone-700 hover:bg-stone-100 transition cursor-pointer"
+                aria-label="Tutup"
+              >
+                <X className="w-5 h-5" />
+              </button>
 
-          {/* Form Login / Signup */}
-          {authMode === 'login' ? (
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                handleLogin(loginEmail, loginPassword);
-              }}
-              className="space-y-4 text-xs"
-            >
-              <div className="space-y-1.5">
-                <label className="font-bold text-stone-700 flex items-center gap-1.5">
-                  <Mail className="w-3.5 h-3.5 text-red-600" />
-                  Alamat Email:
-                </label>
-                <input
-                  type="email"
-                  required
-                  value={loginEmail}
-                  onChange={(e) => setLoginEmail(e.target.value)}
-                  placeholder="nama@email.com"
-                  className="w-full p-3 bg-stone-50 border border-stone-200 rounded-xl text-stone-900 placeholder-stone-400 text-xs focus:outline-none focus:ring-2 focus:ring-red-500 focus:bg-white transition"
-                />
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="font-bold text-stone-700 flex items-center gap-1.5">
-                  <Key className="w-3.5 h-3.5 text-red-600" />
-                  Kata Sandi (Password):
-                </label>
-                <div className="relative">
-                  <input
-                    type={showPassword ? 'text' : 'password'}
-                    required
-                    value={loginPassword}
-                    onChange={(e) => setLoginPassword(e.target.value)}
-                    placeholder="••••••••"
-                    className="w-full p-3 bg-stone-50 border border-stone-200 rounded-xl text-stone-900 placeholder-stone-400 text-xs pr-10 focus:outline-none focus:ring-2 focus:ring-red-500 focus:bg-white transition"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-3 text-stone-400 hover:text-stone-700"
-                  >
-                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                  </button>
+              {/* Header Brand */}
+              <div className="text-center space-y-2">
+                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-red-600 via-rose-600 to-red-700 flex items-center justify-center mx-auto text-white shadow-lg shadow-red-500/25">
+                  <GraduationCap className="w-8 h-8" />
+                </div>
+                <div>
+                  <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-rose-50 text-red-700 border border-rose-200 text-[10px] font-black uppercase tracking-wider mb-1">
+                    <span>KONDANGSENSEI</span>
+                    <span>•</span>
+                    <span>Platform Simulasi JFT-Basic A2</span>
+                  </div>
+                  <h2 className="text-2xl font-black text-stone-900 tracking-tight">
+                    Kondang<span className="text-red-600">Sensei</span> CBT
+                  </h2>
+                  <p className="text-xs text-stone-500 mt-1">
+                    {authMode === 'login'
+                      ? 'Masuk untuk mengakses Ujian Simulasi & Analisis Rapor JFT-Basic A2'
+                      : 'Daftar akun baru untuk mulai latihan dan dapatkan nomor registrasi ujian'}
+                  </p>
                 </div>
               </div>
 
-              <button
-                type="submit"
-                disabled={loginLoading}
-                className="w-full py-3.5 px-4 bg-gradient-to-r from-red-600 via-rose-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-black text-xs rounded-xl shadow-md shadow-red-500/25 transition flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
-              >
-                <LogIn className="w-4 h-4" />
-                {loginLoading ? 'Memproses Masuk...' : 'Masuk ke Dashboard'}
-              </button>
-            </form>
-          ) : (
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                handleSignup(signupName, loginEmail, loginPassword);
-              }}
-              className="space-y-4 text-xs"
-            >
-              <div className="space-y-1.5">
-                <label className="font-bold text-stone-700 flex items-center gap-1.5">
-                  <UserIcon className="w-3.5 h-3.5 text-red-600" />
-                  Nama Lengkap Peserta:
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={signupName}
-                  onChange={(e) => setSignupName(e.target.value)}
-                  placeholder="Contoh: Andi Pratama"
-                  className="w-full p-3 bg-stone-50 border border-stone-200 rounded-xl text-stone-900 placeholder-stone-400 text-xs focus:outline-none focus:ring-2 focus:ring-red-500 focus:bg-white transition"
-                />
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="font-bold text-stone-700 flex items-center gap-1.5">
-                  <Mail className="w-3.5 h-3.5 text-red-600" />
-                  Alamat Email:
-                </label>
-                <input
-                  type="email"
-                  required
-                  value={loginEmail}
-                  onChange={(e) => setLoginEmail(e.target.value)}
-                  placeholder="nama@email.com"
-                  className="w-full p-3 bg-stone-50 border border-stone-200 rounded-xl text-stone-900 placeholder-stone-400 text-xs focus:outline-none focus:ring-2 focus:ring-red-500 focus:bg-white transition"
-                />
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="font-bold text-stone-700 flex items-center gap-1.5">
-                  <Key className="w-3.5 h-3.5 text-red-600" />
-                  Buat Kata Sandi (Minimal 6 Karakter):
-                </label>
-                <div className="relative">
-                  <input
-                    type={showPassword ? 'text' : 'password'}
-                    required
-                    minLength={6}
-                    value={loginPassword}
-                    onChange={(e) => setLoginPassword(e.target.value)}
-                    placeholder="••••••••"
-                    className="w-full p-3 bg-stone-50 border border-stone-200 rounded-xl text-stone-900 placeholder-stone-400 text-xs pr-10 focus:outline-none focus:ring-2 focus:ring-red-500 focus:bg-white transition"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-3 text-stone-400 hover:text-stone-700"
-                  >
-                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                  </button>
+              {/* Error Alert */}
+              {loginError && (
+                <div className="p-3.5 bg-rose-50 border border-rose-200 text-rose-800 rounded-2xl text-xs font-semibold flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 shrink-0 text-red-600" />
+                  <span>{loginError}</span>
                 </div>
+              )}
+
+              {/* Auth Tab Switcher */}
+              <div className="flex p-1 bg-stone-100 rounded-2xl border border-stone-200">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setAuthMode('login');
+                    setLoginError('');
+                  }}
+                  className={`flex-1 py-2 rounded-xl font-bold text-xs transition flex items-center justify-center gap-1.5 cursor-pointer ${
+                    authMode === 'login'
+                      ? 'bg-white text-red-600 font-black shadow-xs'
+                      : 'text-stone-500 hover:text-stone-900'
+                  }`}
+                >
+                  <LogIn className="w-3.5 h-3.5" />
+                  Masuk (Login)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setAuthMode('signup');
+                    setLoginError('');
+                  }}
+                  className={`flex-1 py-2 rounded-xl font-bold text-xs transition flex items-center justify-center gap-1.5 cursor-pointer ${
+                    authMode === 'signup'
+                      ? 'bg-gradient-to-r from-red-600 to-rose-600 text-white shadow-xs font-black'
+                      : 'text-stone-500 hover:text-stone-900'
+                  }`}
+                >
+                  <UserPlus className="w-3.5 h-3.5" />
+                  Daftar Akun Baru
+                </button>
               </div>
 
-              <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-red-800 text-[11px] leading-relaxed">
-                Catatan: Akun baru otomatis mendapatkan nomor registrasi resmi JFT dan dapat langsung memilih paket simulasi ujian.
+              {/* Form Login / Signup */}
+              {authMode === 'login' ? (
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    handleLogin(loginEmail, loginPassword);
+                  }}
+                  className="space-y-4 text-xs"
+                >
+                  <div className="space-y-1.5">
+                    <label className="font-bold text-stone-700 flex items-center gap-1.5">
+                      <Mail className="w-3.5 h-3.5 text-red-600" />
+                      Alamat Email:
+                    </label>
+                    <input
+                      type="email"
+                      required
+                      value={loginEmail}
+                      onChange={(e) => setLoginEmail(e.target.value)}
+                      placeholder="nama@email.com"
+                      className="w-full p-3 bg-stone-50 border border-stone-200 rounded-xl text-stone-900 placeholder-stone-400 text-xs focus:outline-none focus:ring-2 focus:ring-red-500 focus:bg-white transition"
+                    />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="font-bold text-stone-700 flex items-center gap-1.5">
+                      <Key className="w-3.5 h-3.5 text-red-600" />
+                      Kata Sandi (Password):
+                    </label>
+                    <div className="relative">
+                      <input
+                        type={showPassword ? 'text' : 'password'}
+                        required
+                        value={loginPassword}
+                        onChange={(e) => setLoginPassword(e.target.value)}
+                        placeholder="••••••••"
+                        className="w-full p-3 bg-stone-50 border border-stone-200 rounded-xl text-stone-900 placeholder-stone-400 text-xs pr-10 focus:outline-none focus:ring-2 focus:ring-red-500 focus:bg-white transition"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-3 top-3 text-stone-400 hover:text-stone-700 cursor-pointer"
+                      >
+                        {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </button>
+                    </div>
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={loginLoading}
+                    className="w-full py-3.5 px-4 bg-gradient-to-r from-red-600 via-rose-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-black text-xs rounded-xl shadow-md shadow-red-500/25 transition flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
+                  >
+                    <LogIn className="w-4 h-4" />
+                    {loginLoading ? 'Memproses Masuk...' : 'Masuk ke Dashboard'}
+                  </button>
+                </form>
+              ) : (
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    handleSignup(signupName, loginEmail, loginPassword);
+                  }}
+                  className="space-y-4 text-xs"
+                >
+                  <div className="space-y-1.5">
+                    <label className="font-bold text-stone-700 flex items-center gap-1.5">
+                      <UserIcon className="w-3.5 h-3.5 text-red-600" />
+                      Nama Lengkap Peserta:
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={signupName}
+                      onChange={(e) => setSignupName(e.target.value)}
+                      placeholder="Contoh: Andi Pratama"
+                      className="w-full p-3 bg-stone-50 border border-stone-200 rounded-xl text-stone-900 placeholder-stone-400 text-xs focus:outline-none focus:ring-2 focus:ring-red-500 focus:bg-white transition"
+                    />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="font-bold text-stone-700 flex items-center gap-1.5">
+                      <Mail className="w-3.5 h-3.5 text-red-600" />
+                      Alamat Email:
+                    </label>
+                    <input
+                      type="email"
+                      required
+                      value={loginEmail}
+                      onChange={(e) => setLoginEmail(e.target.value)}
+                      placeholder="nama@email.com"
+                      className="w-full p-3 bg-stone-50 border border-stone-200 rounded-xl text-stone-900 placeholder-stone-400 text-xs focus:outline-none focus:ring-2 focus:ring-red-500 focus:bg-white transition"
+                    />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="font-bold text-stone-700 flex items-center gap-1.5">
+                      <Key className="w-3.5 h-3.5 text-red-600" />
+                      Buat Kata Sandi (Minimal 6 Karakter):
+                    </label>
+                    <div className="relative">
+                      <input
+                        type={showPassword ? 'text' : 'password'}
+                        required
+                        minLength={6}
+                        value={loginPassword}
+                        onChange={(e) => setLoginPassword(e.target.value)}
+                        placeholder="••••••••"
+                        className="w-full p-3 bg-stone-50 border border-stone-200 rounded-xl text-stone-900 placeholder-stone-400 text-xs pr-10 focus:outline-none focus:ring-2 focus:ring-red-500 focus:bg-white transition"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-3 top-3 text-stone-400 hover:text-stone-700 cursor-pointer"
+                      >
+                        {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-red-800 text-[11px] leading-relaxed">
+                    Catatan: Akun baru otomatis mendapatkan nomor registrasi resmi JFT dan dapat langsung memilih paket simulasi ujian.
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={loginLoading}
+                    className="w-full py-3.5 px-4 bg-gradient-to-r from-red-600 via-rose-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-black text-xs rounded-xl shadow-md shadow-red-500/25 transition flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
+                  >
+                    <UserPlus className="w-4 h-4" />
+                    {loginLoading ? 'Mendaftarkan Akun...' : 'Buat Akun & Mulai'}
+                  </button>
+                </form>
+              )}
+
+              <div className="text-center text-[11px] text-stone-500 flex items-center justify-center gap-1 pt-2 border-t border-stone-100">
+                <Lock className="w-3.5 h-3.5 text-emerald-600" />
+                <span>Dilindungi enkripsi sesi tunggal CBT KondangSensei</span>
               </div>
-
-              <button
-                type="submit"
-                disabled={loginLoading}
-                className="w-full py-3.5 px-4 bg-gradient-to-r from-red-600 via-rose-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-black text-xs rounded-xl shadow-md shadow-red-500/25 transition flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
-              >
-                <UserPlus className="w-4 h-4" />
-                {loginLoading ? 'Mendaftarkan Akun...' : 'Buat Akun & Mulai'}
-              </button>
-            </form>
-          )}
-
-          <div className="text-center text-[11px] text-stone-500 flex items-center justify-center gap-1 pt-2 border-t border-stone-100">
-            <Lock className="w-3.5 h-3.5 text-emerald-600" />
-            <span>Dilindungi enkripsi sesi tunggal CBT KondangSensei</span>
+            </div>
           </div>
-        </div>
+        )}
       </div>
     );
   }
@@ -1083,7 +1140,15 @@ export default function HomePage() {
                 </p>
               </div>
 
-              <div className="flex items-center gap-2.5 w-full sm:w-auto">
+              <div className="flex flex-wrap items-center gap-2.5 w-full sm:w-auto">
+                <button
+                  type="button"
+                  onClick={() => setMiniTryoutOpen(true)}
+                  className="w-full sm:w-auto justify-center py-3 px-4 bg-rose-50 hover:bg-rose-100 text-red-700 border border-rose-200 font-black text-xs sm:text-sm rounded-xl sm:rounded-2xl transition flex items-center gap-2 cursor-pointer shadow-2xs"
+                >
+                  <Sparkles className="w-4 h-4 text-red-600" />
+                  <span>Mini Tryout Gratis (12 Soal)</span>
+                </button>
                 <button
                   onClick={() => handleStartExam()}
                   className="w-full sm:w-auto justify-center py-3 px-5 sm:px-6 bg-gradient-to-r from-amber-500 via-rose-500 to-indigo-600 hover:from-amber-600 hover:to-indigo-700 text-white font-black text-xs sm:text-sm rounded-xl sm:rounded-2xl shadow-md shadow-rose-500/20 transition flex items-center gap-2 transform hover:-translate-y-0.5 cursor-pointer"
@@ -1092,6 +1157,30 @@ export default function HomePage() {
                   <span>Mulai Simulasi Sekarang</span>
                 </button>
               </div>
+            </div>
+
+            {/* Quick Diagnostic Mini Tryout Banner */}
+            <div className="p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-gradient-to-r from-red-600 via-rose-600 to-indigo-700 text-white shadow-lg shadow-red-500/15 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div className="space-y-1">
+                <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-white/20 text-white text-[10px] font-black uppercase tracking-wider backdrop-blur-xs">
+                  <Sparkles className="w-3 h-3 text-amber-300" />
+                  <span>Diagnostik Cepat Real-Time</span>
+                </div>
+                <h3 className="text-base sm:text-lg font-black tracking-tight">
+                  Uji Level Pemahaman & Deteksi Kelemahan Utama Anda (12 Soal)
+                </h3>
+                <p className="text-xs text-rose-100">
+                  Format CBT resmi 15 menit dengan audio Chōkai anti-cheat & evaluasi skor langsung untuk mengidentifikasi seksi yang perlu diperdalam.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setMiniTryoutOpen(true)}
+                className="py-2.5 px-5 bg-white hover:bg-stone-100 text-red-700 font-black text-xs sm:text-sm rounded-xl sm:rounded-2xl shadow-md transition flex items-center gap-2 cursor-pointer shrink-0"
+              >
+                <Play className="w-3.5 h-3.5 fill-red-700" />
+                <span>Mulai Mini Tryout Gratis</span>
+              </button>
             </div>
 
             {/* Row 1: Masa Berlaku Card & Referral/Registrasi Card */}
@@ -1908,6 +1997,18 @@ export default function HomePage() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Mini Tryout Experience for Logged-In User */}
+      {miniTryoutOpen && (
+        <MiniTryoutExperience
+          currentUser={currentUser}
+          onOpenFullPackagePayment={() => {
+            setMiniTryoutOpen(false);
+            setPaymentModalOpen(true);
+          }}
+          onClose={() => setMiniTryoutOpen(false)}
+        />
       )}
     </div>
   );

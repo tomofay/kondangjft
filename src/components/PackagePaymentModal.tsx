@@ -35,7 +35,8 @@ export const PackagePaymentModal: React.FC<PackagePaymentModalProps> = ({
   onClose,
   onPaymentSuccess
 }) => {
-  const defaultPackage = packages.find((p) => p.firstTimeOnly) || packages[0] || null;
+  const availablePackages = packages.filter((p) => p.id !== 'pkg_special_1h' && p.price > 100 && !p.firstTimeOnly);
+  const defaultPackage = availablePackages.find((p) => p.popular) || availablePackages[0] || null;
   const [selectedPkg, setSelectedPkg] = useState<TryoutPackage | null>(defaultPackage);
   const [selectedChannel, setSelectedChannel] = useState<string>('QRIS');
   const [isProcessing, setIsProcessing] = useState(false);
@@ -382,11 +383,9 @@ export const PackagePaymentModal: React.FC<PackagePaymentModalProps> = ({
                 </div>
 
                 <div className="grid grid-cols-1 gap-2.5">
-                  {packages.map((pkg) => {
+                  {availablePackages.map((pkg) => {
                     const isSelected = selectedPkg?.id === pkg.id;
-                    const durationText = pkg.durationHours
-                      ? `${pkg.durationHours} Jam Akses Penuh`
-                      : `${pkg.durationDays} Hari Akses Unlimited`;
+                    const durationText = `${pkg.durationDays} Hari Akses Unlimited`;
 
                     // Calculate visual badges & strikethrough value with vibrant color themes
                     let originalPrice: number | null = null;
@@ -399,16 +398,7 @@ export const PackagePaymentModal: React.FC<PackagePaymentModalProps> = ({
                       priceText: 'text-indigo-600'
                     };
 
-                    if (pkg.firstTimeOnly || pkg.id === 'pkg_special_1h') {
-                      originalPrice = 15000;
-                      badgeText = 'FLASH PROMO • KHUSUS PENGGUNA BARU';
-                      badgeStyle = 'bg-rose-100 text-rose-700 border-rose-300 font-black';
-                      pkgTheme = {
-                        selectedBorder: 'border-rose-500 bg-gradient-to-r from-rose-50/90 via-white to-orange-50/30 ring-rose-500/20',
-                        radio: 'border-rose-500 bg-rose-500',
-                        priceText: 'text-rose-600'
-                      };
-                    } else if (pkg.id === 'pkg_7d') {
+                    if (pkg.id === 'pkg_7d') {
                       originalPrice = 50000;
                       badgeText = 'PALING POPULER';
                       dailyPriceText = 'Rp 5.000 / hari';

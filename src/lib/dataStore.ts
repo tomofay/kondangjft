@@ -173,17 +173,6 @@ globalThis.__kondangStore = globalThis.__kondangStore || {
 
 export const DEFAULT_PACKAGES: TryoutPackage[] = [
   {
-    id: 'pkg_special_1h',
-    name: 'Paket Spesial Pengguna Baru (1 Jam)',
-    description: 'Penawaran istimewa untuk pengguna pertama kali! Akses penuh simulasi JFT-Basic & pembahasan soal selama 1 jam.',
-    durationDays: 0,
-    durationHours: 1,
-    price: 100,
-    popular: false,
-    firstTimeOnly: true,
-    badge: 'PROMO KHUSUS PENGGUNA BARU'
-  },
-  {
     id: 'pkg_7d',
     name: 'Paket 1 Minggu',
     description: 'Akses Tryout JFT-Basic Tanpa Batas (Unlimited) selama 7 Hari + Pembahasan Lengkap & Rapor Evaluasi',
@@ -211,8 +200,8 @@ export const DEFAULT_PACKAGES: TryoutPackage[] = [
 
 export const getStore = () => {
   const store = globalThis.__kondangStore!;
-  // Ensure default packages list is always up-to-date even if global was previously cached
-  if (!store.packages || !store.packages.some(p => p.id === 'pkg_special_1h')) {
+  // Ensure default packages list is always up-to-date and 100 perak promo is purged
+  if (!store.packages || store.packages.some((p) => p.id === 'pkg_special_1h' || p.price === 100 || p.firstTimeOnly)) {
     store.packages = DEFAULT_PACKAGES;
   }
   if (!store.examSets || store.examSets.length === 0) {

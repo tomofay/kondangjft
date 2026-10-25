@@ -10,6 +10,8 @@ import {
   ChevronRight,
   Bookmark,
   Volume2,
+  Play,
+  Pause,
   BookOpen,
   Check,
   ZoomIn,
@@ -34,6 +36,7 @@ interface StoredExamSession {
   activeSectionIndex: number;
   timeLeft: number;
   answers: [number, UserAnswer][];
+  audioPlayCounts?: Record<number, number>;
   lastSavedAt: number;
 }
 
@@ -67,6 +70,174 @@ interface CbtExamEngineProps {
     timeLeftSeconds: number;
   }) => void;
 }
+
+
+interface ChoukaiAudioPlayerProps {
+  audioUrl: string;
+  questionId: number;
+  playCount: number;
+  onIncrementPlayCount: () => void;
+  showLockedToast: (msg: string) => void;
+}
+
+const ChoukaiAudioPlayer: React.FC<ChoukaiAudioPlayerProps> = ({
+  audioUrl,
+  questionId,
+  playCount,
+  onIncrementPlayCount,
+  showLockedToast
+}) => {
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
+
+  useEffect(() => {
+    setIsPlaying(false);
+    setCurrentTime(0);
+    setDuration(0);
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+    }
+  }, [questionId, audioUrl]);
+
+  const maxPlays = 2;
+  const isMaxReached = playCount >= maxPlays;
+
+  const handleStartPlay = () => {
+    if (!audioRef.current) return;
+    if (isPlaying) return; // Prevent double trigger while playing
+
+    if (isMaxReached) {
+      showLockedToast('Audio telah mencapai batas pemutaran maksimal (2 kali).');
+      return;
+    }
+
+    onIncrementPlayCount();
+    audioRef.current.currentTime = 0;
+    audioRef.current.play().catch((err) => {
+      console.warn('Audio play error:', err);
+    });
+    setIsPlaying(true);
+  };
+
+  const handleEnded = () => {
+    setIsPlaying(false);
+    if (audioRef.current) {
+      audioRef.current.currentTime = 0;
+    }
+  };
+
+  const formatAudioTime = (sec: number) => {
+    if (isNaN(sec) || sec <= 0) return '00:00';
+    const m = Math.floor(sec / 60);
+    const s = Math.floor(sec % 60);
+    return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+  };
+
+  return (
+    <div className="p-4 sm:p-5 bg-gradient-to-r from-sky-50 to-indigo-50/50 rounded-2xl border border-sky-200/90 shadow-2xs space-y-3">
+      {/* Header bar */}
+      <div className="flex items-center justify-between text-xs font-bold">
+        <span className="flex items-center gap-2 text-sky-950">
+          <Volume2 className={`w-4 h-4 ${isPlaying ? 'text-sky-600 animate-pulse' : 'text-sky-700'}`} />
+          <span>Pemutar Audio Chōkai (聴解 Audio)</span>
+        </span>
+
+        {/* Counter Badge */}
+        <span
+          className={`px-2.5 py-0.5 rounded-full text-[11px] font-mono font-bold flex items-center gap-1.5 ${
+            isMaxReached && !isPlaying
+              ? 'bg-rose-100 text-rose-800 border border-rose-300'
+              : playCount === 1
+              ? 'bg-amber-100 text-amber-900 border border-amber-300'
+              : 'bg-emerald-100 text-emerald-800 border border-emerald-300'
+          }`}
+        >
+          {isMaxReached && !isPlaying ? (
+            <>
+              <Lock className="w-3 h-3 text-rose-600" />
+              <span>Diputar 2/2x (Habis)</span>
+            </>
+          ) : (
+            <span>Diputar: {playCount} / 2 kali</span>
+          )}
+        </span>
+      </div>
+
+      {/* Headless Audio Element (NO controls attribute, cannot be scrubbed/cheated) */}
+      <audio
+        ref={audioRef}
+        src={audioUrl}
+        preload="auto"
+        onTimeUpdate={() => {
+          if (audioRef.current) setCurrentTime(audioRef.current.currentTime);
+        }}
+        onLoadedMetadata={() => {
+          if (audioRef.current) setDuration(audioRef.current.duration || 0);
+        }}
+        onEnded={handleEnded}
+      />
+
+      {/* Anti-cheat UI: Only Play button (disabled while playing) + Read-only progress */}
+      <div className="flex items-center gap-3">
+        <button
+          type="button"
+          onClick={handleStartPlay}
+          disabled={isPlaying || isMaxReached}
+          className={`py-2.5 px-4 rounded-xl text-xs font-black transition flex items-center gap-2 shadow-xs cursor-pointer disabled:cursor-not-allowed ${
+            isPlaying
+              ? 'bg-sky-500 text-white animate-pulse'
+              : isMaxReached
+              ? 'bg-stone-200 text-stone-500 border border-stone-300 opacity-60'
+              : 'bg-sky-600 hover:bg-sky-700 text-white'
+          }`}
+        >
+          {isPlaying ? (
+            <>
+              <Volume2 className="w-4 h-4 animate-bounce" />
+              <span>Sedang Memutar Audio...</span>
+            </>
+          ) : (
+            <>
+              <Play className="w-3.5 h-3.5 fill-current" />
+              <span>
+                {playCount === 0
+                  ? 'Putar Audio (1/2)'
+                  : playCount === 1
+                  ? 'Putar Audio (2/2 - Terakhir)'
+                  : 'Batas 2x Putar Tercapai'}
+              </span>
+            </>
+          )}
+        </button>
+
+        {/* Read-Only Progress Track: pointer-events-none ensures NO user dragging/seeking */}
+        <div className="flex-1 space-y-1 select-none pointer-events-none">
+          <div className="w-full bg-sky-200/70 rounded-full h-2.5 overflow-hidden">
+            <div
+              className="bg-sky-600 h-2.5 rounded-full transition-all duration-200"
+              style={{ width: `${duration > 0 ? (currentTime / duration) * 100 : 0}%` }}
+            />
+          </div>
+          <div className="flex justify-between text-[10px] font-mono font-bold text-sky-800">
+            <span>{formatAudioTime(currentTime)}</span>
+            <span>{formatAudioTime(duration)}</span>
+          </div>
+        </div>
+      </div>
+
+      {/* CBT Anti-Cheat Rule Explanation */}
+      <div className="text-[11px] text-sky-900/80 bg-white/80 p-2 rounded-xl border border-sky-100 flex items-center justify-between">
+        <span>Aturan CBT Chōkai: Audio tidak dapat digeser/dijeda dan hanya dapat diputar maks. <strong>2 kali</strong>.</span>
+        {isMaxReached && !isPlaying && (
+          <span className="text-rose-600 font-bold text-[10px]">Pemutaran selesai</span>
+        )}
+      </div>
+    </div>
+  );
+};
 
 export const CbtExamEngine: React.FC<CbtExamEngineProps> = ({
   questions,
@@ -121,6 +292,21 @@ export const CbtExamEngine: React.FC<CbtExamEngineProps> = ({
   const activeSection = sections[activeSectionIndex] || sections[0];
 
   // Store user answers map: questionId -> UserAnswer
+  // Audio playback counter (Max 2 plays per Choukai question)
+  const [audioPlayCounts, setAudioPlayCounts] = useState<Record<number, number>>(() => {
+    if (initialSaved && initialSaved.audioPlayCounts && typeof initialSaved.audioPlayCounts === 'object') {
+      return initialSaved.audioPlayCounts;
+    }
+    return {};
+  });
+
+  const handleIncrementAudioPlay = (qId: number) => {
+    setAudioPlayCounts((prev) => ({
+      ...prev,
+      [qId]: (prev[qId] || 0) + 1
+    }));
+  };
+
   const [answers, setAnswers] = useState<Map<number, UserAnswer>>(() => {
     const map = new Map<number, UserAnswer>();
     questions.forEach((q) => {
@@ -164,6 +350,9 @@ export const CbtExamEngine: React.FC<CbtExamEngineProps> = ({
     if (typeof saved.activeSectionIndex === 'number') {
       setActiveSectionIndex(Math.max(0, Math.min(3, saved.activeSectionIndex)));
     }
+    if (saved.audioPlayCounts && typeof saved.audioPlayCounts === 'object') {
+      setAudioPlayCounts(saved.audioPlayCounts);
+    }
     if (typeof saved.timeLeft === 'number' && saved.lastSavedAt) {
       const elapsed = Math.floor((Date.now() - saved.lastSavedAt) / 1000);
       setTimeLeft(Math.max(1, saved.timeLeft - Math.max(0, elapsed)));
@@ -188,7 +377,7 @@ export const CbtExamEngine: React.FC<CbtExamEngineProps> = ({
     } catch (err) {
       console.warn('Failed to save exam state to localStorage:', err);
     }
-  }, [user?.id, questions, currentIndex, activeSectionIndex, timeLeft, answers]);
+  }, [user?.id, questions, currentIndex, activeSectionIndex, timeLeft, answers, audioPlayCounts]);
 
   useEffect(() => {
     saveLiveState();
@@ -291,6 +480,11 @@ export const CbtExamEngine: React.FC<CbtExamEngineProps> = ({
   };
 
   const currentQ = questions[currentIndex] || questions[0];
+  const isChoukai =
+    activeSection.key === 'S3' ||
+    currentQ?.section === 'S3' ||
+    Boolean(currentQ?.audioUrl) ||
+    Boolean(currentQ?.sectionTitle && /ch[oō]kai|audio|聴解/i.test(currentQ.sectionTitle));
   const currentAnswer = (currentQ && answers.get(currentQ.id)) || {
     questionId: currentQ?.id || 1,
     selectedOption: null,
@@ -352,8 +546,27 @@ export const CbtExamEngine: React.FC<CbtExamEngineProps> = ({
   const totalFlaggedCount = Array.from(answers.values()).filter((a) => a.isFlagged).length;
   const totalUnansweredCount = questions.length - totalAnsweredCount;
 
-  // Handle question click from palette (Section Locking Enforcement)
+  // Handle question click from palette (Section Locking Enforcement & Choukai Anti-Cheat Locking)
   const handleSelectQuestion = (globalIdx: number, sectionKey: string) => {
+    const targetQ = questions[globalIdx];
+    const targetIsChoukai =
+      isChoukai ||
+      activeSection.key === 'S3' ||
+      sectionKey === 'S3' ||
+      Boolean(targetQ?.audioUrl) ||
+      targetQ?.section === 'S3' ||
+      Boolean(targetQ?.sectionTitle && /ch[oō]kai|audio|聴解/i.test(targetQ.sectionTitle));
+
+    // STRICTLY DISALLOW JUMPING IN CHOUKAI
+    if (targetIsChoukai) {
+      if (globalIdx !== currentIndex) {
+        showLockedToast(
+          'Pada seksi Chōkai (聴解), Anda tidak dapat berpindah atau melompat soal. Kerjakan soal secara berurutan dan klik tombol Berikutnya.'
+        );
+      }
+      return;
+    }
+
     if (sectionKey === activeSection.key) {
       setCurrentIndex(globalIdx);
       if (typeof window !== 'undefined' && window.innerWidth < 768) {
@@ -385,6 +598,10 @@ export const CbtExamEngine: React.FC<CbtExamEngineProps> = ({
   const isLastOfActiveSection = currentIndex === activeSectionLastIdx;
 
   const handlePrevQuestion = () => {
+    if (isChoukai) {
+      showLockedToast('Pada seksi Chōkai (聴解), Anda tidak dapat kembali ke soal sebelumnya.');
+      return;
+    }
     if (!isFirstOfActiveSection) {
       setCurrentIndex((prev) => Math.max(activeSectionFirstIdx, prev - 1));
     }
@@ -564,11 +781,24 @@ export const CbtExamEngine: React.FC<CbtExamEngineProps> = ({
 
                     let btnClasses = '';
 
+                    const isQuestionChoukai =
+                      sec.key === 'S3' ||
+                      isChoukai ||
+                      Boolean(sq.audioUrl) ||
+                      sq.section === 'S3' ||
+                      Boolean(sq.sectionTitle && /ch[oō]kai|audio|聴解/i.test(sq.sectionTitle));
+
+                    const isChoukaiLocked = isQuestionChoukai && !isCurrent;
+
                     if (!isCurrentSection) {
                       // Disabled/locked question
                       btnClasses = 'bg-stone-100 border-stone-200 text-stone-400 cursor-not-allowed';
                     } else if (isCurrent) {
                       btnClasses = 'bg-indigo-600 border-indigo-600 text-white font-black shadow-sm ring-2 ring-indigo-400/40 cursor-pointer';
+                    } else if (isChoukaiLocked) {
+                      btnClasses = isAnswered
+                        ? 'bg-emerald-50/70 border-emerald-200 text-emerald-700 cursor-not-allowed opacity-60'
+                        : 'bg-stone-100 border-stone-200 text-stone-400 cursor-not-allowed opacity-50';
                     } else if (isFlagged) {
                       btnClasses = 'bg-amber-50 border-amber-400 text-amber-800 font-bold hover:bg-amber-100 cursor-pointer';
                     } else if (isAnswered) {
@@ -588,10 +818,12 @@ export const CbtExamEngine: React.FC<CbtExamEngineProps> = ({
                             ? isCompletedSection
                               ? 'Seksi ini telah selesai dan dikunci'
                               : 'Seksi ini belum terbuka'
+                            : isChoukaiLocked
+                            ? 'Seksi Chōkai tidak dapat melompat soal'
                             : `Soal #${sq.number}`
                         }
                       >
-                        {!isCurrentSection && (
+                        {(!isCurrentSection || isChoukaiLocked) && (
                           <Lock className="w-2.5 h-2.5 absolute top-1 right-1 text-stone-400 opacity-60" />
                         )}
                         <span>{sq.number}</span>
@@ -699,18 +931,33 @@ export const CbtExamEngine: React.FC<CbtExamEngineProps> = ({
         {/* Question Workspace Content */}
         <main className="flex-1 p-4 sm:p-6 md:p-8 space-y-5 max-w-4xl w-full mx-auto">
           {/* Section Rule Reminder Banner */}
-          <div className="p-3 bg-amber-50 border border-amber-200 rounded-2xl text-[11px] text-amber-900 font-medium flex items-center justify-between gap-3 shadow-2xs">
-            <div className="flex items-center gap-2">
-              <Info className="w-4 h-4 text-amber-600 shrink-0" />
-              <span>
-                <strong>Aturan Prometric:</strong> Anda saat ini sedang mengerjakan{' '}
-                <strong className="underline">{activeSection.ja} ({activeSection.en})</strong>. Selesaikan seluruh soal pada seksi ini sebelum melanjutkan ke seksi berikutnya.
+          {isChoukai ? (
+            <div className="p-3 bg-sky-50 border border-sky-200 rounded-2xl text-[11px] text-sky-900 font-medium flex items-center justify-between gap-3 shadow-2xs">
+              <div className="flex items-center gap-2">
+                <Volume2 className="w-4 h-4 text-sky-600 shrink-0" />
+                <span>
+                  <strong>Aturan Chōkai (聴解):</strong> Audio diputar maks. 2 kali tanpa bisa digeser. Anda hanya dapat menekan{' '}
+                  <strong>Berikutnya</strong> (tidak dapat kembali atau melompat soal).
+                </span>
+              </div>
+              <span className="font-mono text-sky-800 font-bold shrink-0">
+                {activeSecAnsweredCount}/{activeSectionQuestions.length} Terjawab
               </span>
             </div>
-            <span className="font-mono text-amber-800 font-bold shrink-0">
-              {activeSecAnsweredCount}/{activeSectionQuestions.length} Terjawab
-            </span>
-          </div>
+          ) : (
+            <div className="p-3 bg-amber-50 border border-amber-200 rounded-2xl text-[11px] text-amber-900 font-medium flex items-center justify-between gap-3 shadow-2xs">
+              <div className="flex items-center gap-2">
+                <Info className="w-4 h-4 text-amber-600 shrink-0" />
+                <span>
+                  <strong>Aturan Prometric:</strong> Anda saat ini sedang mengerjakan{' '}
+                  <strong className="underline">{activeSection.ja} ({activeSection.en})</strong>. Selesaikan seluruh soal pada seksi ini sebelum melanjutkan ke seksi berikutnya.
+                </span>
+              </div>
+              <span className="font-mono text-amber-800 font-bold shrink-0">
+                {activeSecAnsweredCount}/{activeSectionQuestions.length} Terjawab
+              </span>
+            </div>
+          )}
 
           {/* Question Box Container */}
           <div className="bg-white border border-stone-200/90 rounded-2xl p-5 sm:p-7 shadow-xs space-y-5">
@@ -727,32 +974,16 @@ export const CbtExamEngine: React.FC<CbtExamEngineProps> = ({
               </div>
             )}
 
-            {/* Audio Player for Chōkai (Listening) */}
+            {/* Audio Player for Chōkai (Listening - Anti-Cheat Max 2 Plays) */}
             {currentQ?.audioUrl && (
-              <div className="p-4 bg-sky-50/60 rounded-2xl border border-sky-200 space-y-2">
-                <div className="flex items-center justify-between text-xs text-sky-900 font-bold">
-                  <span className="flex items-center gap-1.5">
-                    <Volume2 className="w-4 h-4 text-sky-600 animate-pulse" />
-                    Pemutar Audio Chōkai (聴解 Audio)
-                  </span>
-                  <span className="text-[11px] text-stone-500 font-normal">
-                    Putar rekaman audio soal JFT
-                  </span>
-                </div>
-                <audio
-                  key={currentQ.audioUrl + '_' + currentQ.id}
-                  controls
-                  preload="auto"
-                  className="w-full h-10 rounded-xl"
-                  src={currentQ.audioUrl}
-                >
-                  <source
-                    src={currentQ.audioUrl}
-                    type={currentQ.audioUrl.endsWith('.ogg') ? 'audio/ogg' : 'audio/mpeg'}
-                  />
-                  Browser Anda tidak mendukung pemutar audio.
-                </audio>
-              </div>
+              <ChoukaiAudioPlayer
+                key={currentQ.audioUrl + '_' + currentQ.id}
+                audioUrl={currentQ.audioUrl}
+                questionId={currentQ.id}
+                playCount={audioPlayCounts[currentQ.id] || 0}
+                onIncrementPlayCount={() => handleIncrementAudioPlay(currentQ.id)}
+                showLockedToast={showLockedToast}
+              />
             )}
 
             {/* Image attachment if any (Clickable to zoom) */}
@@ -830,14 +1061,26 @@ export const CbtExamEngine: React.FC<CbtExamEngineProps> = ({
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 pt-3 border-t border-stone-200/80">
             {/* Primary Navigation Buttons */}
             <div className="flex items-center gap-2 order-2 sm:order-1 justify-between sm:justify-start w-full sm:w-auto">
-              <button
-                onClick={handlePrevQuestion}
-                disabled={isFirstOfActiveSection}
-                className="flex-1 sm:flex-initial py-2.5 px-4 sm:px-5 bg-white hover:bg-stone-100 disabled:opacity-40 text-stone-700 text-xs font-bold rounded-xl border border-stone-200 transition flex items-center justify-center gap-1.5 cursor-pointer disabled:cursor-not-allowed shadow-2xs"
-              >
-                <ChevronLeft className="w-4 h-4" />
-                <span>Sebelumnya</span>
-              </button>
+              {isChoukai ? (
+                <button
+                  type="button"
+                  disabled
+                  className="flex-1 sm:flex-initial py-2.5 px-4 sm:px-5 bg-stone-100 text-stone-400 text-xs font-bold rounded-xl border border-stone-200 cursor-not-allowed opacity-60 flex items-center justify-center gap-1.5 shadow-2xs select-none"
+                  title="Pada seksi Chōkai tidak dapat kembali ke soal sebelumnya"
+                >
+                  <Lock className="w-3.5 h-3.5" />
+                  <span>Tidak Bisa Kembali</span>
+                </button>
+              ) : (
+                <button
+                  onClick={handlePrevQuestion}
+                  disabled={isFirstOfActiveSection}
+                  className="flex-1 sm:flex-initial py-2.5 px-4 sm:px-5 bg-white hover:bg-stone-100 disabled:opacity-40 text-stone-700 text-xs font-bold rounded-xl border border-stone-200 transition flex items-center justify-center gap-1.5 cursor-pointer disabled:cursor-not-allowed shadow-2xs"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                  <span>Sebelumnya</span>
+                </button>
+              )}
 
               {isLastOfActiveSection ? (
                 activeSectionIndex < sections.length - 1 ? (
