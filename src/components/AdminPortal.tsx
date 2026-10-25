@@ -659,7 +659,7 @@ B：いえ、だいじょうぶですよ。
   return (
     <div className="max-w-7xl mx-auto space-y-6 pb-12">
       {/* Admin Header */}
-      <div className="bg-white text-stone-900 p-6 rounded-3xl shadow-sm border border-stone-200/90 flex flex-wrap items-center justify-between gap-4">
+      <div className="bg-white text-stone-900 p-4 sm:p-6 rounded-2xl sm:rounded-3xl shadow-sm border border-stone-200/90 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <span className="px-3 py-1 rounded-full bg-gradient-to-r from-rose-50 via-amber-50 to-sky-50 border border-stone-200 text-stone-800 text-xs font-bold uppercase tracking-wider inline-flex items-center gap-1.5">
             <span className="w-1.5 h-1.5 rounded-full bg-indigo-600 animate-pulse" />
@@ -670,7 +670,7 @@ B：いえ、だいじょうぶですよ。
         </div>
 
         {/* Tab Buttons with Distinct KondangSensei Color Identity */}
-        <div className="flex flex-wrap gap-1.5 bg-stone-100 p-1.5 rounded-2xl border border-stone-200 text-xs font-semibold">
+        <div className="w-full md:w-auto flex flex-wrap gap-1.5 bg-stone-100 p-1.5 rounded-2xl border border-stone-200 text-xs font-semibold overflow-x-auto">
           <button
             onClick={() => setActiveTab('USERS')}
             className={`px-4 py-2 rounded-xl transition flex items-center gap-1.5 ${
@@ -739,7 +739,7 @@ B：いえ、だいじょうぶですよ。
                   }
                 }}
                 disabled={isRefreshing}
-                className="px-3.5 py-2 rounded-xl bg-stone-100 hover:bg-stone-100:bg-stone-200 text-stone-700 text-xs font-bold transition flex items-center gap-1.5 border border-stone-200 shadow-sm"
+                className="px-3.5 py-2 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 text-xs font-bold transition flex items-center gap-1.5 border border-stone-200 shadow-sm"
               >
                 <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin text-red-600' : ''}`} />
                 {isRefreshing ? 'Memuat Ulang...' : 'Sinkronkan Data'}
@@ -830,7 +830,7 @@ B：いえ、だいじょうぶですよ。
                     const isBusy = actionLoadingUserId === u.id;
 
                     return (
-                      <tr key={u.id} className="hover:bg-stone-50:bg-stone-100 transition">
+                      <tr key={u.id} className="hover:bg-stone-100 transition">
                         <td className="p-3 font-semibold text-stone-900">
                           <div className="flex items-center gap-2">
                             <img
@@ -1140,7 +1140,7 @@ B：いえ、だいじょうぶですよ。
                                     setActionLoadingUserId(null);
                                   }
                                 }}
-                                className="py-1 px-2.5 bg-red-100 hover:bg-red-200:bg-red-900 text-red-700 rounded-lg font-semibold text-[11px] transition disabled:opacity-50"
+                                className="py-1 px-2.5 bg-red-100 hover:bg-red-200 text-red-700 rounded-lg font-semibold text-[11px] transition disabled:opacity-50"
                               >
                                 {isBusy ? '...' : 'Kick Sesi'}
                               </button>
@@ -1190,7 +1190,7 @@ B：いえ、だいじょうぶですよ。
                                     }
                                   }
                                 }}
-                                className="p-1.5 text-stone-400 hover:text-red-600:text-red-400 transition rounded-lg hover:bg-red-50:bg-red-950/50 disabled:opacity-50"
+                                className="p-1.5 text-stone-400 hover:text-red-600 transition rounded-lg hover:bg-red-50 disabled:opacity-50"
                               >
                                 <Trash2 className="w-3.5 h-3.5" />
                               </button>
@@ -1277,7 +1277,7 @@ B：いえ、だいじょうぶですよ。
                         setSearchQuery('');
                         setCurrentPage(1);
                       }}
-                      className="p-5 rounded-2xl bg-stone-50 border border-stone-200 hover:border-red-400:border-red-400 hover:shadow-xl hover:shadow-indigo-500/5 transition cursor-pointer flex flex-col justify-between gap-4 group"
+                      className="p-5 rounded-2xl bg-stone-50 border border-stone-200 hover:border-red-400 hover:shadow-xl hover:shadow-indigo-500/5 transition cursor-pointer flex flex-col justify-between gap-4 group"
                     >
                       <div className="space-y-3">
                         <div className="flex items-center justify-between">
@@ -1290,7 +1290,7 @@ B：いえ、だいじょうぶですよ。
                         </div>
 
                         <div>
-                          <h3 className="text-base font-bold text-stone-900 group-hover:text-red-600:text-red-600 transition flex items-center gap-1.5">
+                          <h3 className="text-base font-bold text-stone-900 group-hover:text-red-600 transition flex items-center gap-1.5">
                             <Folder className="w-4 h-4 text-red-600 shrink-0" />
                             {pkg.name}
                           </h3>
@@ -1326,7 +1326,7 @@ B：いえ、だいじょうぶですよ。
                           <button
                             type="button"
                             onClick={(e) => handleOpenEditPackage(pkg, e)}
-                            className="p-1.5 rounded-lg text-stone-400 hover:text-red-600:text-red-600 hover:bg-stone-100:bg-stone-100 transition"
+                            className="p-1.5 rounded-lg text-stone-400 hover:text-red-600 hover:bg-stone-200 transition"
                             title="Edit Info Paket"
                           >
                             <Edit3 className="w-3.5 h-3.5" />
@@ -1334,7 +1334,7 @@ B：いえ、だいじょうぶですよ。
                           <button
                             type="button"
                             onClick={(e) => handleDeletePackage(pkg, e)}
-                            className="p-1.5 rounded-lg text-stone-400 hover:text-red-600:text-red-400 hover:bg-red-50:bg-red-950/40 transition"
+                            className="p-1.5 rounded-lg text-stone-400 hover:text-red-600 hover:bg-red-50 transition"
                             title="Hapus Paket Ini"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
@@ -1369,7 +1369,7 @@ B：いえ、だいじょうぶですよ。
                       <button
                         type="button"
                         onClick={() => setOpenedPackageId(null)}
-                        className="p-2 rounded-xl bg-stone-100 hover:bg-stone-100:bg-stone-200 text-stone-700 transition shrink-0"
+                        className="p-2 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 transition shrink-0"
                         title="Kembali ke Daftar Semua Paket"
                       >
                         <ArrowLeft className="w-5 h-5" />
@@ -1396,7 +1396,7 @@ B：いえ、だいじょうぶですよ。
                       <button
                         type="button"
                         onClick={() => handleOpenEditPackage(currentPackage)}
-                        className="px-3.5 py-2 bg-stone-100 hover:bg-stone-100:bg-stone-200 text-stone-700 font-bold text-xs rounded-xl transition flex items-center gap-1.5"
+                        className="px-3.5 py-2 bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold text-xs rounded-xl transition flex items-center gap-1.5"
                       >
                         <Edit3 className="w-3.5 h-3.5" />
                         Edit Info Paket
@@ -1405,7 +1405,7 @@ B：いえ、だいじょうぶですよ。
                       <button
                         type="button"
                         onClick={() => handleDeletePackage(currentPackage)}
-                        className="px-3.5 py-2 bg-red-100 hover:bg-red-200:bg-red-900/60 text-red-700 font-bold text-xs rounded-xl transition flex items-center gap-1.5 border border-red-200"
+                        className="px-3.5 py-2 bg-red-100 hover:bg-red-200 text-red-700 font-bold text-xs rounded-xl transition flex items-center gap-1.5 border border-red-200"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
                         Hapus Paket
@@ -1593,7 +1593,7 @@ B：いえ、だいじょうぶですよ。
                         <button
                           onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                           disabled={safeCurrentPage <= 1}
-                          className="p-2 bg-white border border-stone-200 rounded-xl text-stone-700 disabled:opacity-40 hover:bg-stone-100:bg-stone-200 transition"
+                          className="p-2 bg-white border border-stone-200 rounded-xl text-stone-700 disabled:opacity-40 hover:bg-stone-200 transition"
                           title="Halaman Sebelumnya"
                         >
                           <ChevronLeft className="w-4 h-4" />
@@ -1621,7 +1621,7 @@ B：いえ、だいじょうぶですよ。
                                     className={`w-8 h-8 rounded-xl font-bold transition text-xs ${
                                       safeCurrentPage === p
                                         ? 'bg-red-600 text-white shadow'
-                                        : 'bg-white border border-stone-200 text-stone-700 hover:bg-stone-100:bg-stone-200'
+                                        : 'bg-white border border-stone-200 text-stone-700 hover:bg-stone-200'
                                     }`}
                                   >
                                     {p}
@@ -1634,7 +1634,7 @@ B：いえ、だいじょうぶですよ。
                         <button
                           onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
                           disabled={safeCurrentPage >= totalPages}
-                          className="p-2 bg-white border border-stone-200 rounded-xl text-stone-700 disabled:opacity-40 hover:bg-stone-100:bg-stone-200 transition"
+                          className="p-2 bg-white border border-stone-200 rounded-xl text-stone-700 disabled:opacity-40 hover:bg-stone-200 transition"
                           title="Halaman Selanjutnya"
                         >
                           <ChevronRight className="w-4 h-4" />
@@ -1683,7 +1683,7 @@ B：いえ、だいじょうぶですよ。
                     setBatchSaveSuccess('');
                   }
                 }}
-                className="px-3 py-1.5 rounded-xl text-xs font-bold text-red-600 hover:text-red-700 bg-red-50 hover:bg-red-100:bg-red-900/50 border border-red-200 transition flex items-center gap-1"
+                className="px-3 py-1.5 rounded-xl text-xs font-bold text-red-600 hover:text-red-700 bg-red-50 hover:bg-red-100 border border-red-200 transition flex items-center gap-1"
               >
                 <Trash2 className="w-3.5 h-3.5" />
                 Hapus Semua Draf ({localDrafts.length})
@@ -1769,7 +1769,7 @@ B：いえ、だいじょうぶですよ。
                 type="button"
                 onClick={() => pdfFileInputRef.current?.click()}
                 disabled={isUploadingPdf}
-                className="px-5 py-2.5 rounded-xl bg-white hover:bg-stone-100:bg-stone-200 text-stone-800 text-xs font-bold border border-stone-300 transition flex items-center gap-2 shadow-sm disabled:opacity-50"
+                className="px-5 py-2.5 rounded-xl bg-white hover:bg-stone-200 text-stone-800 text-xs font-bold border border-stone-300 transition flex items-center gap-2 shadow-sm disabled:opacity-50"
               >
                 <FolderUp className="w-4 h-4 text-red-600" />
                 {selectedPdfFile ? 'Ganti File PDF...' : 'Pilih File PDF (.pdf)'}
@@ -1975,7 +1975,7 @@ B：いえ、だいじょうぶですよ。
                         <button
                           type="button"
                           onClick={() => handleDeleteSingleDraft(draft.id)}
-                          className="p-1 text-stone-400 hover:text-red-500 rounded-lg hover:bg-stone-100:bg-stone-100 transition"
+                          className="p-1 text-stone-400 hover:text-red-500 rounded-lg hover:bg-stone-200 transition"
                           title="Hapus draf soal ini"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
@@ -2039,7 +2039,7 @@ B：いえ、だいじょうぶですよ。
                               setActiveDraftIdForImage(draft.id);
                               draftSpecificImageInputRef.current?.click();
                             }}
-                            className="text-[11px] font-bold text-stone-500 hover:text-red-600:text-red-600 flex items-center gap-1 border border-dashed border-stone-200 px-2.5 py-1.5 rounded-xl hover:border-indigo-400 transition"
+                            className="text-[11px] font-bold text-stone-500 hover:text-red-600 flex items-center gap-1 border border-dashed border-stone-200 px-2.5 py-1.5 rounded-xl hover:border-indigo-400 transition"
                           >
                             <ImageIcon className="w-3 h-3" /> + Tambah Gambar untuk Soal Ini
                           </button>
@@ -2097,7 +2097,7 @@ B：いえ、だいじょうぶですよ。
             <button
               type="button"
               onClick={() => setIsManualTextOpen((prev) => !prev)}
-              className="w-full p-4 bg-stone-50 hover:bg-stone-100:bg-white flex items-center justify-between text-left text-xs font-bold text-stone-700 transition"
+              className="w-full p-4 bg-stone-50 hover:bg-stone-100 flex items-center justify-between text-left text-xs font-bold text-stone-700 transition"
             >
               <span className="flex items-center gap-2">
                 <FileText className="w-4 h-4 text-stone-400" />
@@ -2209,7 +2209,7 @@ B：いえ、だいじょうぶですよ。
                   }
                 }}
                 disabled={isRefreshing}
-                className="px-3.5 py-2 rounded-xl bg-stone-100 hover:bg-stone-100:bg-stone-200 text-stone-700 text-xs font-bold transition flex items-center gap-1.5 border border-stone-200 shadow-sm"
+                className="px-3.5 py-2 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 text-xs font-bold transition flex items-center gap-1.5 border border-stone-200 shadow-sm"
               >
                 <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin text-red-600' : ''}`} />
                 {isRefreshing ? 'Memuat Ulang...' : 'Sinkronkan Transaksi'}
@@ -2239,7 +2239,7 @@ B：いえ、だいじょうぶですよ。
                   </tr>
                 ) : (
                   transactions.map((tx) => (
-                    <tr key={tx.id} className="hover:bg-stone-50:bg-stone-100 transition">
+                    <tr key={tx.id} className="hover:bg-stone-100 transition">
                       <td className="p-3 font-mono text-[11px] text-stone-500">{tx.id}</td>
                       <td className="p-3 text-[11px] text-emerald-700/80">
                         {tx.createdAt ? new Date(tx.createdAt).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '-'}
@@ -2273,20 +2273,20 @@ B：いえ、だいじょうぶですよ。
       {/* QUESTION EDIT MODAL OVERLAY */}
       {isEditModalOpen && editingQuestion && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-stone-900/40 backdrop-blur-xs backdrop-blur-md p-4 overflow-y-auto">
-          <div className="bg-white max-w-2xl w-full rounded-3xl p-6 shadow-2xl border border-stone-200 space-y-4 my-8">
+          <div className="bg-white max-w-2xl w-full rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-2xl border border-stone-200 space-y-4 my-6 sm:my-8">
             <div className="flex items-center justify-between border-b pb-3 border-stone-200">
               <h3 className="text-base font-bold text-stone-900">
                 Editor Soal JFT (ID #{editingQuestion.id})
               </h3>
               <button
                 onClick={() => setIsEditModalOpen(false)}
-                className="p-1 text-stone-400 hover:text-stone-600:text-stone-700 rounded-lg hover:bg-stone-100:bg-stone-100 transition"
+                className="p-1 text-stone-400 hover:text-stone-700 rounded-lg hover:bg-stone-200 transition"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+            <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
               <div>
                 <label className="font-bold text-stone-700 block mb-1">Pilih Paket:</label>
                 <select
@@ -2369,7 +2369,7 @@ B：いえ、だいじょうぶですよ。
             {/* Options A-D */}
             <div className="space-y-2 text-xs">
               <label className="font-bold text-stone-700">Opsi Jawaban A, B, C, D:</label>
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 {editingQuestion.options.map((opt, idx) => (
                   <div key={opt.key} className="flex items-center gap-2">
                     <span className="font-bold text-red-600 w-4">{opt.key})</span>
@@ -2424,7 +2424,7 @@ B：いえ、だいじょうぶですよ。
                     type="button"
                     disabled={isUploadingAudio}
                     onClick={() => audioFileInputRef.current?.click()}
-                    className="w-full py-2.5 px-3 bg-amber-50 hover:bg-amber-100:bg-amber-900/60 text-amber-700 border border-amber-200 rounded-xl font-bold flex items-center justify-center gap-2 transition disabled:opacity-50"
+                    className="w-full py-2.5 px-3 bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 rounded-xl font-bold flex items-center justify-center gap-2 transition disabled:opacity-50"
                   >
                     <UploadCloud className="w-4 h-4" />
                     <span>{isUploadingAudio ? 'Mengunggah Audio...' : 'Pilih File Audio & Upload'}</span>
@@ -2515,7 +2515,7 @@ B：いえ、だいじょうぶですよ。
                     type="button"
                     disabled={isUploadingImage}
                     onClick={() => fileInputRef.current?.click()}
-                    className="w-full py-2.5 px-3 bg-rose-50 hover:bg-rose-100:bg-rose-100/60 text-red-700 border border-rose-200 rounded-xl font-bold flex items-center justify-center gap-2 transition disabled:opacity-50"
+                    className="w-full py-2.5 px-3 bg-rose-50 hover:bg-rose-100 text-red-700 border border-rose-200 rounded-xl font-bold flex items-center justify-center gap-2 transition disabled:opacity-50"
                   >
                     <UploadCloud className="w-4 h-4" />
                     <span>{isUploadingImage ? 'Mengunggah Foto...' : 'Pilih File & Upload'}</span>
@@ -2611,7 +2611,7 @@ B：いえ、だいじょうぶですよ。
       {/* Modal CRUD Paket Ujian */}
       {isPackageModalOpen && editingPackage && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-stone-900/40 backdrop-blur-xs backdrop-blur-md p-4 overflow-y-auto">
-          <div className="bg-white max-w-lg w-full rounded-3xl p-6 shadow-2xl border border-stone-200 space-y-5 my-8">
+          <div className="bg-white max-w-lg w-full rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-2xl border border-stone-200 space-y-5 my-6 sm:my-8">
             <div className="flex items-center justify-between border-b pb-3 border-stone-200">
               <h3 className="text-base font-bold text-stone-900 flex items-center gap-2">
                 <Folder className="w-5 h-5 text-red-600" />
@@ -2620,7 +2620,7 @@ B：いえ、だいじょうぶですよ。
               <button
                 type="button"
                 onClick={() => setIsPackageModalOpen(false)}
-                className="p-1 text-stone-400 hover:text-stone-600:text-stone-700 rounded-lg hover:bg-stone-100:bg-stone-100 transition"
+                className="p-1 text-stone-400 hover:text-stone-700 rounded-lg hover:bg-stone-200 transition"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -2641,7 +2641,7 @@ B：いえ、だいじょうぶですよ。
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 xs:grid-cols-2 gap-3">
                 <div className="space-y-1">
                   <label className="font-bold text-stone-700">
                     Kode Paket:
@@ -2720,9 +2720,9 @@ B：いえ、だいじょうぶですよ。
       {/* MODAL: RIWAYAT & PROGRES UJIAN PESERTA */}
       {isHistoryModalOpen && selectedUserForHistory && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-stone-900/40 backdrop-blur-xs backdrop-blur-md animate-in fade-in">
-          <div className="bg-white border border-stone-200 rounded-3xl max-w-4xl w-full max-h-[90vh] shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95">
+          <div className="bg-white border border-stone-200 rounded-2xl sm:rounded-3xl max-w-4xl w-full max-h-[90vh] shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95">
             {/* Modal Header */}
-            <div className="p-6 border-b border-stone-200 bg-stone-50 flex items-center justify-between gap-4">
+            <div className="p-4 sm:p-6 border-b border-stone-200 bg-stone-50 flex items-center justify-between gap-3">
               <div className="flex items-center gap-3">
                 <img
                   src={
@@ -2763,7 +2763,7 @@ B：いえ、だいじょうぶですよ。
             </div>
 
             {/* Modal Body */}
-            <div className="p-6 overflow-y-auto space-y-6">
+            <div className="p-4 sm:p-6 overflow-y-auto space-y-6">
               {(() => {
                 const userAttempts = (examResults || []).filter(
                   (r) => r.userId === selectedUserForHistory.id
@@ -2854,7 +2854,7 @@ B：いえ、だいじょうぶですよ。
                             return (
                               <div
                                 key={attempt.id || index}
-                                className="p-4 rounded-2xl bg-white border border-stone-200 hover:border-red-300:border-rose-200 transition shadow-sm space-y-3"
+                                className="p-4 rounded-2xl bg-white border border-stone-200 hover:border-rose-300 transition shadow-sm space-y-3"
                               >
                                 <div className="flex flex-wrap items-start justify-between gap-3">
                                   <div className="space-y-1">

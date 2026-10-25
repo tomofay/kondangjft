@@ -95,7 +95,13 @@ export const CbtExamEngine: React.FC<CbtExamEngineProps> = ({
     }
     return 0;
   });
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+
+  const [sidebarOpen, setSidebarOpen] = useState(() => {
+    if (typeof window !== 'undefined' && window.innerWidth < 768) {
+      return false;
+    }
+    return true;
+  });
 
   // Group questions by Section (S1, S2, S3, S4)
   const sections = [
@@ -350,6 +356,9 @@ export const CbtExamEngine: React.FC<CbtExamEngineProps> = ({
   const handleSelectQuestion = (globalIdx: number, sectionKey: string) => {
     if (sectionKey === activeSection.key) {
       setCurrentIndex(globalIdx);
+      if (typeof window !== 'undefined' && window.innerWidth < 768) {
+        setSidebarOpen(false);
+      }
     } else {
       const targetSecIdx = sections.findIndex((s) => s.key === sectionKey);
       if (targetSecIdx < activeSectionIndex) {
@@ -428,11 +437,21 @@ export const CbtExamEngine: React.FC<CbtExamEngineProps> = ({
         </div>
       )}
 
-      {/* Left Sidebar: Prometric Navigation with Section Lock */}
+      {/* Mobile Backdrop when Sidebar Drawer is open */}
+      {sidebarOpen && (
+        <div
+          onClick={() => setSidebarOpen(false)}
+          className="fixed inset-0 z-40 bg-stone-900/40 backdrop-blur-xs md:hidden animate-in fade-in"
+        />
+      )}
+
+      {/* Left Sidebar / Off-canvas Drawer: Prometric Navigation with Section Lock */}
       <aside
         className={`${
-          sidebarOpen ? 'w-full md:w-72 lg:w-80' : 'w-0 hidden md:hidden'
-        } bg-white border-r border-stone-200 p-4 sm:p-5 flex flex-col space-y-4 overflow-y-auto shrink-0 transition-all duration-200`}
+          sidebarOpen
+            ? 'fixed inset-y-0 left-0 z-50 w-80 max-w-[85vw] md:static md:w-72 lg:w-80 shadow-2xl md:shadow-none'
+            : 'hidden'
+        } bg-white border-r border-stone-200 p-4 sm:p-5 flex flex-col space-y-4 overflow-y-auto shrink-0 transition-all duration-200 h-full max-h-screen`}
       >
         <div className="flex items-center justify-between border-b border-stone-100 pb-3">
           <div>
@@ -609,45 +628,49 @@ export const CbtExamEngine: React.FC<CbtExamEngineProps> = ({
       {/* Main CBT Exam Area */}
       <div className="flex-1 flex flex-col bg-[#f8fafc] overflow-y-auto">
         {/* Top Header Bar */}
-        <header className="bg-white border-b border-stone-200 px-4 sm:px-6 py-3.5 flex flex-wrap items-center justify-between gap-3 shadow-2xs">
-          <div className="flex items-center gap-3">
-            {!sidebarOpen && (
-              <button
-                onClick={() => setSidebarOpen(true)}
-                className="py-1 px-2.5 rounded-lg bg-stone-100 hover:bg-stone-200 text-stone-700 text-xs font-bold transition flex items-center gap-1 cursor-pointer"
-              >
-                <Eye className="w-3.5 h-3.5 text-indigo-600" />
-                <span className="hidden sm:inline">Navigasi</span>
-              </button>
-            )}
+        <header className="bg-white border-b border-stone-200 px-3 sm:px-6 py-2.5 sm:py-3.5 flex flex-wrap items-center justify-between gap-2 sm:gap-3 shadow-2xs">
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+            <button
+              onClick={() => setSidebarOpen(!sidebarOpen)}
+              className={`py-1.5 px-2.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-2xs ${
+                sidebarOpen
+                  ? 'bg-indigo-50 text-indigo-700 border border-indigo-200'
+                  : 'bg-stone-100 hover:bg-stone-200 text-stone-700 border border-stone-200'
+              }`}
+              title="Buka Navigasi Palet Soal"
+            >
+              <Eye className="w-3.5 h-3.5 text-indigo-600" />
+              <span>Navigasi</span>
+            </button>
 
-            <div className="flex items-center gap-2">
-              <span className="px-2.5 py-1 rounded-lg bg-indigo-50 border border-indigo-200 text-indigo-700 font-mono text-xs font-black">
+            <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
+              <span className="px-2 py-0.5 rounded-lg bg-indigo-50 border border-indigo-200 text-indigo-700 font-mono text-xs font-black shrink-0">
                 {activeSection.key}
               </span>
-              <h1 className="text-sm sm:text-base font-black text-stone-900 tracking-tight">
-                {currentQ?.sectionTitle || activeSection.title} — Soal {currentQ?.number}
+              <h1 className="text-xs sm:text-base font-black text-stone-900 tracking-tight truncate">
+                Soal #{currentQ?.number}
+                <span className="hidden sm:inline font-normal text-stone-400"> — {currentQ?.sectionTitle || activeSection.title}</span>
               </h1>
             </div>
           </div>
 
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
             {/* Timer Badge (Sky Blue Normal, Amber Urgent) */}
             <div
-              className={`px-3.5 py-1.5 rounded-xl border text-xs font-mono font-black shadow-2xs flex items-center gap-1.5 ${
+              className={`px-2.5 sm:px-3.5 py-1 sm:py-1.5 rounded-xl border text-[11px] sm:text-xs font-mono font-black shadow-2xs flex items-center gap-1 sm:gap-1.5 ${
                 timeLeft < 300
                   ? 'bg-amber-50 border-amber-300 text-amber-800 animate-pulse'
                   : 'bg-sky-50 border-sky-200 text-sky-800'
               }`}
             >
-              <Clock className="w-3.5 h-3.5 text-sky-600" />
-              <span>Waktu: {formatTime(timeLeft)}</span>
+              <Clock className="w-3.5 h-3.5 text-sky-600 shrink-0" />
+              <span>{formatTime(timeLeft)}</span>
             </div>
 
             {/* Keluar Button */}
             <button
               onClick={() => setExitModalOpen(true)}
-              className="py-1.5 px-3 bg-stone-100 hover:bg-stone-200 text-stone-700 text-xs font-bold rounded-xl border border-stone-200 transition cursor-pointer"
+              className="py-1 sm:py-1.5 px-2.5 sm:px-3 bg-stone-100 hover:bg-stone-200 text-stone-700 text-[11px] sm:text-xs font-bold rounded-xl border border-stone-200 transition cursor-pointer"
             >
               Keluar
             </button>
@@ -656,16 +679,16 @@ export const CbtExamEngine: React.FC<CbtExamEngineProps> = ({
             {activeSectionIndex < sections.length - 1 ? (
               <button
                 onClick={() => setSectionTransitionModalOpen(true)}
-                className="py-1.5 px-3.5 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white text-xs font-black rounded-xl shadow-xs transition flex items-center gap-1.5 cursor-pointer"
+                className="py-1 sm:py-1.5 px-2.5 sm:px-3.5 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white text-[11px] sm:text-xs font-black rounded-xl shadow-xs transition flex items-center gap-1 cursor-pointer"
               >
-                <span>Selesai Seksi {activeSection.key} ➔</span>
+                <span>Selesai {activeSection.key} ➔</span>
               </button>
             ) : (
               <button
                 onClick={() => setConfirmModalOpen(true)}
-                className="py-1.5 px-4 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white text-xs font-black rounded-xl shadow-xs transition flex items-center gap-1.5 cursor-pointer"
+                className="py-1 sm:py-1.5 px-3 sm:px-4 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white text-[11px] sm:text-xs font-black rounded-xl shadow-xs transition flex items-center gap-1 cursor-pointer"
               >
-                <span>Selesai & Nilai</span>
+                <span>Selesai</span>
               </button>
             )}
           </div>
@@ -802,20 +825,51 @@ export const CbtExamEngine: React.FC<CbtExamEngineProps> = ({
           </div>
 
           {/* Bottom Action Bar */}
-          <div className="flex items-center justify-between pt-2">
-            <button
-              onClick={handlePrevQuestion}
-              disabled={isFirstOfActiveSection}
-              className="py-2.5 px-5 bg-white hover:bg-stone-100 disabled:opacity-40 text-stone-700 text-xs font-bold rounded-xl border border-stone-200 transition flex items-center gap-1.5 cursor-pointer disabled:cursor-not-allowed shadow-2xs"
-            >
-              <ChevronLeft className="w-4 h-4" />
-              Sebelumnya
-            </button>
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 pt-3 border-t border-stone-200/80">
+            {/* Primary Navigation Buttons */}
+            <div className="flex items-center gap-2 order-2 sm:order-1 justify-between sm:justify-start w-full sm:w-auto">
+              <button
+                onClick={handlePrevQuestion}
+                disabled={isFirstOfActiveSection}
+                className="flex-1 sm:flex-initial py-2.5 px-4 sm:px-5 bg-white hover:bg-stone-100 disabled:opacity-40 text-stone-700 text-xs font-bold rounded-xl border border-stone-200 transition flex items-center justify-center gap-1.5 cursor-pointer disabled:cursor-not-allowed shadow-2xs"
+              >
+                <ChevronLeft className="w-4 h-4" />
+                <span>Sebelumnya</span>
+              </button>
 
-            <div className="flex items-center gap-2">
+              {isLastOfActiveSection ? (
+                activeSectionIndex < sections.length - 1 ? (
+                  <button
+                    onClick={() => setSectionTransitionModalOpen(true)}
+                    className="flex-1 sm:flex-initial py-2.5 px-4 sm:px-5 bg-gradient-to-r from-amber-500 via-orange-500 to-rose-600 hover:from-amber-600 hover:to-rose-700 text-white text-xs font-black rounded-xl shadow-xs transition flex items-center justify-center gap-1.5 cursor-pointer"
+                  >
+                    <span>Selesai Seksi {activeSection.key} ➔</span>
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => setConfirmModalOpen(true)}
+                    className="flex-1 sm:flex-initial py-2.5 px-4 sm:px-5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white text-xs font-black rounded-xl shadow-xs transition flex items-center justify-center gap-1.5 cursor-pointer"
+                  >
+                    <span>Selesai & Nilai</span>
+                    <Send className="w-3.5 h-3.5" />
+                  </button>
+                )
+              ) : (
+                <button
+                  onClick={handleNextQuestion}
+                  className="flex-1 sm:flex-initial py-2.5 px-4 sm:px-5 bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white text-xs font-black rounded-xl shadow-xs transition flex items-center justify-center gap-1.5 cursor-pointer"
+                >
+                  <span>Berikutnya</span>
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              )}
+            </div>
+
+            {/* Secondary Option Actions (Tandai Ragu & Hapus) */}
+            <div className="flex items-center gap-2 order-1 sm:order-2 justify-end w-full sm:w-auto">
               <button
                 onClick={handleToggleFlag}
-                className={`py-2 px-3 rounded-xl border text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer ${
+                className={`flex-1 sm:flex-initial py-2 px-3 rounded-xl border text-xs font-semibold flex items-center justify-center gap-1.5 transition cursor-pointer ${
                   currentAnswer.isFlagged
                     ? 'bg-amber-50 border-amber-300 text-amber-800 font-bold'
                     : 'bg-white border-stone-200 text-stone-600 hover:bg-stone-100'
@@ -832,33 +886,6 @@ export const CbtExamEngine: React.FC<CbtExamEngineProps> = ({
                 Hapus Jawaban
               </button>
             </div>
-
-            {isLastOfActiveSection ? (
-              activeSectionIndex < sections.length - 1 ? (
-                <button
-                  onClick={() => setSectionTransitionModalOpen(true)}
-                  className="py-2.5 px-5 bg-gradient-to-r from-amber-500 via-orange-500 to-rose-600 hover:from-amber-600 hover:to-rose-700 text-white text-xs font-black rounded-xl shadow-xs transition flex items-center gap-1.5 cursor-pointer"
-                >
-                  <span>Selesai Seksi {activeSection.key} ➔</span>
-                </button>
-              ) : (
-                <button
-                  onClick={() => setConfirmModalOpen(true)}
-                  className="py-2.5 px-5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white text-xs font-black rounded-xl shadow-xs transition flex items-center gap-1.5 cursor-pointer"
-                >
-                  <span>Selesai & Nilai</span>
-                  <Send className="w-3.5 h-3.5" />
-                </button>
-              )
-            ) : (
-              <button
-                onClick={handleNextQuestion}
-                className="py-2.5 px-5 bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white text-xs font-black rounded-xl shadow-xs transition flex items-center gap-1.5 cursor-pointer"
-              >
-                <span>Berikutnya</span>
-                <ChevronRight className="w-4 h-4" />
-              </button>
-            )}
           </div>
         </main>
       </div>

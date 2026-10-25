@@ -1055,36 +1055,36 @@ export default function HomePage() {
         {view === 'dashboard' && (
           <div className="max-w-7xl mx-auto space-y-6 pb-12 animate-in fade-in duration-150">
             {/* Top Greeting Banner (Vibrant KondangSensei Edition) */}
-            <div className="bg-white border border-stone-200/90 rounded-2xl sm:rounded-3xl p-5 sm:p-7 shadow-xs flex flex-wrap items-center justify-between gap-4">
+            <div className="bg-white border border-stone-200/90 rounded-2xl sm:rounded-3xl p-4 sm:p-7 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div className="space-y-1.5 max-w-2xl">
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
                   <div className="flex items-center gap-1">
                     <span className="w-2.5 h-2.5 rounded-full bg-rose-500"></span>
                     <span className="w-2.5 h-2.5 rounded-full bg-amber-400"></span>
                     <span className="w-2.5 h-2.5 rounded-full bg-sky-500"></span>
                     <span className="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
                   </div>
-                  <span className="text-xs font-black text-stone-800 uppercase tracking-wider">
+                  <span className="text-[11px] sm:text-xs font-black text-stone-800 uppercase tracking-wider">
                     JFT-Basic A2 Simulator
                   </span>
                   <span className="text-xs text-stone-400">•</span>
-                  <span className="text-xs font-japanese font-bold text-transparent bg-clip-text bg-gradient-to-r from-rose-600 via-amber-600 to-sky-600">
+                  <span className="text-[11px] sm:text-xs font-japanese font-bold text-transparent bg-clip-text bg-gradient-to-r from-rose-600 via-amber-600 to-sky-600">
                     KondangSensei Edition
                   </span>
                 </div>
-                <h1 className="text-2xl sm:text-3xl font-black text-stone-900 tracking-tight flex items-baseline gap-2">
+                <h1 className="text-xl sm:text-3xl font-black text-stone-900 tracking-tight flex items-baseline gap-1.5 sm:gap-2">
                   <span>Halo, {currentUser.name}</span>
-                  <span className="text-xl sm:text-2xl font-japanese text-rose-600 font-bold">さん</span>
+                  <span className="text-lg sm:text-2xl font-japanese text-rose-600 font-bold">さん</span>
                 </h1>
                 <p className="text-xs sm:text-sm text-stone-500 font-medium">
                   Siap menaklukkan JFT/SSW hari ini? Ayo mulai latihan! • 今日も合格を目指して頑張りましょう！
                 </p>
               </div>
 
-              <div className="flex items-center gap-2.5">
+              <div className="flex items-center gap-2.5 w-full sm:w-auto">
                 <button
                   onClick={() => handleStartExam()}
-                  className="py-3 px-5 sm:px-6 bg-gradient-to-r from-amber-500 via-rose-500 to-indigo-600 hover:from-amber-600 hover:to-indigo-700 text-white font-black text-xs sm:text-sm rounded-xl sm:rounded-2xl shadow-md shadow-rose-500/20 transition flex items-center gap-2 transform hover:-translate-y-0.5 cursor-pointer"
+                  className="w-full sm:w-auto justify-center py-3 px-5 sm:px-6 bg-gradient-to-r from-amber-500 via-rose-500 to-indigo-600 hover:from-amber-600 hover:to-indigo-700 text-white font-black text-xs sm:text-sm rounded-xl sm:rounded-2xl shadow-md shadow-rose-500/20 transition flex items-center gap-2 transform hover:-translate-y-0.5 cursor-pointer"
                 >
                   <Play className="w-4 h-4 fill-white" />
                   <span>Mulai Simulasi Sekarang</span>
@@ -1095,7 +1095,7 @@ export default function HomePage() {
             {/* Row 1: Masa Berlaku Card & Referral/Registrasi Card */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
               {/* Card 1: Masa Berlaku Langganan (Warm Amber / Mikan Theme) */}
-              <div className="bg-gradient-to-br from-amber-50/70 via-white to-orange-50/30 border border-amber-200/90 rounded-2xl sm:rounded-3xl p-5 sm:p-6 shadow-xs flex flex-col justify-between gap-4">
+              <div className="bg-gradient-to-br from-amber-50/70 via-white to-orange-50/30 border border-amber-200/90 rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-xs flex flex-col justify-between gap-4">
                 <div className="flex items-start justify-between">
                   <div className="space-y-1">
                     <span className="text-[11px] font-black uppercase text-amber-800 tracking-wider">
@@ -1120,23 +1120,23 @@ export default function HomePage() {
                   </span>
                 </div>
 
-                <div className="flex items-baseline gap-2">
-                  <span className="text-4xl sm:text-5xl font-black text-amber-600 tracking-tight">
+                <div className="flex items-baseline gap-2 flex-wrap">
+                  <span className="text-3xl sm:text-5xl font-black text-amber-600 tracking-tight">
                     {getRemainingDays(currentUser)}
                   </span>
-                  <span className="text-xl sm:text-2xl font-black text-stone-800">
+                  <span className="text-lg sm:text-2xl font-black text-stone-800">
                     Hari
                   </span>
-                  <span className="text-xs text-stone-500 font-medium ml-1">
+                  <span className="text-xs text-stone-500 font-medium">
                     ({getRemainingSubscriptionText(currentUser)} tersisa)
                   </span>
                 </div>
 
-                <div className="pt-2 border-t border-amber-100 flex items-center justify-between">
-                  <span className="text-xs text-stone-500">Akses seluruh paket 1 - 4 tanpa batas</span>
+                <div className="pt-2 border-t border-amber-100 flex flex-col xs:flex-row items-start xs:items-center justify-between gap-2.5">
+                  <span className="text-xs text-stone-500">Akses seluruh paket tanpa batas</span>
                   <button
                     onClick={() => setPaymentModalOpen(true)}
-                    className="py-2 px-4 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white font-extrabold text-xs rounded-xl shadow-xs transition flex items-center gap-1.5 cursor-pointer"
+                    className="w-full xs:w-auto justify-center py-2 px-4 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white font-extrabold text-xs rounded-xl shadow-xs transition flex items-center gap-1.5 cursor-pointer"
                   >
                     <Zap className="w-3.5 h-3.5 text-amber-200 fill-amber-200" />
                     Perpanjang Paket
@@ -1145,13 +1145,13 @@ export default function HomePage() {
               </div>
 
               {/* Card 2: Kode Registrasi Resmi JFT & Akun (Ocean Sky / Sora Theme) */}
-              <div className="bg-gradient-to-br from-sky-50/70 via-white to-indigo-50/30 border border-sky-200/90 rounded-2xl sm:rounded-3xl p-5 sm:p-6 shadow-xs flex flex-col justify-between gap-4">
+              <div className="bg-gradient-to-br from-sky-50/70 via-white to-indigo-50/30 border border-sky-200/90 rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-xs flex flex-col justify-between gap-4">
                 <div className="flex items-start justify-between">
                   <div className="space-y-1">
                     <span className="text-[11px] font-black uppercase text-sky-800 tracking-wider">
                       Nomor Registrasi Ujian Saya
                     </span>
-                    <p className="text-xs text-stone-500">Digunakan pada Sertifikat & Rapor Kelulusan Resmi JFT</p>
+                    <p className="text-xs text-stone-500">Tercetak pada Sertifikat & Rapor JFT</p>
                   </div>
 
                   <span className="px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-bold flex items-center gap-1">
@@ -1160,8 +1160,8 @@ export default function HomePage() {
                   </span>
                 </div>
 
-                <div className="flex items-center gap-3">
-                  <div className="px-4 py-2.5 rounded-xl bg-white border border-sky-200 font-mono text-base sm:text-lg font-black text-indigo-950 tracking-wide shadow-2xs">
+                <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+                  <div className="px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl bg-white border border-sky-200 font-mono text-sm sm:text-lg font-black text-indigo-950 tracking-wide shadow-2xs">
                     {currentUser.registrationNumber || 'JFT-2026-88912'}
                   </div>
 
@@ -1173,7 +1173,7 @@ export default function HomePage() {
                         setTimeout(() => setCopiedRegNo(false), 2000);
                       }
                     }}
-                    className="p-2.5 rounded-xl border border-sky-200 hover:border-sky-400 hover:bg-sky-50 text-sky-700 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
+                    className="p-2 sm:p-2.5 rounded-xl border border-sky-200 hover:border-sky-400 hover:bg-sky-50 text-sky-700 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
                   >
                     {copiedRegNo ? (
                       <>
@@ -1189,13 +1189,13 @@ export default function HomePage() {
                   </button>
                 </div>
 
-                <div className="pt-2 border-t border-sky-100 flex items-center justify-between">
-                  <span className="text-xs text-stone-500 font-medium">
+                <div className="pt-2 border-t border-sky-100 flex flex-col xs:flex-row items-start xs:items-center justify-between gap-2">
+                  <span className="text-xs text-stone-500 font-medium truncate max-w-full">
                     Nama: <strong className="text-stone-800">{currentUser.name}</strong> • {currentUser.nationality}
                   </span>
                   <button
                     onClick={() => setProfileModalOpen(true)}
-                    className="py-1.5 px-3 bg-sky-50 hover:bg-sky-100 text-sky-800 font-bold text-xs rounded-xl transition flex items-center gap-1 cursor-pointer"
+                    className="w-full xs:w-auto justify-center py-1.5 px-3 bg-sky-50 hover:bg-sky-100 text-sky-800 font-bold text-xs rounded-xl transition flex items-center gap-1 cursor-pointer"
                   >
                     <UserCheck className="w-3.5 h-3.5 text-sky-600" />
                     Edit Profil
@@ -1359,7 +1359,7 @@ export default function HomePage() {
                 </div>
 
                 {/* Recommendation Box */}
-                <div className="p-3.5 rounded-2xl bg-gradient-to-r from-amber-50/60 via-stone-50 to-sky-50/60 border border-stone-200 flex items-center justify-between text-xs text-stone-700 gap-3">
+                <div className="p-3.5 rounded-2xl bg-gradient-to-r from-amber-50/60 via-stone-50 to-sky-50/60 border border-stone-200 flex flex-col sm:flex-row items-start sm:items-center justify-between text-xs text-stone-700 gap-3">
                   <span>
                     {examResults.length === 0 ? (
                       <>
@@ -1385,7 +1385,7 @@ export default function HomePage() {
                   </span>
                   <button
                     onClick={() => handleStartExam()}
-                    className="text-indigo-600 hover:text-indigo-800 font-black whitespace-nowrap flex items-center gap-1 cursor-pointer shrink-0"
+                    className="text-indigo-600 hover:text-indigo-800 font-black whitespace-nowrap flex items-center gap-1 cursor-pointer shrink-0 self-end sm:self-auto"
                   >
                     Drill Soal <ArrowRight className="w-3.5 h-3.5" />
                   </button>
@@ -1531,13 +1531,13 @@ export default function HomePage() {
                         <p className="text-xs text-stone-500 leading-relaxed">{set.description}</p>
                       </div>
 
-                      <div className="pt-3 flex items-center justify-between border-t border-stone-200/60">
+                      <div className="pt-3 flex flex-col xs:flex-row items-start xs:items-center justify-between gap-2.5 border-t border-stone-200/60">
                         <span className="text-[11px] font-medium text-stone-400">
                           S1 (12) • S2 (12) • S3 (13) • S4 (13)
                         </span>
                         <button
                           onClick={() => handleStartExam(set.id)}
-                          className={`py-2.5 px-4 text-white font-extrabold text-xs rounded-xl shadow-xs transition flex items-center gap-1.5 cursor-pointer ${theme.btn}`}
+                          className={`w-full xs:w-auto justify-center py-2.5 px-4 text-white font-extrabold text-xs rounded-xl shadow-xs transition flex items-center gap-1.5 cursor-pointer ${theme.btn}`}
                         >
                           <Play className="w-3.5 h-3.5 fill-white" />
                           Kerjakan Paket #{set.id}
@@ -1568,77 +1568,82 @@ export default function HomePage() {
                   Belum ada simulasi yang dikerjakan. Klik tombol &quot;Mulai Simulasi Sekarang&quot; di atas untuk memulai latihan pertama Anda!
                 </div>
               ) : (
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left text-xs text-stone-700">
-                    <thead className="bg-stone-50 border-b border-stone-200 text-stone-500 uppercase text-[10px] font-black">
-                      <tr>
-                        <th className="py-3 px-3">#</th>
-                        <th className="py-3 px-3">Paket Tes</th>
-                        <th className="py-3 px-3">Skor Hasil</th>
-                        <th className="py-3 px-3">Persen</th>
-                        <th className="py-3 px-3">Status</th>
-                        <th className="py-3 px-3">Tanggal Mulai</th>
-                        <th className="py-3 px-3 text-right">Aksi</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-stone-100">
-                      {examResults.map((res: ExamResult, idx: number) => {
-                        const totalScore = res.totalScore;
-                        const percentage = Math.round((totalScore / 250) * 100);
-                        return (
-                          <tr key={res.id} className="hover:bg-indigo-50/30 transition">
-                            <td className="py-3 px-3 font-mono font-bold text-stone-400">{idx + 1}</td>
-                            <td className="py-3 px-3 font-bold text-stone-900">
-                              Paket #{res.packageId || 1}
-                            </td>
-                            <td className="py-3 px-3 font-black text-stone-900">
-                              {totalScore} <span className="text-stone-400 font-normal">/ 250</span>
-                            </td>
-                            <td className="py-3 px-3 font-mono font-bold text-stone-800">
-                              {percentage}%
-                            </td>
-                            <td className="py-3 px-3">
-                              <span
-                                className={`px-2 py-0.5 rounded-full text-[10px] font-black uppercase ${
-                                  res.isPassed
-                                    ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                                    : 'bg-rose-50 text-red-700 border border-rose-200'
-                                }`}
-                              >
-                                {res.isPassed ? 'LULUS (A2.2)' : 'BELUM LULUS'}
-                              </span>
-                            </td>
-                            <td className="py-3 px-3 text-stone-500 font-medium">
-                              {res.testDate}
-                            </td>
-                            <td className="py-3 px-3 text-right">
-                              <div className="flex items-center justify-end gap-1.5">
-                                <button
-                                  onClick={() => {
-                                    setCurrentResult(res);
-                                    setView('report');
-                                  }}
-                                  className="py-1.5 px-2.5 bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold rounded-lg transition"
+                <div className="space-y-1.5">
+                  <div className="overflow-x-auto rounded-xl border border-stone-100">
+                    <table className="min-w-[620px] w-full text-left text-xs text-stone-700">
+                      <thead className="bg-stone-50 border-b border-stone-200 text-stone-500 uppercase text-[10px] font-black">
+                        <tr>
+                          <th className="py-3 px-3">#</th>
+                          <th className="py-3 px-3">Paket Tes</th>
+                          <th className="py-3 px-3">Skor Hasil</th>
+                          <th className="py-3 px-3">Persen</th>
+                          <th className="py-3 px-3">Status</th>
+                          <th className="py-3 px-3">Tanggal Mulai</th>
+                          <th className="py-3 px-3 text-right">Aksi</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-stone-100">
+                        {examResults.map((res: ExamResult, idx: number) => {
+                          const totalScore = res.totalScore;
+                          const percentage = Math.round((totalScore / 250) * 100);
+                          return (
+                            <tr key={res.id} className="hover:bg-indigo-50/30 transition">
+                              <td className="py-3 px-3 font-mono font-bold text-stone-400">{idx + 1}</td>
+                              <td className="py-3 px-3 font-bold text-stone-900">
+                                Paket #{res.packageId || 1}
+                              </td>
+                              <td className="py-3 px-3 font-black text-stone-900">
+                                {totalScore} <span className="text-stone-400 font-normal">/ 250</span>
+                              </td>
+                              <td className="py-3 px-3 font-mono font-bold text-stone-800">
+                                {percentage}%
+                              </td>
+                              <td className="py-3 px-3">
+                                <span
+                                  className={`px-2 py-0.5 rounded-full text-[10px] font-black uppercase ${
+                                    res.isPassed
+                                      ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                                      : 'bg-rose-50 text-red-700 border border-rose-200'
+                                  }`}
                                 >
-                                  Rapor
-                                </button>
-                                <button
-                                  onClick={() => {
-                                    setCurrentResult(res);
-                                    setView('review');
-                                  }}
-                                  className="py-1.5 px-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-lg shadow-2xs transition flex items-center gap-1 cursor-pointer"
-                                >
-                                  <BookOpen className="w-3 h-3" />
-                                  <span>Pembahasan</span>
-                                </button>
-                              </div>
-                            </td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
+                                  {res.isPassed ? 'LULUS (A2.2)' : 'BELUM LULUS'}
+                                </span>
+                              </td>
+                              <td className="py-3 px-3 text-stone-500 font-medium">
+                                {res.testDate}
+                              </td>
+                              <td className="py-3 px-3 text-right">
+                                <div className="flex items-center justify-end gap-1.5">
+                                  <button
+                                    onClick={() => {
+                                      setCurrentResult(res);
+                                      setView('report');
+                                    }}
+                                    className="py-1.5 px-2.5 bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold rounded-lg transition"
+                                  >
+                                    Rapor
+                                  </button>
+                                  <button
+                                    onClick={() => {
+                                      setCurrentResult(res);
+                                      setView('review');
+                                    }}
+                                    className="py-1.5 px-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-lg shadow-2xs transition flex items-center gap-1 cursor-pointer"
+                                  >
+                                    <BookOpen className="w-3 h-3" />
+                                    <span>Pembahasan</span>
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                  <div className="text-[10px] text-stone-400 text-center py-1 sm:hidden">
+                    ← Geser tabel ke samping untuk melihat detail riwayat →
+                  </div>
                 </div>
               )}
             </div>
@@ -1739,7 +1744,7 @@ export default function HomePage() {
             </div>
 
             {/* Examinee Identity Card */}
-            <div className="p-3.5 sm:p-4 rounded-2xl bg-stone-50 border border-stone-200 flex items-center gap-4">
+            <div className="p-3.5 sm:p-4 rounded-2xl bg-stone-50 border border-stone-200 flex flex-col xs:flex-row items-center xs:items-start text-center xs:text-left gap-3.5 sm:gap-4">
               <img
                 src={
                   currentUser.facePhotoUrl && !currentUser.facePhotoUrl.includes('unsplash.com')
@@ -1749,8 +1754,8 @@ export default function HomePage() {
                 alt={currentUser.name}
                 className="w-16 h-20 sm:w-20 sm:h-24 object-cover rounded-xl border border-stone-300 bg-white shrink-0"
               />
-              <div className="space-y-1 text-xs text-stone-800 flex-1 min-w-0">
-                <div className="flex items-center justify-between">
+              <div className="space-y-1 text-xs text-stone-800 flex-1 min-w-0 w-full">
+                <div className="flex items-center justify-between flex-wrap gap-1">
                   <span className="text-[10px] font-bold text-stone-400 uppercase">
                     受験番号 (Reg No)
                   </span>
@@ -1764,7 +1769,7 @@ export default function HomePage() {
                 <div className="text-[11px] text-stone-500">
                   {currentUser.nationality} • {currentUser.sex === 'FEMALE' ? 'Female' : 'Male'}
                 </div>
-                <div className="pt-1 flex items-center gap-2 text-[11px] font-semibold text-emerald-800">
+                <div className="pt-1 flex items-center justify-center xs:justify-start gap-2 text-[11px] font-semibold text-emerald-800 flex-wrap">
                   <span className="px-2 py-0.5 rounded-md bg-emerald-100 border border-emerald-300">
                     Paket #{pendingExamPackageId}:{' '}
                     {examSets.find((s) => s.id === pendingExamPackageId)?.name || 'Simulasi JFT'}
@@ -1780,7 +1785,7 @@ export default function HomePage() {
               <span className="text-[11px] font-black uppercase text-stone-600 tracking-wider">
                 Struktur 4 Seksi Ujian (Urutan Wajib)
               </span>
-              <div className="grid grid-cols-2 gap-2 text-[11px]">
+              <div className="grid grid-cols-1 xs:grid-cols-2 gap-2 text-[11px]">
                 <div className="p-2 rounded-xl bg-rose-50/80 border border-rose-200 flex items-center justify-between">
                   <span className="font-japanese font-bold text-rose-900">S1: 文字と語彙</span>
                   <span className="text-rose-700 font-mono text-[10px]">12 Soal</span>
@@ -1836,11 +1841,11 @@ export default function HomePage() {
             </label>
 
             {/* Actions */}
-            <div className="flex items-center gap-2.5 pt-1">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 pt-1">
               <button
                 type="button"
                 onClick={() => setPreExamModalOpen(false)}
-                className="flex-1 py-3 px-4 bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold text-xs rounded-xl transition cursor-pointer text-center"
+                className="py-3 px-4 bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold text-xs rounded-xl transition cursor-pointer text-center order-2 sm:order-1"
               >
                 Batal / Kembali
               </button>
@@ -1848,7 +1853,7 @@ export default function HomePage() {
                 type="button"
                 disabled={!preExamAgreement}
                 onClick={handleConfirmStartExam}
-                className="flex-1 py-3 px-4 bg-gradient-to-r from-indigo-600 via-rose-600 to-amber-500 hover:from-indigo-700 hover:to-amber-600 disabled:opacity-50 disabled:cursor-not-allowed text-white font-black text-xs rounded-xl shadow-md transition flex items-center justify-center gap-2 cursor-pointer"
+                className="flex-1 py-3 px-4 bg-gradient-to-r from-indigo-600 via-rose-600 to-amber-500 hover:from-indigo-700 hover:to-amber-600 disabled:opacity-50 disabled:cursor-not-allowed text-white font-black text-xs rounded-xl shadow-md transition flex items-center justify-center gap-2 cursor-pointer order-1 sm:order-2"
               >
                 <Play className="w-3.5 h-3.5 fill-white" />
                 <span>Mulai Ujian Sekarang (試験を開始する)</span>

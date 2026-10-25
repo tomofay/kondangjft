@@ -67,18 +67,19 @@ export const QuestionReview: React.FC<QuestionReviewProps> = ({
   return (
     <div className="max-w-4xl mx-auto space-y-6 pb-12 animate-in fade-in duration-150">
       {/* Top Header Bar */}
-      <div className="flex items-center justify-between bg-white p-5 rounded-3xl shadow-sm border border-stone-200">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-white p-4 sm:p-5 rounded-3xl shadow-sm border border-stone-200">
         <div className="flex items-center gap-3">
           <button
             onClick={onBackToReport}
-            className="p-2.5 bg-stone-100 hover:bg-stone-200 text-stone-700 rounded-xl transition cursor-pointer"
+            className="p-2.5 bg-stone-100 hover:bg-stone-200 text-stone-700 rounded-xl transition cursor-pointer shrink-0"
+            title="Kembali ke Rapor Ujian"
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
           <div>
-            <h1 className="text-xl font-black text-stone-900 flex items-center gap-2">
-              <BookOpen className="w-5 h-5 text-red-600" />
-              Evaluasi & Pembahasan Soal JFT-Basic
+            <h1 className="text-base sm:text-xl font-black text-stone-900 flex items-center gap-2">
+              <BookOpen className="w-4 h-4 sm:w-5 sm:h-5 text-red-600 shrink-0" />
+              <span>Evaluasi & Pembahasan Soal JFT</span>
             </h1>
             <p className="text-xs text-stone-500 font-medium">
               Total {questions.length} Butir Soal •{' '}
@@ -90,7 +91,7 @@ export const QuestionReview: React.FC<QuestionReviewProps> = ({
 
         <button
           onClick={onBackToReport}
-          className="py-2.5 px-4 bg-stone-100 hover:bg-stone-200 text-stone-800 text-xs font-black rounded-xl transition cursor-pointer"
+          className="w-full sm:w-auto text-center py-2.5 px-4 bg-stone-100 hover:bg-stone-200 text-stone-800 text-xs font-black rounded-xl transition cursor-pointer"
         >
           Kembali ke Rapor
         </button>

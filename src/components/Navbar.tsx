@@ -42,10 +42,10 @@ export const Navbar: React.FC<NavbarProps> = ({
 
   return (
     <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-stone-200/90 text-stone-900 shadow-xs">
-      <div className="max-w-7xl mx-auto px-3 sm:px-6 py-2.5 sm:py-3 flex items-center justify-between gap-3">
+      <div className="max-w-7xl mx-auto px-2.5 sm:px-6 py-2 sm:py-3 flex items-center justify-between gap-2 sm:gap-3">
         {/* Brand with Colorful KondangSensei Styling */}
         <div
-          className={`flex items-center gap-2.5 select-none group shrink-0 ${
+          className={`flex items-center gap-2 sm:gap-2.5 select-none group shrink-0 ${
             activeView === 'exam' ? 'cursor-default' : 'cursor-pointer'
           }`}
           onClick={() => {
@@ -55,13 +55,13 @@ export const Navbar: React.FC<NavbarProps> = ({
             }
           }}
         >
-          <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-tr from-amber-400 via-rose-500 to-sky-500 flex items-center justify-center text-white shadow-md shadow-rose-500/25 group-hover:scale-105 transition-transform duration-200 shrink-0">
-            <GraduationCap className="w-5 h-5 sm:w-5 sm:h-5" />
+          <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-tr from-amber-400 via-rose-500 to-sky-500 flex items-center justify-center text-white shadow-md shadow-rose-500/25 group-hover:scale-105 transition-transform duration-200 shrink-0">
+            <GraduationCap className="w-4 h-4 sm:w-5 sm:h-5" />
           </div>
           <div>
-            <div className="flex items-center gap-1.5 font-black text-base sm:text-lg tracking-tight text-stone-900 leading-none">
+            <div className="flex items-center gap-1 sm:gap-1.5 font-black text-sm sm:text-lg tracking-tight text-stone-900 leading-none">
               <span>Kondang<span className="text-transparent bg-clip-text bg-gradient-to-r from-rose-600 via-amber-600 to-sky-600">Sensei</span></span>
-              <span className="text-[9px] sm:text-[10px] font-black px-1.5 sm:px-2 py-0.5 rounded-full bg-gradient-to-r from-rose-50 via-amber-50 to-sky-50 text-stone-800 border border-stone-200 uppercase tracking-wider">
+              <span className="hidden xs:inline-block text-[9px] sm:text-[10px] font-black px-1.5 sm:px-2 py-0.5 rounded-full bg-gradient-to-r from-rose-50 via-amber-50 to-sky-50 text-stone-800 border border-stone-200 uppercase tracking-wider">
                 KondangSensei CBT
               </span>
             </div>
@@ -89,7 +89,7 @@ export const Navbar: React.FC<NavbarProps> = ({
         )}
 
         {/* Right side: Session status & Profile & Mobile Toggle */}
-        <div className="flex items-center gap-1.5 sm:gap-2.5 text-xs shrink-0">
+        <div className="flex items-center gap-1 sm:gap-2 text-xs shrink-0">
           {/* Single Session Lock Status Badge (Desktop Large) */}
           <div className="hidden xl:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 border border-emerald-200/80 text-emerald-700 text-[11px] font-bold">
             <Lock className="w-3.5 h-3.5 text-emerald-600" />
@@ -100,15 +100,16 @@ export const Navbar: React.FC<NavbarProps> = ({
           {onOpenPendingPayments && (
             <button
               onClick={onOpenPendingPayments}
-              className={`px-3 py-1.5 rounded-full border flex items-center gap-1.5 transition text-xs font-bold shadow-xs cursor-pointer ${
+              className={`px-2 sm:px-3 py-1.5 rounded-full border flex items-center gap-1 sm:gap-1.5 transition text-[11px] sm:text-xs font-bold shadow-xs cursor-pointer ${
                 pendingCount > 0
                   ? 'bg-amber-500/15 border-amber-500/50 text-amber-900 hover:bg-amber-500/25 animate-pulse'
                   : 'bg-stone-100/90 border-stone-300 text-stone-700 hover:text-stone-900 hover:bg-stone-200/80'
               }`}
               title="Cek daftar tagihan pending & nomor pembayaran"
             >
-              <Clock className="w-3.5 h-3.5 text-amber-600" />
-              <span>Tagihan <strong className="text-amber-700 font-black">({pendingCount})</strong></span>
+              <Clock className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+              <span className="hidden xs:inline">Tagihan</span>
+              <strong className="text-amber-700 font-black">({pendingCount})</strong>
             </button>
           )}
 
@@ -116,7 +117,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           {user.role === 'user' && (
             <button
               onClick={onOpenBuyCredits}
-              className="px-3 py-1.5 bg-gradient-to-r from-amber-500 via-orange-500 to-rose-600 hover:from-amber-600 hover:to-rose-700 text-white font-bold rounded-xl shadow-xs shadow-orange-500/20 flex items-center gap-1 sm:gap-1.5 transition text-[11px] sm:text-xs cursor-pointer"
+              className="px-2.5 sm:px-3 py-1.5 bg-gradient-to-r from-amber-500 via-orange-500 to-rose-600 hover:from-amber-600 hover:to-rose-700 text-white font-bold rounded-xl shadow-xs shadow-orange-500/20 flex items-center gap-1 sm:gap-1.5 transition text-[11px] sm:text-xs cursor-pointer"
             >
               <Zap className="w-3.5 h-3.5 text-amber-200 fill-amber-200 shrink-0" />
               <span className="hidden sm:inline">
@@ -136,7 +137,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           {onOpenProfile && (
             <button
               onClick={onOpenProfile}
-              className="flex items-center gap-2 px-2 py-1 sm:px-2.5 sm:py-1.5 bg-stone-50 hover:bg-stone-100 text-stone-700 hover:text-stone-900 rounded-xl border border-stone-200 transition shadow-2xs group"
+              className="flex items-center gap-1.5 sm:gap-2 px-1.5 py-1 sm:px-2.5 sm:py-1.5 bg-stone-50 hover:bg-stone-100 text-stone-700 hover:text-stone-900 rounded-xl border border-stone-200 transition shadow-2xs group cursor-pointer"
               title="Edit Profil Peserta & Data Sertifikat"
             >
               <div className="w-7 h-7 sm:w-7 sm:h-7 rounded-lg overflow-hidden border border-stone-300 bg-stone-200 shrink-0">
@@ -175,7 +176,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           <button
             type="button"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="p-1.5 text-stone-600 hover:text-stone-900 bg-stone-100 hover:bg-stone-200 rounded-xl border border-stone-200 transition md:hidden"
+            className="p-1.5 text-stone-600 hover:text-stone-900 bg-stone-100 hover:bg-stone-200 rounded-xl border border-stone-200 transition md:hidden cursor-pointer"
             aria-label="Toggle Navigation Menu"
           >
             {mobileMenuOpen ? <X className="w-5 h-5 text-red-600" /> : <Menu className="w-5 h-5" />}
@@ -194,16 +195,29 @@ export const Navbar: React.FC<NavbarProps> = ({
           </div>
 
           <div className="grid grid-cols-1 gap-2 text-xs font-semibold">
+            {onOpenProfile && (
+              <button
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  onOpenProfile();
+                }}
+                className="p-2.5 rounded-xl transition flex items-center justify-center gap-2 border bg-stone-50 border-stone-200 text-stone-700 hover:bg-stone-100 cursor-pointer"
+              >
+                <GraduationCap className="w-4 h-4 text-indigo-600" />
+                Edit Profil & Sertifikat
+              </button>
+            )}
+
             {onOpenPendingPayments && (
               <button
                 onClick={() => {
                   setMobileMenuOpen(false);
                   onOpenPendingPayments();
                 }}
-                className={`p-2.5 rounded-xl transition flex items-center justify-center gap-2 border ${
+                className={`p-2.5 rounded-xl transition flex items-center justify-center gap-2 border cursor-pointer ${
                   pendingCount > 0
                     ? 'bg-amber-500/15 border-amber-500/40 text-amber-900 font-bold'
-                    : 'bg-stone-50 border-stone-200 text-stone-700'
+                    : 'bg-stone-50 border-stone-200 text-stone-700 hover:bg-stone-100'
                 }`}
               >
                 <Clock className="w-4 h-4 text-amber-600" />
@@ -217,10 +231,10 @@ export const Navbar: React.FC<NavbarProps> = ({
                   onChangeView(activeView === 'admin' ? 'dashboard' : 'admin');
                   setMobileMenuOpen(false);
                 }}
-                className={`p-2.5 rounded-xl transition flex items-center justify-center gap-2 ${
+                className={`p-2.5 rounded-xl transition flex items-center justify-center gap-2 cursor-pointer ${
                   activeView === 'admin'
                     ? 'bg-gradient-to-r from-violet-600 to-indigo-600 text-white font-bold'
-                    : 'text-stone-600 hover:text-stone-900 bg-stone-50'
+                    : 'text-stone-600 hover:text-stone-900 bg-stone-50 hover:bg-stone-100'
                 }`}
               >
                 <ShieldCheck className="w-4 h-4 text-amber-300" />
@@ -240,7 +254,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 setMobileMenuOpen(false);
                 onLogout();
               }}
-              className="px-3 py-1.5 bg-rose-50 hover:bg-rose-100 text-red-700 rounded-xl font-bold text-xs flex items-center gap-1.5 transition border border-rose-200"
+              className="px-3 py-1.5 bg-rose-50 hover:bg-rose-100 text-red-700 rounded-xl font-bold text-xs flex items-center gap-1.5 transition border border-rose-200 cursor-pointer"
             >
               <LogOut className="w-3.5 h-3.5" />
               Keluar Akun

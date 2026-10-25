@@ -239,7 +239,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
 
           <form onSubmit={handleSave} className="space-y-4 text-xs">
             {/* Photo Upload & Preview */}
-            <div className="p-4 bg-stone-50 rounded-2xl border border-stone-200 flex items-center gap-4">
+            <div className="p-3.5 sm:p-4 bg-stone-50 rounded-2xl border border-stone-200 flex flex-col xs:flex-row items-center xs:items-start text-center xs:text-left gap-3.5 sm:gap-4">
               <div className="relative group shrink-0">
                 <img
                   src={facePhotoUrl && !facePhotoUrl.includes('unsplash.com') ? facePhotoUrl : DEFAULT_ANONYMOUS_PHOTO}
@@ -253,8 +253,8 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
                 )}
               </div>
 
-              <div className="space-y-2 flex-1">
-                <div className="flex items-center justify-between">
+              <div className="space-y-2 flex-1 w-full">
+                <div className="flex items-center justify-between flex-wrap gap-1">
                   <label className="font-bold text-stone-700 flex items-center gap-1.5">
                     <Camera className="w-3.5 h-3.5 text-red-600" />
                     Pasfoto Formal (3x4):
@@ -276,7 +276,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
                   className="hidden"
                 />
 
-                <div className="flex flex-wrap items-center gap-2 pt-1">
+                <div className="flex flex-wrap items-center justify-center xs:justify-start gap-2 pt-1">
                   <button
                     type="button"
                     onClick={() => fileInputRef.current?.click()}

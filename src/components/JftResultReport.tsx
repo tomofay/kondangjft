@@ -256,10 +256,10 @@ export const JftResultReport: React.FC<JftResultReportProps> = ({
   return (
     <div className="max-w-4xl mx-auto space-y-6 pb-12 print:max-w-none print:m-0 print:p-0 print:space-y-0">
       {/* Top Action Bar (Hidden during Print) */}
-      <div className="no-print flex flex-wrap items-center justify-between gap-4 p-5 bg-white text-stone-900 rounded-3xl shadow-sm border border-stone-200">
+      <div className="no-print flex flex-col md:flex-row md:items-center justify-between gap-4 p-4 sm:p-5 bg-white text-stone-900 rounded-3xl shadow-sm border border-stone-200">
         <div className="flex items-center gap-3">
           <div
-            className={`w-11 h-11 rounded-2xl flex items-center justify-center font-bold text-xl shadow-xs ${
+            className={`w-11 h-11 rounded-2xl flex items-center justify-center font-bold text-xl shadow-xs shrink-0 ${
               normalizedResult.isPassed
                 ? 'bg-emerald-50 text-emerald-600 border border-emerald-200'
                 : 'bg-amber-50 text-amber-700 border border-amber-200'
@@ -268,7 +268,7 @@ export const JftResultReport: React.FC<JftResultReportProps> = ({
             <CheckCircle2 className="w-6 h-6" />
           </div>
           <div>
-            <h2 className="text-base sm:text-lg font-black text-stone-900">
+            <h2 className="text-sm sm:text-base md:text-lg font-black text-stone-900 leading-tight">
               {normalizedResult.isPassed
                 ? 'Selamat! Anda Memenuhi Kualifikasi A2 (A2到達)'
                 : 'Hasil Penilaian: Belum Mencapai Target A2 (A2未到達)'}
@@ -282,65 +282,69 @@ export const JftResultReport: React.FC<JftResultReportProps> = ({
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
           <button
             onClick={onOpenReview}
-            className="py-2.5 px-3.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl flex items-center gap-1.5 transition shadow-xs cursor-pointer"
+            className="flex-1 sm:flex-initial py-2.5 px-3.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 transition shadow-xs cursor-pointer"
           >
             <BookOpen className="w-4 h-4" />
-            Pembahasan
+            <span>Pembahasan</span>
           </button>
           
           {/* Main Direct PDF Export */}
           <button
             onClick={handleDownloadPdf}
             disabled={downloadingPdf}
-            className="py-2.5 px-4 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black rounded-xl flex items-center gap-2 transition shadow-xs disabled:opacity-50 cursor-pointer"
+            className="flex-1 sm:flex-initial py-2.5 px-4 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black rounded-xl flex items-center justify-center gap-2 transition shadow-xs disabled:opacity-50 cursor-pointer"
             title="Download Dokumen Rapor JFT dalam format PDF Resmi"
           >
             <FileText className="w-4 h-4" />
-            {downloadingPdf ? 'Menyimpan PDF...' : 'Unduh PDF'}
+            <span>{downloadingPdf ? 'Menyimpan...' : 'Unduh PDF'}</span>
           </button>
 
           {/* Native Print / Save as PDF */}
           <button
             onClick={handlePrint}
-            className="py-2.5 px-3.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl flex items-center gap-1.5 transition shadow-xs cursor-pointer"
+            className="flex-1 sm:flex-initial py-2.5 px-3.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 transition shadow-xs cursor-pointer"
             title="Cetak langsung atau simpan melalui dialog cetak browser (Ctrl + P)"
           >
             <Printer className="w-4 h-4" />
-            Cetak / Simpan PDF
+            <span className="hidden xs:inline">Cetak /</span><span>PDF</span>
           </button>
 
           {/* Secondary PNG Download */}
           <button
             onClick={handleDownloadPng}
             disabled={downloadingPng}
-            className="py-2.5 px-3 bg-stone-100 hover:bg-stone-200 text-stone-700 text-xs font-medium rounded-xl flex items-center gap-1.5 transition disabled:opacity-50 cursor-pointer"
+            className="py-2.5 px-3 bg-stone-100 hover:bg-stone-200 text-stone-700 text-xs font-medium rounded-xl flex items-center justify-center gap-1.5 transition disabled:opacity-50 cursor-pointer"
             title="Unduh sebagai file gambar PNG"
           >
             <ImageIcon className="w-4 h-4 text-stone-500" />
-            {downloadingPng ? '...' : 'PNG'}
+            <span>{downloadingPng ? '...' : 'PNG'}</span>
           </button>
 
           <button
             onClick={onRetake}
-            className="py-2.5 px-3.5 bg-stone-100 hover:bg-stone-200 text-stone-700 text-xs font-bold rounded-xl flex items-center gap-1.5 transition cursor-pointer"
+            className="py-2.5 px-3.5 bg-stone-100 hover:bg-stone-200 text-stone-700 text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 transition cursor-pointer"
           >
             <RefreshCw className="w-4 h-4" />
-            Ulang
+            <span>Ulang</span>
           </button>
         </div>
       </div>
 
       {/* Official JFT Notification of Assessment Results Document (Exact Replica of Image 2) */}
-      <div className="w-full overflow-x-auto pb-4 print:overflow-visible print:p-0">
-        <div
-          ref={certificateRef}
-          id="jft-certificate-container"
-          className="bg-white text-stone-900 p-8 sm:p-12 shadow-xl border border-stone-300 font-sans space-y-7 relative select-none mx-auto print:shadow-none print:border-none print:p-0 print:m-0 print:w-full"
-          style={{ width: '800px', minHeight: '1000px' }}
-        >
+      <div className="space-y-1.5">
+        <div className="no-print lg:hidden text-center text-[10px] text-stone-500 py-1.5 font-medium bg-stone-100/90 rounded-xl border border-stone-200">
+          ↔ Geser tabel ke samping untuk melihat lembar sertifikat lengkap
+        </div>
+        <div className="w-full overflow-x-auto pb-4 print:overflow-visible print:p-0 rounded-2xl">
+          <div
+            ref={certificateRef}
+            id="jft-certificate-container"
+            className="bg-white text-stone-900 p-8 sm:p-12 shadow-xl border border-stone-300 font-sans space-y-7 relative select-none mx-auto print:shadow-none print:border-none print:p-0 print:m-0 print:w-full"
+            style={{ width: '800px', minHeight: '1000px' }}
+          >
           {/* Header */}
           <div className="flex items-center justify-between border-b border-stone-200 pb-4">
             <div className="px-3.5 py-1.5 rounded-xl bg-indigo-50 border border-indigo-200 text-indigo-700 text-[11px] font-black uppercase tracking-wider">
@@ -657,6 +661,7 @@ export const JftResultReport: React.FC<JftResultReportProps> = ({
           </div>
         </div>
       </div>
+    </div>
     </div>
   );
 };

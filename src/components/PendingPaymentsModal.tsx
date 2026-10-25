@@ -291,7 +291,7 @@ export const PendingPaymentsModal: React.FC<PendingPaymentsModalProps> = ({
                   </div>
 
                   {/* Payment Code / VA Box (KondangSensei Fresh & Colorful Theme) */}
-                  <div className="p-4 bg-gradient-to-br from-amber-50/50 via-white to-sky-50/40 rounded-2xl border border-stone-200 flex flex-wrap items-center justify-between gap-4 shadow-xs">
+                  <div className="p-3.5 sm:p-4 bg-gradient-to-br from-amber-50/50 via-white to-sky-50/40 rounded-2xl border border-stone-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 shadow-xs">
                     <div className="space-y-1">
                       <div className="text-[11px] text-stone-600 font-bold uppercase tracking-wider flex items-center gap-2">
                         <QrisLogo className="h-4 w-auto" />
@@ -312,8 +312,8 @@ export const PendingPaymentsModal: React.FC<PendingPaymentsModalProps> = ({
                           </span>
                         </div>
                       ) : paymentCode ? (
-                        <div className="flex items-center gap-2.5">
-                          <span className="text-2xl sm:text-3xl font-black text-indigo-950 font-mono tracking-wider">
+                        <div className="flex items-center gap-2.5 flex-wrap">
+                          <span className="text-xl sm:text-3xl font-black text-indigo-950 font-mono tracking-wider break-all">
                             {paymentCode}
                           </span>
                           <button
@@ -331,7 +331,7 @@ export const PendingPaymentsModal: React.FC<PendingPaymentsModalProps> = ({
                       )}
                     </div>
 
-                    <div className="text-right">
+                    <div className="text-left sm:text-right border-t sm:border-t-0 border-stone-200/60 pt-2 sm:pt-0">
                       <div className="text-[10px] text-stone-500 font-bold uppercase tracking-wider">
                         Total Tagihan:
                       </div>

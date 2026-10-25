@@ -17,8 +17,8 @@ export const SingleSessionLockModal: React.FC<SingleSessionLockModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-stone-900/40 backdrop-blur-xs p-4 animate-in fade-in duration-150">
-      <div className="max-w-md w-full bg-white rounded-3xl shadow-2xl border border-stone-200 overflow-hidden text-center p-6 sm:p-7 space-y-5">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-stone-900/40 backdrop-blur-xs p-3 sm:p-4 animate-in fade-in duration-150">
+      <div className="max-w-md w-full bg-white rounded-2xl sm:rounded-3xl shadow-2xl border border-stone-200 overflow-hidden text-center p-5 sm:p-7 space-y-4 sm:space-y-5">
         <div className="w-16 h-16 rounded-2xl bg-rose-50 border border-rose-200 text-red-600 mx-auto flex items-center justify-center animate-bounce">
           <ShieldAlert className="w-9 h-9" />
         </div>

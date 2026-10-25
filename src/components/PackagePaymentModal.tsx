@@ -273,15 +273,15 @@ export const PackagePaymentModal: React.FC<PackagePaymentModalProps> = ({
                   </div>
 
                   {vaResult.channelName.includes('QRIS') ? (
-                    <div className="flex flex-col items-center justify-center p-3.5 bg-white rounded-2xl w-fit mx-auto border border-stone-200 shadow-sm my-2">
+                    <div className="flex flex-col items-center justify-center p-3 sm:p-3.5 bg-white rounded-2xl w-fit max-w-full mx-auto border border-stone-200 shadow-sm my-2">
                       <img
                         src={`https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(
                           vaResult.paymentCode
                         )}`}
                         alt="QRIS Code"
-                        className="w-48 h-48 sm:w-56 sm:h-56 rounded-xl shadow-2xs bg-white p-1"
+                        className="w-44 h-44 sm:w-56 sm:h-56 max-w-full rounded-xl shadow-2xs bg-white p-1"
                       />
-                      <span className="text-[11px] text-stone-700 font-extrabold mt-2 text-center">
+                      <span className="text-[10px] sm:text-[11px] text-stone-700 font-extrabold mt-2 text-center max-w-xs">
                         Scan langsung untuk bayar via GoPay, BCA, Mandiri, BRI, OVO, Dana, ShopeePay
                       </span>
                     </div>
@@ -556,8 +556,8 @@ export const PackagePaymentModal: React.FC<PackagePaymentModalProps> = ({
 
         {/* Footer */}
         {!vaResult && (
-          <div className="p-4 bg-stone-50 border-t border-stone-200 flex items-center justify-between gap-3 shrink-0">
-            <div>
+          <div className="p-3.5 sm:p-4 bg-stone-50 border-t border-stone-200 flex flex-col xs:flex-row items-stretch xs:items-center justify-between gap-3 shrink-0">
+            <div className="flex xs:flex-col justify-between items-center xs:items-start">
               <div className="text-[10px] text-stone-500 uppercase font-bold">Total Pembayaran:</div>
               <div className="text-base sm:text-lg font-black text-emerald-600 font-mono">
                 Rp {selectedPkg?.price.toLocaleString('id-ID')}
@@ -567,7 +567,7 @@ export const PackagePaymentModal: React.FC<PackagePaymentModalProps> = ({
             <button
               onClick={handlePay}
               disabled={isProcessing || !selectedPkg}
-              className="py-3 px-6 bg-gradient-to-r from-red-600 via-rose-600 to-red-700 hover:from-red-700 hover:to-rose-800 text-white font-black text-xs rounded-xl shadow-md shadow-red-600/25 transition flex items-center gap-2 disabled:opacity-50 cursor-pointer"
+              className="w-full xs:w-auto justify-center py-3 px-5 sm:px-6 bg-gradient-to-r from-red-600 via-rose-600 to-red-700 hover:from-red-700 hover:to-rose-800 text-white font-black text-xs rounded-xl shadow-md shadow-red-600/25 transition flex items-center gap-2 disabled:opacity-50 cursor-pointer"
             >
               <QrCode className="w-4 h-4" />
               <span>{isProcessing ? 'Memproses...' : 'Bayar Sekarang via QRIS'}</span>
