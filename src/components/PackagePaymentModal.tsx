@@ -4,6 +4,9 @@ import React, { useState, useEffect } from 'react';
 import { TryoutPackage, User } from '../types';
 import {
   ShieldCheck,
+  Flame,
+  Star,
+  Crown,
   Zap,
   X,
   AlertCircle,
@@ -68,7 +71,7 @@ export const PackagePaymentModal: React.FC<PackagePaymentModalProps> = ({
         const data = await res.json();
         if (data.success && (data.status === 'PAID' || data.isPaid)) {
           clearInterval(interval);
-          setCheckStatusMessage('✅ PEMBAYARAN BERHASIL DIVERIFIKASI! Masa aktif akun Anda telah diperpanjang.');
+          setCheckStatusMessage('PEMBAYARAN BERHASIL DIVERIFIKASI! Masa aktif akun Anda telah diperpanjang.');
           if (selectedPkg) {
             onPaymentSuccess(selectedPkg.id, vaResult.channelName);
           }
@@ -162,7 +165,7 @@ export const PackagePaymentModal: React.FC<PackagePaymentModalProps> = ({
       const data = await res.json();
 
       if (data.success && (data.status === 'PAID' || data.isPaid)) {
-        setCheckStatusMessage('✅ PEMBAYARAN BERHASIL DIVERIFIKASI! Masa aktif akun Anda telah diperpanjang.');
+        setCheckStatusMessage('PEMBAYARAN BERHASIL DIVERIFIKASI! Masa aktif akun Anda telah diperpanjang.');
         if (selectedPkg) {
           onPaymentSuccess(selectedPkg.id, vaResult.channelName);
         }
@@ -193,7 +196,7 @@ export const PackagePaymentModal: React.FC<PackagePaymentModalProps> = ({
       });
       const data = await res.json();
       if (data.success) {
-        setCheckStatusMessage('✅ SIMULASI PEMBAYARAN BERHASIL! Paket aktif & masa aktif akun telah diperpanjang.');
+        setCheckStatusMessage('SIMULASI PEMBAYARAN BERHASIL! Paket aktif & masa aktif akun telah diperpanjang.');
         setTimeout(() => {
           setVaResult(null);
           if (selectedPkg) {
@@ -322,7 +325,7 @@ export const PackagePaymentModal: React.FC<PackagePaymentModalProps> = ({
                         : 'bg-amber-50 border border-amber-200 text-amber-800'
                     }`}
                   >
-                    <AlertCircle className="w-4 h-4 shrink-0" />
+                    {checkStatusMessage.includes('BERHASIL') ? <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-600" /> : <AlertCircle className="w-4 h-4 shrink-0 text-amber-600" />}
                     <span>{checkStatusMessage}</span>
                   </div>
                 )}
@@ -346,7 +349,7 @@ export const PackagePaymentModal: React.FC<PackagePaymentModalProps> = ({
                     className="w-full py-2.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-black text-xs rounded-xl shadow-xs transition flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50"
                   >
                     <Zap className="w-3.5 h-3.5 fill-white" />
-                    <span>{isSimulating ? 'Memproses Simulasi...' : '⚡ Simulasikan Pembayaran Berhasil (Sandbox Testing)'}</span>
+                    <span>{isSimulating ? 'Memproses Simulasi...' : 'Simulasikan Pembayaran Berhasil (Sandbox Testing)'}</span>
                   </button>
                 )}
 
@@ -398,7 +401,7 @@ export const PackagePaymentModal: React.FC<PackagePaymentModalProps> = ({
 
                     if (pkg.firstTimeOnly || pkg.id === 'pkg_special_1h') {
                       originalPrice = 15000;
-                      badgeText = '⚡ FLASH PROMO • KHUSUS PENGGUNA BARU';
+                      badgeText = 'FLASH PROMO • KHUSUS PENGGUNA BARU';
                       badgeStyle = 'bg-rose-100 text-rose-700 border-rose-300 font-black';
                       pkgTheme = {
                         selectedBorder: 'border-rose-500 bg-gradient-to-r from-rose-50/90 via-white to-orange-50/30 ring-rose-500/20',
@@ -407,7 +410,7 @@ export const PackagePaymentModal: React.FC<PackagePaymentModalProps> = ({
                       };
                     } else if (pkg.id === 'pkg_7d') {
                       originalPrice = 50000;
-                      badgeText = '🔥 PALING POPULER';
+                      badgeText = 'PALING POPULER';
                       dailyPriceText = 'Rp 5.000 / hari';
                       badgeStyle = 'bg-amber-500 text-white border-amber-600 font-black';
                       pkgTheme = {
@@ -417,7 +420,7 @@ export const PackagePaymentModal: React.FC<PackagePaymentModalProps> = ({
                       };
                     } else if (pkg.id === 'pkg_14d') {
                       originalPrice = 80000;
-                      badgeText = '⭐ INTENSIF • HEMAT 26%';
+                      badgeText = 'INTENSIF • HEMAT 26%';
                       dailyPriceText = 'Rp 4.200 / hari';
                       badgeStyle = 'bg-sky-500 text-white border-sky-600 font-bold';
                       pkgTheme = {
@@ -427,7 +430,7 @@ export const PackagePaymentModal: React.FC<PackagePaymentModalProps> = ({
                       };
                     } else if (pkg.id === 'pkg_30d') {
                       originalPrice = 160000;
-                      badgeText = '👑 BEST VALUE • HEMAT 38%';
+                      badgeText = 'BEST VALUE • HEMAT 38%';
                       dailyPriceText = 'Rp 3.300 / hari';
                       badgeStyle = 'bg-gradient-to-r from-violet-600 to-indigo-600 text-white border-transparent font-black shadow-2xs';
                       pkgTheme = {
@@ -463,8 +466,9 @@ export const PackagePaymentModal: React.FC<PackagePaymentModalProps> = ({
                                 {pkg.name}
                               </span>
                               {badgeText && (
-                                <span className={`px-2 py-0.5 rounded-full text-[9px] uppercase tracking-wider border ${badgeStyle}`}>
-                                  {badgeText}
+                                <span className={`px-2 py-0.5 rounded-full text-[9px] uppercase tracking-wider border inline-flex items-center gap-1 ${badgeStyle}`}>
+                                  {badgeText.includes('FLASH') ? <Zap className="w-2.5 h-2.5 shrink-0" /> : badgeText.includes('POPULER') ? <Flame className="w-2.5 h-2.5 shrink-0" /> : badgeText.includes('INTENSIF') ? <Star className="w-2.5 h-2.5 shrink-0" /> : badgeText.includes('BEST') ? <Crown className="w-2.5 h-2.5 shrink-0" /> : null}
+                                  <span>{badgeText}</span>
                                 </span>
                               )}
                             </div>

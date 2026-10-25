@@ -64,7 +64,7 @@ export const PendingPaymentsModal: React.FC<PendingPaymentsModalProps> = ({
           const data = await res.json();
           if (data.success && (data.isPaid || data.status === 'PAID')) {
             clearInterval(interval);
-            setStatusMessage((prev) => ({ ...prev, [tx.id]: '✅ Pembayaran BERHASIL terkonfirmasi!' }));
+            setStatusMessage((prev) => ({ ...prev, [tx.id]: 'Pembayaran BERHASIL terkonfirmasi!' }));
             onPaymentSuccess(tx.packageId, tx.paymentMethod);
             setTimeout(() => {
               onRefresh();
@@ -98,7 +98,7 @@ export const PendingPaymentsModal: React.FC<PendingPaymentsModalProps> = ({
       const data = await res.json();
 
       if (data.success && (data.isPaid || data.status === 'PAID')) {
-        setStatusMessage((prev) => ({ ...prev, [tx.id]: '✅ Pembayaran BERHASIL terkonfirmasi!' }));
+        setStatusMessage((prev) => ({ ...prev, [tx.id]: 'Pembayaran BERHASIL terkonfirmasi!' }));
         onPaymentSuccess(tx.packageId, tx.paymentMethod);
         setTimeout(() => {
           onRefresh();
@@ -131,7 +131,7 @@ export const PendingPaymentsModal: React.FC<PendingPaymentsModalProps> = ({
       });
       const data = await res.json();
       if (data.success) {
-        setStatusMessage((prev) => ({ ...prev, [tx.id]: '✅ Simulasi Pembayaran BERHASIL! Paket telah aktif.' }));
+        setStatusMessage((prev) => ({ ...prev, [tx.id]: 'Simulasi Pembayaran BERHASIL! Paket telah aktif.' }));
         onPaymentSuccess(tx.packageId, tx.paymentMethod);
         setTimeout(() => {
           onClose();
@@ -402,7 +402,7 @@ export const PendingPaymentsModal: React.FC<PendingPaymentsModalProps> = ({
                           className="col-span-full py-2 px-3 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white text-xs font-black rounded-xl transition flex items-center justify-center gap-1.5 shadow-xs cursor-pointer disabled:opacity-50 mt-0.5"
                         >
                           <Zap className="w-3.5 h-3.5 fill-white" />
-                          <span>{simulatingId === tx.id ? 'Memproses Simulasi...' : '⚡ Simulasikan Pembayaran Berhasil (Sandbox Testing)'}</span>
+                          <span>{simulatingId === tx.id ? 'Memproses Simulasi...' : 'Simulasikan Pembayaran Berhasil (Sandbox Testing)'}</span>
                         </button>
                       )}
                     </div>

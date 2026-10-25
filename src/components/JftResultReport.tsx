@@ -2,7 +2,7 @@
 
 import React, { useRef, useState } from 'react';
 import { ExamResult, User } from '../types';
-import { Download, BookOpen, RefreshCw, CheckCircle2, Printer, FileText, Image as ImageIcon } from 'lucide-react';
+import { Download, BookOpen, RefreshCw, CheckCircle2, Printer, FileText, Image as ImageIcon, ArrowLeftRight } from 'lucide-react';
 import html2canvas from 'html2canvas-pro';
 import { jsPDF } from 'jspdf';
 import confetti from 'canvas-confetti';
@@ -335,8 +335,9 @@ export const JftResultReport: React.FC<JftResultReportProps> = ({
 
       {/* Official JFT Notification of Assessment Results Document (Exact Replica of Image 2) */}
       <div className="space-y-1.5">
-        <div className="no-print lg:hidden text-center text-[10px] text-stone-500 py-1.5 font-medium bg-stone-100/90 rounded-xl border border-stone-200">
-          ↔ Geser tabel ke samping untuk melihat lembar sertifikat lengkap
+        <div className="no-print lg:hidden text-center text-[10px] text-stone-500 py-1.5 font-medium bg-stone-100/90 rounded-xl border border-stone-200 flex items-center justify-center gap-1.5">
+          <ArrowLeftRight className="w-3.5 h-3.5 text-stone-500 shrink-0" />
+          <span>Geser tabel ke samping untuk melihat lembar sertifikat lengkap</span>
         </div>
         <div className="w-full overflow-x-auto pb-4 print:overflow-visible print:p-0 rounded-2xl">
           <div
@@ -512,26 +513,26 @@ export const JftResultReport: React.FC<JftResultReportProps> = ({
             </div>
 
             {/* Scale Gauge Bar (Exact Replica) */}
-            <div className="pt-6 pb-4">
+            <div className="pt-7 pb-4">
               <div className="relative">
-                {/* Pin Score Tag directly above the marker */}
-                <div
-                  className="absolute -top-7 -translate-x-1/2 z-20 font-black text-xs sm:text-sm text-stone-950 font-mono"
-                  style={{ left: `${pinPercent}%` }}
-                >
-                  {normalizedResult.totalScore}
-                </div>
-
-                {/* Pin Circular Indicator on the Bar */}
-                <div
-                  className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 z-20"
-                  style={{ left: `${pinPercent}%` }}
-                >
-                  <div className="w-4 h-4 rounded-full bg-amber-400 border-2 border-white shadow-xs ring-1 ring-stone-400"></div>
-                </div>
-
-                {/* Horizontal Gradient Bar */}
+                {/* Horizontal Gradient Bar with Centered Indicator */}
                 <div className="h-4 w-full rounded-xs bg-gradient-to-r from-[#f9a8d4] via-[#f59e0b] to-[#84cc16] relative">
+                  {/* Pin Score Tag directly above the marker */}
+                  <div
+                    className="absolute -top-6 -translate-x-1/2 z-20 font-black text-xs sm:text-sm text-stone-950 font-mono pointer-events-none"
+                    style={{ left: `${pinPercent}%` }}
+                  >
+                    {normalizedResult.totalScore}
+                  </div>
+
+                  {/* Pin Circular Indicator Centered on the Bar */}
+                  <div
+                    className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 z-20 pointer-events-none"
+                    style={{ left: `${pinPercent}%` }}
+                  >
+                    <div className="w-4 h-4 rounded-full bg-amber-400 border-2 border-white shadow-xs ring-1 ring-stone-400"></div>
+                  </div>
+
                   {/* Tick 10 (Left Edge) */}
                   <div className="absolute left-0 -top-1.5 -bottom-1.5 w-[2px] bg-black"></div>
 

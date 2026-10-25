@@ -12,7 +12,11 @@ import {
   ZoomOut,
   RotateCcw,
   X,
-  Volume2
+  Volume2,
+  MessageSquare,
+  Headphones,
+  FileText,
+  Layers
 } from 'lucide-react';
 import { renderFormattedQuestion } from '../lib/formatQuestion';
 
@@ -169,15 +173,17 @@ export const QuestionReview: React.FC<QuestionReviewProps> = ({
                     : `bg-stone-50 border-stone-200 ${inactiveStyles[sec]}`
                 }`}
               >
-                {sec === 'ALL'
-                  ? 'Semua Seksi'
-                  : sec === 'S1'
-                  ? '🌸 S1 (Moji Goi)'
-                  : sec === 'S2'
-                  ? '🍊 S2 (Kaiwa)'
-                  : sec === 'S3'
-                  ? '🌊 S3 (Chokai)'
-                  : '🍵 S4 (Dokkai)'}
+                {sec === 'ALL' ? (
+                  <span className="flex items-center gap-1.5"><Layers className="w-3.5 h-3.5" /><span>Semua Seksi</span></span>
+                ) : sec === 'S1' ? (
+                  <span className="flex items-center gap-1.5"><BookOpen className="w-3.5 h-3.5" /><span>S1 (Moji Goi)</span></span>
+                ) : sec === 'S2' ? (
+                  <span className="flex items-center gap-1.5"><MessageSquare className="w-3.5 h-3.5" /><span>S2 (Kaiwa)</span></span>
+                ) : sec === 'S3' ? (
+                  <span className="flex items-center gap-1.5"><Headphones className="w-3.5 h-3.5" /><span>S3 (Chokai)</span></span>
+                ) : (
+                  <span className="flex items-center gap-1.5"><FileText className="w-3.5 h-3.5" /><span>S4 (Dokkai)</span></span>
+                )}
               </button>
             );
           })}

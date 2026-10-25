@@ -477,7 +477,7 @@ B：いえ、だいじょうぶですよ。
 
       if (onRefreshData) await onRefreshData();
 
-      setBatchSaveSuccess(`🎉 Alhamdulillah! Berhasil menerbitkan ${newQuestions.length} soal lengkap ke '${finalPkgName}'! Paket ujian ini langsung aktif dan dapat dikerjakan siswa di Halaman Depan.`);
+      setBatchSaveSuccess(`Alhamdulillah! Berhasil menerbitkan ${newQuestions.length} soal lengkap ke '${finalPkgName}'! Paket ujian ini langsung aktif dan dapat dikerjakan siswa di Halaman Depan.`);
       setLocalDrafts([]);
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
@@ -970,10 +970,10 @@ B：いえ、だいじょうぶですよ。
                                             </div>
                                             <div className="flex items-center justify-between text-[10px] text-stone-600 flex-wrap">
                                               <span className="font-semibold text-stone-700">
-                                                ✓ {answered}/{total} ({pct}%)
+                                                <span className="flex items-center gap-1"><Check className="w-3 h-3 text-emerald-600" /><span>{answered}/{total} ({pct}%)</span></span>
                                               </span>
                                               <span className="text-amber-700 font-bold font-mono">
-                                                ⏱ {Math.floor((act.timeLeftSeconds || 0) / 60)}m {(act.timeLeftSeconds || 0) % 60}s
+                                                <span className="flex items-center gap-1"><Clock className="w-3 h-3 text-amber-600" /><span>{Math.floor((act.timeLeftSeconds || 0) / 60)}m {(act.timeLeftSeconds || 0) % 60}s</span></span>
                                               </span>
                                             </div>
                                           </div>
@@ -1512,7 +1512,7 @@ B：いえ、だいじょうぶですよ。
                             )}
                             {q.audioUrl && (
                               <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 border border-amber-200 text-[10px] font-bold">
-                                🎵 Audio
+                                <Headphones className="w-3 h-3 inline mr-1" />Audio
                               </span>
                             )}
                           </div>
@@ -2450,9 +2450,7 @@ B：いえ、だいじょうぶですよ。
               </div>
 
               {uploadAudioError && (
-                <div className="text-[11px] text-rose-500 font-semibold">
-                  ⚠️ {uploadAudioError}
-                </div>
+                <div className="text-[11px] text-rose-500 font-semibold flex items-center gap-1"><AlertCircle className="w-3.5 h-3.5 shrink-0" /><span>{uploadAudioError}</span></div>
               )}
 
               {/* Live Audio Player Preview */}
@@ -2541,9 +2539,7 @@ B：いえ、だいじょうぶですよ。
               </div>
 
               {uploadImageError && (
-                <div className="text-[11px] text-rose-500 font-semibold">
-                  ⚠️ {uploadImageError}
-                </div>
+                <div className="text-[11px] text-rose-500 font-semibold flex items-center gap-1"><AlertCircle className="w-3.5 h-3.5 shrink-0" /><span>{uploadImageError}</span></div>
               )}
 
               {/* Live Preview */}

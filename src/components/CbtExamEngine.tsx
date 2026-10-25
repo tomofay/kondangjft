@@ -363,11 +363,11 @@ export const CbtExamEngine: React.FC<CbtExamEngineProps> = ({
       const targetSecIdx = sections.findIndex((s) => s.key === sectionKey);
       if (targetSecIdx < activeSectionIndex) {
         showLockedToast(
-          `🔒 Seksi ${sectionKey} telah diselesaikan dan dikunci permanen. Anda tidak dapat kembali mengubah jawaban pada seksi yang telah lewat.`
+          `Seksi ${sectionKey} telah diselesaikan dan dikunci permanen. Anda tidak dapat kembali mengubah jawaban pada seksi yang telah lewat.`
         );
       } else {
         showLockedToast(
-          `🔒 Seksi ${sectionKey} masih terkunci. Anda harus menyelesaikan Seksi ${activeSection.key} (${activeSection.ja}) terlebih dahulu.`
+          `Seksi ${sectionKey} masih terkunci. Anda harus menyelesaikan Seksi ${activeSection.key} (${activeSection.ja}) terlebih dahulu.`
         );
       }
     }
@@ -611,7 +611,8 @@ export const CbtExamEngine: React.FC<CbtExamEngineProps> = ({
               onClick={() => setSectionTransitionModalOpen(true)}
               className="w-full py-2.5 px-3 bg-gradient-to-r from-amber-500 via-orange-500 to-rose-600 hover:from-amber-600 hover:to-rose-700 text-white font-black text-xs rounded-xl shadow-xs transition flex items-center justify-center gap-1.5 cursor-pointer"
             >
-              <span>Selesai Seksi {activeSection.key} ➔</span>
+              <span>Selesai Seksi {activeSection.key}</span>
+              <ArrowRight className="w-3.5 h-3.5" />
             </button>
           ) : (
             <button
@@ -681,7 +682,8 @@ export const CbtExamEngine: React.FC<CbtExamEngineProps> = ({
                 onClick={() => setSectionTransitionModalOpen(true)}
                 className="py-1 sm:py-1.5 px-2.5 sm:px-3.5 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white text-[11px] sm:text-xs font-black rounded-xl shadow-xs transition flex items-center gap-1 cursor-pointer"
               >
-                <span>Selesai {activeSection.key} ➔</span>
+                <span>Selesai {activeSection.key}</span>
+                <ArrowRight className="w-3 h-3" />
               </button>
             ) : (
               <button
@@ -843,7 +845,8 @@ export const CbtExamEngine: React.FC<CbtExamEngineProps> = ({
                     onClick={() => setSectionTransitionModalOpen(true)}
                     className="flex-1 sm:flex-initial py-2.5 px-4 sm:px-5 bg-gradient-to-r from-amber-500 via-orange-500 to-rose-600 hover:from-amber-600 hover:to-rose-700 text-white text-xs font-black rounded-xl shadow-xs transition flex items-center justify-center gap-1.5 cursor-pointer"
                   >
-                    <span>Selesai Seksi {activeSection.key} ➔</span>
+                    <span>Selesai Seksi {activeSection.key}</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
                   </button>
                 ) : (
                   <button

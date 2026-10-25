@@ -44,7 +44,9 @@ import {
   CreditCard,
   ShieldAlert,
   Volume2,
-  X
+  X,
+  Lightbulb,
+  ArrowLeftRight
 } from 'lucide-react';
 
 export default function HomePage() {
@@ -1360,26 +1362,31 @@ export default function HomePage() {
 
                 {/* Recommendation Box */}
                 <div className="p-3.5 rounded-2xl bg-gradient-to-r from-amber-50/60 via-stone-50 to-sky-50/60 border border-stone-200 flex flex-col sm:flex-row items-start sm:items-center justify-between text-xs text-stone-700 gap-3">
-                  <span>
+                  <span className="flex items-center gap-1.5 flex-wrap">
                     {examResults.length === 0 ? (
                       <>
-                        💡 <strong>Tips Awal:</strong> Anda belum memiliki riwayat ujian CBT. Mulai tryout pertama Anda untuk mengukur dan memetakan kemampuan 4 seksi JFT!
+                        <Lightbulb className="w-4 h-4 text-amber-500 shrink-0 inline-block" />
+                        <span><strong>Tips Awal:</strong> Anda belum memiliki riwayat ujian CBT. Mulai tryout pertama Anda untuk mengukur dan memetakan kemampuan 4 seksi JFT!</span>
                       </>
                     ) : dashboardStats.sectionRank[0]?.score >= 80 ? (
                       <>
-                        🎉 <strong>Luar Biasa!</strong> Rekor nilai seluruh 4 seksi Anda telah melampaui 80% (Standar Kelulusan A2.2). Pertahankan performa ini saat ujian resmi Prometric!
+                        <Sparkles className="w-4 h-4 text-emerald-500 shrink-0 inline-block" />
+                        <span><strong>Luar Biasa!</strong> Rekor nilai seluruh 4 seksi Anda telah melampaui 80% (Standar Kelulusan A2.2). Pertahankan performa ini saat ujian resmi Prometric!</span>
                       </>
                     ) : (
                       <>
-                        💡 <strong>Rekomendasi Pintar (Rekor Terbaik):</strong> Prioritaskan latihan intensif pada{' '}
-                        <strong className={dashboardStats.sectionRank[0]?.color || 'text-rose-700'}>
-                          {dashboardStats.sectionRank[0]?.name} ({dashboardStats.sectionRank[0]?.score}%)
-                        </strong>{' '}
-                        dan{' '}
-                        <strong className={dashboardStats.sectionRank[1]?.color || 'text-amber-700'}>
-                          {dashboardStats.sectionRank[1]?.name} ({dashboardStats.sectionRank[1]?.score}%)
-                        </strong>{' '}
-                        untuk melampaui passing grade 200/250 poin.
+                        <Lightbulb className="w-4 h-4 text-amber-500 shrink-0 inline-block" />
+                        <span>
+                          <strong>Rekomendasi Pintar (Rekor Terbaik):</strong> Prioritaskan latihan intensif pada{' '}
+                          <strong className={dashboardStats.sectionRank[0]?.color || 'text-rose-700'}>
+                            {dashboardStats.sectionRank[0]?.name} ({dashboardStats.sectionRank[0]?.score}%)
+                          </strong>{' '}
+                          dan{' '}
+                          <strong className={dashboardStats.sectionRank[1]?.color || 'text-amber-700'}>
+                            {dashboardStats.sectionRank[1]?.name} ({dashboardStats.sectionRank[1]?.score}%)
+                          </strong>{' '}
+                          untuk melampaui passing grade 200/250 poin.
+                        </span>
                       </>
                     )}
                   </span>
@@ -1641,8 +1648,9 @@ export default function HomePage() {
                       </tbody>
                     </table>
                   </div>
-                  <div className="text-[10px] text-stone-400 text-center py-1 sm:hidden">
-                    ← Geser tabel ke samping untuk melihat detail riwayat →
+                  <div className="text-[10px] text-stone-400 text-center py-1 sm:hidden flex items-center justify-center gap-1.5">
+                    <ArrowLeftRight className="w-3 h-3 text-stone-400 shrink-0" />
+                    <span>Geser tabel ke samping untuk melihat detail riwayat</span>
                   </div>
                 </div>
               )}
