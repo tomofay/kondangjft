@@ -2987,10 +2987,10 @@ B：いえ、だいじょうぶですよ。
 
       {/* MODAL: PRATINJAU RAPOR RESMI JFT */}
       {previewingExamResult && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-stone-900/40 backdrop-blur-xs backdrop-blur-md animate-in fade-in overflow-y-auto">
-          <div className="bg-white border border-stone-200 rounded-3xl max-w-5xl w-full max-h-[92vh] shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 my-auto">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-stone-900/40 backdrop-blur-xs backdrop-blur-md animate-in fade-in overflow-y-auto">
+          <div className="bg-white border border-stone-200 rounded-2xl sm:rounded-3xl max-w-5xl w-full max-h-[96vh] shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 my-auto">
             {/* Header */}
-            <div className="p-4 sm:p-5 border-b border-stone-200 bg-white text-stone-900 flex items-center justify-between gap-4">
+            <div className="p-3.5 sm:p-5 border-b border-stone-200 bg-white text-stone-900 flex items-center justify-between gap-3">
               <div className="flex items-center gap-2.5">
                 <div className="w-9 h-9 rounded-xl bg-red-600/30 text-red-600 flex items-center justify-center">
                   <Award className="w-5 h-5" />
@@ -3015,7 +3015,7 @@ B：いえ、だいじょうぶですよ。
             </div>
 
             {/* Certificate Body */}
-            <div className="p-4 sm:p-6 overflow-y-auto bg-stone-100">
+            <div className="p-2 sm:p-6 overflow-y-auto bg-stone-100">
               <JftResultReport
                 result={previewingExamResult}
                 currentUser={users.find((u) => u.id === previewingExamResult.userId) || null}

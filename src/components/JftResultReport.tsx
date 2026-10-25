@@ -212,7 +212,14 @@ export const JftResultReport: React.FC<JftResultReportProps> = ({
         allowTaint: true,
         backgroundColor: '#ffffff',
         logging: false,
-        windowWidth: 1200
+        windowWidth: 1200,
+        onclone: (clonedDoc: Document) => {
+          const el = clonedDoc.getElementById('jft-certificate-container');
+          if (el) {
+            el.style.width = '800px';
+            el.style.boxShadow = 'none';
+          }
+        }
       });
       const image = canvas.toDataURL('image/png');
       const link = document.createElement('a');
@@ -333,22 +340,16 @@ export const JftResultReport: React.FC<JftResultReportProps> = ({
         </div>
       </div>
 
-      {/* Official JFT Notification of Assessment Results Document (Exact Replica of Image 2) */}
-      <div className="space-y-1.5">
-        <div className="no-print lg:hidden text-center text-[10px] text-stone-500 py-1.5 font-medium bg-stone-100/90 rounded-xl border border-stone-200 flex items-center justify-center gap-1.5">
-          <ArrowLeftRight className="w-3.5 h-3.5 text-stone-500 shrink-0" />
-          <span>Geser tabel ke samping untuk melihat lembar sertifikat lengkap</span>
-        </div>
-        <div className="w-full overflow-x-auto pb-4 print:overflow-visible print:p-0 rounded-2xl">
-          <div
-            ref={certificateRef}
-            id="jft-certificate-container"
-            className="bg-white text-stone-900 p-8 sm:p-12 shadow-xl border border-stone-300 font-sans space-y-7 relative select-none mx-auto print:shadow-none print:border-none print:p-0 print:m-0 print:w-full"
-            style={{ width: '800px', minHeight: '1000px' }}
-          >
+      {/* Official JFT Notification of Assessment Results Document (Fully Responsive & Scalable) */}
+      <div className="w-full">
+        <div
+          ref={certificateRef}
+          id="jft-certificate-container"
+          className="w-full max-w-3xl bg-white text-stone-900 p-4 sm:p-8 md:p-12 shadow-xl border border-stone-300 font-sans space-y-5 sm:space-y-7 relative select-none mx-auto print:shadow-none print:border-none print:p-0 print:m-0 print:w-full print:max-w-none rounded-2xl"
+        >
           {/* Header */}
-          <div className="flex items-center justify-between border-b border-stone-200 pb-4">
-            <div className="px-3.5 py-1.5 rounded-xl bg-indigo-50 border border-indigo-200 text-indigo-700 text-[11px] font-black uppercase tracking-wider">
+          <div className="flex flex-col xs:flex-row items-center justify-between border-b border-stone-200 pb-3 sm:pb-4 gap-2">
+            <div className="px-3.5 py-1.5 rounded-xl bg-indigo-50 border border-indigo-200 text-indigo-700 text-[10px] sm:text-[11px] font-black uppercase tracking-wider text-center">
               SIMULATION REPORT • LAPORAN EVALUASI
             </div>
             <KondangInstitutionReportLogo className="h-10" />
@@ -356,7 +357,7 @@ export const JftResultReport: React.FC<JftResultReportProps> = ({
 
           {/* Centered Document Titles */}
           <div className="text-center space-y-1.5 pt-1">
-            <h1 className="text-2xl sm:text-[25px] font-black tracking-wide text-stone-900 font-japanese">
+            <h1 className="text-base xs:text-lg sm:text-2xl font-black tracking-wide text-stone-900 font-japanese leading-tight">
               KondangSensei CBT 日本語能力判定結果通知書
             </h1>
             <p className="text-xs sm:text-[13px] text-stone-700 font-medium">
@@ -368,20 +369,20 @@ export const JftResultReport: React.FC<JftResultReportProps> = ({
           </div>
 
           {/* Examinee Information Section */}
-          <div className="flex items-start gap-8 pt-2 pb-2">
+          <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 sm:gap-8 pt-2 pb-2">
             {/* Left Photo */}
             <div className="shrink-0">
               <img
                 src={examineePhoto}
                 alt="Examinee Photo"
-                className="w-36 h-48 object-cover border border-stone-300 bg-stone-100 rounded-sm shadow-2xs"
+                className="w-28 h-36 sm:w-36 sm:h-48 object-cover border border-stone-300 bg-stone-100 rounded-sm shadow-2xs"
               />
             </div>
 
             {/* Right Information Rows */}
-            <div className="flex-1 space-y-2 text-xs sm:text-[13px] text-stone-900">
+            <div className="w-full flex-1 space-y-2 text-xs sm:text-[13px] text-stone-900">
               {/* Reg No */}
-              <div className="grid grid-cols-[160px_1fr] items-start">
+              <div className="grid grid-cols-[110px_1fr] sm:grid-cols-[160px_1fr] items-start">
                 <div>
                   <span className="font-bold font-japanese">受験番号</span>
                   <div className="text-[10px] text-stone-600">Registration Number</div>
@@ -393,7 +394,7 @@ export const JftResultReport: React.FC<JftResultReportProps> = ({
               </div>
 
               {/* Name */}
-              <div className="grid grid-cols-[160px_1fr] items-start">
+              <div className="grid grid-cols-[110px_1fr] sm:grid-cols-[160px_1fr] items-start">
                 <div>
                   <span className="font-bold font-japanese">氏名</span>
                   <div className="text-[10px] text-stone-600">Name</div>
@@ -405,7 +406,7 @@ export const JftResultReport: React.FC<JftResultReportProps> = ({
               </div>
 
               {/* Nationality */}
-              <div className="grid grid-cols-[160px_1fr] items-start">
+              <div className="grid grid-cols-[110px_1fr] sm:grid-cols-[160px_1fr] items-start">
                 <div>
                   <span className="font-bold font-japanese">国籍</span>
                   <div className="text-[10px] text-stone-600">Nationality</div>
@@ -417,7 +418,7 @@ export const JftResultReport: React.FC<JftResultReportProps> = ({
               </div>
 
               {/* Date of Birth */}
-              <div className="grid grid-cols-[160px_1fr] items-start">
+              <div className="grid grid-cols-[110px_1fr] sm:grid-cols-[160px_1fr] items-start">
                 <div>
                   <span className="font-bold font-japanese">生年月日</span>
                   <div className="text-[10px] text-stone-600">Date of Birth</div>
@@ -429,7 +430,7 @@ export const JftResultReport: React.FC<JftResultReportProps> = ({
               </div>
 
               {/* Sex */}
-              <div className="grid grid-cols-[160px_1fr] items-start">
+              <div className="grid grid-cols-[110px_1fr] sm:grid-cols-[160px_1fr] items-start">
                 <div>
                   <span className="font-bold font-japanese">性別</span>
                   <div className="text-[10px] text-stone-600">Sex</div>
@@ -441,7 +442,7 @@ export const JftResultReport: React.FC<JftResultReportProps> = ({
               </div>
 
               {/* Test Location */}
-              <div className="grid grid-cols-[160px_1fr] items-start">
+              <div className="grid grid-cols-[110px_1fr] sm:grid-cols-[160px_1fr] items-start">
                 <div>
                   <span className="font-bold font-japanese">受験地</span>
                   <div className="text-[10px] text-stone-600">Test Location</div>
@@ -453,7 +454,7 @@ export const JftResultReport: React.FC<JftResultReportProps> = ({
               </div>
 
               {/* Test Date */}
-              <div className="grid grid-cols-[160px_1fr] items-start">
+              <div className="grid grid-cols-[110px_1fr] sm:grid-cols-[160px_1fr] items-start">
                 <div>
                   <span className="font-bold font-japanese">受験日</span>
                   <div className="text-[10px] text-stone-600">Test Date</div>
@@ -467,9 +468,9 @@ export const JftResultReport: React.FC<JftResultReportProps> = ({
           </div>
 
           {/* Assessment Results Section Box (Exact Replica) */}
-          <div className="border border-stone-300 p-6 sm:p-7 bg-white space-y-6">
+          <div className="border border-stone-300 p-4 sm:p-6 md:p-7 bg-white space-y-4 sm:space-y-6">
             {/* Top Score & Result Header */}
-            <div className="flex items-start justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
               <div className="space-y-4">
                 {/* Total Score */}
                 <div className="flex items-start gap-4">
@@ -500,7 +501,7 @@ export const JftResultReport: React.FC<JftResultReportProps> = ({
               </div>
 
               {/* Right Passing Benchmark Standards */}
-              <div className="text-right text-xs text-stone-800 space-y-1">
+              <div className="text-left sm:text-right text-[11px] sm:text-xs text-stone-800 space-y-1 pt-2 sm:pt-0 border-t sm:border-t-0 border-stone-100">
                 <div>
                   <span className="font-japanese">得点範囲:</span> 10-250
                   <div className="text-[10px] text-stone-500">Range of Scores</div>
@@ -550,7 +551,7 @@ export const JftResultReport: React.FC<JftResultReportProps> = ({
                 </div>
 
                 {/* Tick Labels Below */}
-                <div className="relative h-10 text-xs text-stone-900 font-mono mt-1.5">
+                <div className="relative h-10 text-[10px] sm:text-xs text-stone-900 font-mono mt-1.5">
                   <span className="absolute left-0 top-0">10</span>
 
                   <div className="absolute left-[56.25%] -translate-x-1/2 top-0 text-center leading-tight">
@@ -612,7 +613,7 @@ export const JftResultReport: React.FC<JftResultReportProps> = ({
                 ].map((sec) => {
                   const pct = sec.data?.percentage ?? 0;
                   return (
-                    <div key={sec.code} className="grid grid-cols-[220px_1fr] items-center gap-4">
+                    <div key={sec.code} className="grid grid-cols-1 sm:grid-cols-[200px_1fr] items-center gap-1 sm:gap-4">
                       {/* Left: Titles */}
                       <div>
                         <div className="font-bold font-japanese text-xs sm:text-[13px] text-stone-900 leading-tight">
@@ -652,17 +653,16 @@ export const JftResultReport: React.FC<JftResultReportProps> = ({
           </div>
 
           {/* Certificate Footer Notice */}
-          <div className="pt-6 border-t border-stone-200 text-center space-y-1">
-            <div className="text-xs font-bold text-stone-700">
+          <div className="pt-5 sm:pt-6 border-t border-stone-200 text-center space-y-1">
+            <div className="text-[11px] sm:text-xs font-bold text-stone-700">
               Diterbitkan oleh Platform Simulasi KondangSensei CBT • Hak Cipta © KondangSensei Indonesia
             </div>
-            <p className="text-[10px] text-stone-400">
+            <p className="text-[9px] sm:text-[10px] text-stone-400">
               Pemberitahuan: Dokumen ini diterbitkan oleh KondangSensei Indonesia sebagai lembar evaluasi hasil simulasi mandiri siswa dan bukan merupakan dokumen sertifikasi dari lembaga negara/pihak ketiga manapun.
             </p>
           </div>
         </div>
       </div>
-    </div>
     </div>
   );
 };
