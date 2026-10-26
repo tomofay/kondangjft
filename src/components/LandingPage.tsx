@@ -30,7 +30,7 @@ import {
   MapPin
 } from 'lucide-react';
 import { TryoutPackage } from '../types';
-import { DEFAULT_PACKAGES } from '../lib/dataStore';
+import { DEFAULT_PACKAGES, WHATSAPP_DEFAULT_URL } from '../lib/dataStore';
 
 interface LandingPageProps {
   packages: TryoutPackage[];
@@ -38,6 +38,7 @@ interface LandingPageProps {
   onOpenLogin: () => void;
   onOpenSignup: () => void;
   onSelectPackage: (pkg: TryoutPackage) => void;
+  onOpenTerms?: () => void;
 }
 
 export const LandingPage: React.FC<LandingPageProps> = ({
@@ -45,7 +46,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({
   onOpenMiniTryout,
   onOpenLogin,
   onOpenSignup,
-  onSelectPackage
+  onSelectPackage,
+  onOpenTerms
 }) => {
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
 
@@ -677,7 +679,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               Mulai 1 Mini Tryout Gratis Sekarang
             </button>
             <a
-              href="https://wa.me/6281299998888?text=Halo%20Admin%20KondangSensei,%20saya%20mau%20tanya%20tentang%20paket%20simulasi%20JFT-Basic%20A2"
+              href={WHATSAPP_DEFAULT_URL}
               target="_blank"
               rel="noopener noreferrer"
               className="w-full sm:w-auto py-3.5 px-6 bg-white/10 hover:bg-white/20 text-white font-bold text-xs sm:text-sm rounded-2xl border border-white/20 transition flex items-center justify-center gap-2"
@@ -694,9 +696,22 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       {/* ========================================================= */}
       <footer className="py-8 bg-stone-950 text-stone-500 text-xs border-t border-stone-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-2">
+          <div className="flex flex-col sm:flex-row items-center gap-2 text-center sm:text-left">
             <span className="font-black text-white">KondangSensei CBT</span>
-            <span>• Hak Cipta © 2026 KondangSensei Indonesia</span>
+            <span className="hidden sm:inline">•</span>
+            <span>Hak Cipta © 2026 KondangSensei Indonesia</span>
+            {onOpenTerms && (
+              <>
+                <span className="hidden sm:inline">•</span>
+                <button
+                  type="button"
+                  onClick={onOpenTerms}
+                  className="text-stone-400 hover:text-white underline underline-offset-2 transition cursor-pointer"
+                >
+                  Ketentuan Layanan & Kebijakan
+                </button>
+              </>
+            )}
           </div>
 
           <div className="text-[11px] text-stone-600 text-center sm:text-right">

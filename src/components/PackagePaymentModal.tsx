@@ -27,6 +27,7 @@ interface PackagePaymentModalProps {
   currentUser?: User | null;
   onClose: () => void;
   onPaymentSuccess: (packageId: string, paymentMethod: string) => void;
+  onOpenTerms?: () => void;
 }
 
 export const PackagePaymentModal: React.FC<PackagePaymentModalProps> = ({
@@ -34,7 +35,8 @@ export const PackagePaymentModal: React.FC<PackagePaymentModalProps> = ({
   packages,
   currentUser,
   onClose,
-  onPaymentSuccess
+  onPaymentSuccess,
+  onOpenTerms
 }) => {
   const availablePackages = (packages && packages.length > 0 ? packages : DEFAULT_PACKAGES).filter(
     (p) => p.id !== 'pkg_special_1h' && p.price > 100 && !p.firstTimeOnly
@@ -545,11 +547,25 @@ export const PackagePaymentModal: React.FC<PackagePaymentModalProps> = ({
                 </div>
               )}
 
-              <div className="p-3 bg-stone-50 rounded-2xl border border-stone-200 text-[11px] text-stone-600 flex items-center gap-2 font-medium">
-                <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
-                <span>
-                  Pembayaran diproses aman melalui DOKU Payment Gateway resmi berlisensi Bank Indonesia.
-                </span>
+              <div className="p-3 bg-stone-50 rounded-2xl border border-stone-200 text-[11px] text-stone-600 space-y-1.5 font-medium">
+                <div className="flex items-center gap-2">
+                  <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
+                  <span>
+                    Pembayaran diproses aman melalui DOKU Payment Gateway resmi berlisensi Bank Indonesia.
+                  </span>
+                </div>
+                <div className="text-[10px] text-stone-500 pl-6 leading-relaxed">
+                  Akses langsung aktif instan setelah pembayaran terkonfirmasi. Layanan ini adalah produk digital dengan masa aktif dan bersifat non-refundable (tidak dapat dibatalkan).{' '}
+                  {onOpenTerms && (
+                    <button
+                      type="button"
+                      onClick={onOpenTerms}
+                      className="text-indigo-600 hover:text-indigo-800 underline font-bold cursor-pointer"
+                    >
+                      Baca Ketentuan Layanan
+                    </button>
+                  )}
+                </div>
               </div>
             </>
           )}

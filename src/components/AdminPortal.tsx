@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { User, Question, Transaction, PDFQuestionDraft, SectionType, ExamResult } from '../types';
-import { Users, FileText, Lock, Upload, Layers, DollarSign, BookOpen, X, ChevronLeft, ChevronRight, RefreshCw, Trash2, Shield, Image as ImageIcon, Link as LinkIcon, UploadCloud, Check, Volume2, Headphones, Sparkles, Eye, ZoomIn, AlertCircle, FileUp, FolderUp, Folder, FolderPlus, ArrowLeft, Edit3, Plus, Award, CheckCircle2, XCircle, Calendar, Clock, TrendingUp, BarChart3, Activity } from 'lucide-react';
+import { Users, FileText, Lock, Upload, Layers, DollarSign, BookOpen, X, ChevronLeft, ChevronRight, RefreshCw, Trash2, Shield, Image as ImageIcon, Link as LinkIcon, UploadCloud, Check, Volume2, Headphones, Sparkles, Eye, ZoomIn, AlertCircle, FileUp, FolderUp, Folder, FolderPlus, ArrowLeft, Edit3, Plus, Award, CheckCircle2, XCircle, Calendar, Clock, TrendingUp, BarChart3, Activity, MessageCircle, Download, Copy, Search, Phone } from 'lucide-react';
 import { isSubscriptionActive, getRemainingDays, getRemainingSubscriptionText, DEFAULT_ANONYMOUS_PHOTO } from '../lib/dataStore';
 import { renderFormattedQuestion } from '../lib/formatQuestion';
 import { JftResultReport } from './JftResultReport';
@@ -44,12 +44,48 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
   onSaveQuestion,
   onDeleteQuestion
 }) => {
-  const [activeTab, setActiveTab] = useState<'USERS' | 'QUESTIONS' | 'PDF_PARSER' | 'TRANSACTIONS'>('USERS');
+  const [activeTab, setActiveTab] = useState<'USERS' | 'QUESTIONS' | 'PDF_PARSER' | 'TRANSACTIONS' | 'LEADS'>('USERS');
   const [pdfInputText, setPdfInputText] = useState('');
   const [isParsing, setIsParsing] = useState(false);
   const [parseMessage, setParseMessage] = useState('');
   const [actionLoadingUserId, setActionLoadingUserId] = useState<string | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
+
+  // Leads CRM & Monitoring States
+  const [leads, setLeads] = useState<any[]>([]);
+  const [isLoadingLeads, setIsLoadingLeads] = useState(false);
+  const [leadSearchQuery, setLeadSearchQuery] = useState('');
+  const [copiedLeadId, setCopiedLeadId] = useState<string | number | null>(null);
+
+  const fetchLeads = async () => {
+    setIsLoadingLeads(true);
+    try {
+      const res = await fetch('/api/leads');
+      const data = await res.json();
+      if (data.success && Array.isArray(data.leads)) {
+        setLeads(data.leads);
+      }
+    } catch (err) {
+      console.error('Error fetching leads:', err);
+    } finally {
+      setIsLoadingLeads(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchLeads();
+  }, []);
+
+  const filteredLeads = React.useMemo(() => {
+    if (!leadSearchQuery.trim()) return leads;
+    const q = leadSearchQuery.toLowerCase();
+    return leads.filter(
+      (l) =>
+        (l.name && l.name.toLowerCase().includes(q)) ||
+        (l.whatsapp && String(l.whatsapp).includes(q)) ||
+        (l.weakness && l.weakness.toLowerCase().includes(q))
+    );
+  }, [leads, leadSearchQuery]);
 
   // PDF Parsing & Batch Import States (Cara 2 Otomatisasi dengan Gambar)
   const [localDrafts, setLocalDrafts] = useState<PDFQuestionDraft[]>(pdfDrafts || []);
@@ -709,6 +745,19 @@ B：いえ、だいじょうぶですよ。
           >
             <DollarSign className="w-4 h-4" />
             Transaksi ({transactions.length})
+          </button>
+
+          <button
+            onClick={() => {
+              setActiveTab('LEADS');
+              fetchLeads();
+            }}
+            className={`px-4 py-2 rounded-xl transition flex items-center gap-1.5 ${
+              activeTab === 'LEADS' ? 'bg-teal-600 text-white shadow font-bold' : 'text-stone-600 hover:text-stone-900 hover:bg-stone-200/60'
+            }`}
+          >
+            <MessageCircle className="w-4 h-4 text-emerald-200" />
+            Leads Calon Siswa ({leads.length})
           </button>
         </div>
       </div>
@@ -2263,6 +2312,255 @@ B：いえ、だいじょうぶですよ。
                       </td>
                     </tr>
                   ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* Tab 5: Leads Monitoring & Direct WhatsApp CRM */}
+      {activeTab === 'LEADS' && (
+        <div className="bg-white rounded-3xl p-6 shadow-xl border border-stone-200 space-y-6">
+          {/* Header */}
+          <div className="flex flex-wrap items-center justify-between border-b pb-4 border-stone-200 gap-4">
+            <div>
+              <h2 className="text-lg font-bold text-stone-900 flex items-center gap-2">
+                <MessageCircle className="w-5 h-5 text-emerald-600" />
+                Monitoring Leads Calon Siswa ({leads.length} Kontak Terkumpul)
+              </h2>
+              <p className="text-xs text-stone-500">
+                Calon peserta yang mengisi Nama & WhatsApp saat mengikuti Mini Tryout Gratis. Klik tombol WhatsApp untuk follow-up langsung.
+              </p>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={fetchLeads}
+                disabled={isLoadingLeads}
+                className="px-3.5 py-2 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 text-xs font-bold transition flex items-center gap-1.5 border border-stone-200 shadow-sm"
+              >
+                <RefreshCw className={`w-3.5 h-3.5 ${isLoadingLeads ? 'animate-spin text-emerald-600' : ''}`} />
+                {isLoadingLeads ? 'Memuat...' : 'Segarkan Data'}
+              </button>
+
+              {leads.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    const csvRows = [
+                      ['ID', 'Nama', 'WhatsApp', 'Skor', 'Kelemahan', 'Sumber', 'Tanggal'].join(','),
+                      ...leads.map((l) => [
+                        `"${l.id}"`,
+                        `"${(l.name || '').replace(/"/g, '""')}"`,
+                        `"'${l.whatsapp || ''}"`,
+                        l.score !== null && l.score !== undefined ? l.score : '',
+                        `"${(l.weakness || '').replace(/"/g, '""')}"`,
+                        `"${l.source || ''}"`,
+                        `"${l.createdAt || ''}"`
+                      ].join(','))
+                    ];
+                    const blob = new Blob([csvRows.join('\n')], { type: 'text/csv;charset=utf-8;' });
+                    const url = URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.setAttribute('download', `leads_kondangsensei_${new Date().toISOString().slice(0, 10)}.csv`);
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                  }}
+                  className="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition flex items-center gap-1.5 shadow-sm cursor-pointer"
+                >
+                  <Download className="w-3.5 h-3.5" />
+                  <span>Export CSV</span>
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* KPI Summary Cards */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div className="p-4 rounded-2xl bg-stone-50 border border-stone-200">
+              <div className="flex items-center gap-2 text-stone-500 text-xs font-semibold">
+                <Users className="w-4 h-4 text-emerald-600" />
+                <span>Total Kontak Masuk</span>
+              </div>
+              <div className="text-2xl font-black text-stone-900 mt-1">
+                {leads.length} <span className="text-xs font-normal text-stone-400">Orang</span>
+              </div>
+            </div>
+
+            <div className="p-4 rounded-2xl bg-stone-50 border border-stone-200">
+              <div className="flex items-center gap-2 text-stone-500 text-xs font-semibold">
+                <CheckCircle2 className="w-4 h-4 text-indigo-600" />
+                <span>Selesai Mini Tryout</span>
+              </div>
+              <div className="text-2xl font-black text-indigo-600 mt-1">
+                {leads.filter((l) => l.score !== null && l.score !== undefined).length}{' '}
+                <span className="text-xs font-normal text-stone-400">Peserta</span>
+              </div>
+            </div>
+
+            <div className="p-4 rounded-2xl bg-stone-50 border border-stone-200">
+              <div className="flex items-center gap-2 text-stone-500 text-xs font-semibold">
+                <TrendingUp className="w-4 h-4 text-amber-500" />
+                <span>Rata-Rata Skor</span>
+              </div>
+              <div className="text-2xl font-black text-amber-600 mt-1">
+                {(() => {
+                  const scoredLeads = leads.filter((l) => typeof l.score === 'number');
+                  if (scoredLeads.length === 0) return '-';
+                  const avg = Math.round(scoredLeads.reduce((acc, curr) => acc + (curr.score || 0), 0) / scoredLeads.length);
+                  return `${avg} / 250`;
+                })()}
+              </div>
+            </div>
+
+            <div className="p-4 rounded-2xl bg-stone-50 border border-stone-200">
+              <div className="flex items-center gap-2 text-stone-500 text-xs font-semibold">
+                <MessageCircle className="w-4 h-4 text-teal-600" />
+                <span>Tingkat Follow-up</span>
+              </div>
+              <div className="text-2xl font-black text-teal-600 mt-1">
+                {leads.length > 0 ? `${leads.length} Siap` : '0'}
+              </div>
+            </div>
+          </div>
+
+          {/* Search Filter */}
+          <div className="flex flex-col sm:flex-row gap-3 items-center justify-between">
+            <div className="relative w-full sm:w-80">
+              <Search className="w-4 h-4 text-stone-400 absolute left-3 top-1/2 -translate-y-1/2" />
+              <input
+                type="text"
+                value={leadSearchQuery}
+                onChange={(e) => setLeadSearchQuery(e.target.value)}
+                placeholder="Cari nama calon siswa atau no. WhatsApp..."
+                className="w-full pl-9 pr-4 py-2.5 bg-stone-50 border border-stone-200 rounded-xl text-xs text-stone-900 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              />
+            </div>
+            <div className="text-xs text-stone-400">
+              Menampilkan {filteredLeads.length} dari {leads.length} calon siswa
+            </div>
+          </div>
+
+          {/* Table */}
+          <div className="overflow-x-auto rounded-2xl border border-stone-200">
+            <table className="w-full text-left text-xs border-collapse">
+              <thead>
+                <tr className="border-b border-stone-200 bg-stone-50 text-stone-500 font-bold uppercase tracking-wider">
+                  <th className="p-3 w-12 text-center">No</th>
+                  <th className="p-3">Waktu Masuk</th>
+                  <th className="p-3">Nama Calon Siswa</th>
+                  <th className="p-3">Nomor WhatsApp</th>
+                  <th className="p-3">Hasil Mini Tryout</th>
+                  <th className="p-3">Kelemahan Materi</th>
+                  <th className="p-3 text-right">Aksi Follow-Up</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-stone-100">
+                {filteredLeads.length === 0 ? (
+                  <tr>
+                    <td colSpan={7} className="text-center py-12 text-stone-400 space-y-2">
+                      <MessageCircle className="w-8 h-8 text-stone-300 mx-auto" />
+                      <p className="font-semibold text-stone-500">
+                        {leadSearchQuery ? 'Tidak ada data calon siswa yang sesuai pencarian.' : 'Belum ada data calon siswa yang masuk.'}
+                      </p>
+                      <p className="text-[11px] text-stone-400 max-w-sm mx-auto">
+                        Ketika pengunjung mencoba Mini Tryout Gratis di beranda, nama dan nomor WhatsApp mereka akan otomatis tercatat di sini.
+                      </p>
+                    </td>
+                  </tr>
+                ) : (
+                  filteredLeads.map((lead: any, idx: number) => {
+                    const cleanPhone = String(lead.whatsapp || '').replace(/[^0-9]/g, '');
+                    const formattedPhone = cleanPhone.startsWith('0')
+                      ? '62' + cleanPhone.slice(1)
+                      : cleanPhone;
+
+                    const hasScore = lead.score !== null && lead.score !== undefined;
+                    const prefilledMessage = `Halo Kak ${lead.name}, salam dari Admin KondangSensei CBT! Kami melihat Kakak baru saja mencoba Mini Tryout JFT-Basic A2${hasScore ? ` dengan perolehan skor ${lead.score}/250` : ''}.${lead.weakness ? ` Terlihat ada catatan evaluasi pada bagian ${lead.weakness}.` : ''} Apakah Kakak ingin konsultasi materi atau membutuhkan akses Paket Simulasi Full untuk persiapan kerja SSW ke Jepang?`;
+                    const waLink = `https://wa.me/${formattedPhone}?text=${encodeURIComponent(prefilledMessage)}`;
+
+                    return (
+                      <tr key={lead.id || idx} className="hover:bg-emerald-50/40 transition">
+                        <td className="p-3 text-center text-stone-400 font-mono text-[11px]">
+                          {idx + 1}
+                        </td>
+                        <td className="p-3 text-stone-500 text-[11px] whitespace-nowrap">
+                          {lead.createdAt ? new Date(lead.createdAt).toLocaleDateString('id-ID', {
+                            day: '2-digit',
+                            month: 'short',
+                            year: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                          }) : '-'}
+                        </td>
+                        <td className="p-3">
+                          <div className="font-bold text-stone-900">{lead.name}</div>
+                          <span className="text-[10px] text-stone-400 uppercase font-mono">
+                            {lead.source || 'mini_tryout'}
+                          </span>
+                        </td>
+                        <td className="p-3">
+                          <div className="flex items-center gap-1.5 font-mono font-bold text-stone-800">
+                            <span>{lead.whatsapp}</span>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                navigator.clipboard.writeText(formattedPhone);
+                                setCopiedLeadId(lead.id);
+                                setTimeout(() => setCopiedLeadId(null), 2000);
+                              }}
+                              className="p-1 text-stone-400 hover:text-stone-700 hover:bg-stone-200/60 rounded-md transition cursor-pointer"
+                              title="Salin Nomor WhatsApp"
+                            >
+                              {copiedLeadId === lead.id ? (
+                                <Check className="w-3.5 h-3.5 text-emerald-600" />
+                              ) : (
+                                <Copy className="w-3.5 h-3.5" />
+                              )}
+                            </button>
+                          </div>
+                        </td>
+                        <td className="p-3">
+                          {hasScore ? (
+                            <span className="px-2 py-0.5 rounded-full font-bold text-[10px] bg-emerald-100 text-emerald-800 border border-emerald-200 font-mono">
+                              {lead.score} / 250
+                            </span>
+                          ) : (
+                            <span className="text-stone-400 text-[11px] italic">
+                              Sedang Mengerjakan
+                            </span>
+                          )}
+                        </td>
+                        <td className="p-3">
+                          {lead.weakness ? (
+                            <span className="text-[11px] text-amber-800 font-medium bg-amber-50 px-2 py-0.5 rounded-lg border border-amber-200">
+                              {lead.weakness}
+                            </span>
+                          ) : (
+                            <span className="text-stone-400 text-[11px]">-</span>
+                          )}
+                        </td>
+                        <td className="p-3 text-right">
+                          <div className="flex items-center justify-end gap-1.5">
+                            <a
+                              href={waLink}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-xs flex items-center gap-1.5 shadow-xs transition hover:scale-105 active:scale-95 cursor-pointer"
+                              title="Kirim Pesan WhatsApp Follow-Up"
+                            >
+                              <MessageCircle className="w-3.5 h-3.5 fill-white/20" />
+                              <span>Chat WhatsApp</span>
+                            </a>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })
                 )}
               </tbody>
             </table>

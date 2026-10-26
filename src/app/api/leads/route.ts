@@ -29,8 +29,29 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: false, message: 'Nama dan Nomor WhatsApp wajib diisi' }, { status: 400 });
     }
 
-    const cleanWa = String(whatsapp).replace(/[^0-9]/g, '');
     const cleanName = String(name).trim();
+    if (cleanName.length < 2 || /^(test|testing|asdf|12345|qwerty|dwadawdwa)$/i.test(cleanName)) {
+      return NextResponse.json({
+        success: false,
+        message: 'Silakan masukkan nama lengkap yang valid.'
+      }, { status: 400 });
+    }
+
+    const digitsOnly = String(whatsapp).replace(/[^0-9]/g, '');
+    let cleanWa = digitsOnly;
+    if (cleanWa.startsWith('0')) {
+      cleanWa = '62' + cleanWa.slice(1);
+    } else if (cleanWa.startsWith('8')) {
+      cleanWa = '62' + cleanWa;
+    }
+
+    // Validasi nomor seluler Indonesia: wajib diawali 628 dengan panjang 11-15 digit
+    if (!cleanWa.startsWith('628') || cleanWa.length < 11 || cleanWa.length > 15) {
+      return NextResponse.json({
+        success: false,
+        message: 'Nomor WhatsApp tidak valid. Masukkan nomor HP Indonesia yang aktif diawali 08 atau +628 (contoh: 081234567890).'
+      }, { status: 400 });
+    }
 
     const newLead: LeadRecord = {
       id: 'lead_' + Date.now() + '_' + Math.floor(Math.random() * 1000),
@@ -42,10 +63,21 @@ export async function POST(request: Request) {
       createdAt: new Date().toISOString()
     };
 
-    // 1. Simpan di in-memory store
-    globalThis.__kondangLeads = [newLead, ...(globalThis.__kondangLeads || [])];
+    // 1. In-memory deduplication
+    const existingIndex = (globalThis.__kondangLeads || []).findIndex((l) => l.whatsapp === cleanWa);
+    if (existingIndex >= 0) {
+      globalThis.__kondangLeads![existingIndex] = {
+        ...globalThis.__kondangLeads![existingIndex],
+        name: cleanName,
+        score: typeof score === 'number' ? score : globalThis.__kondangLeads![existingIndex].score,
+        weakness: weakness || globalThis.__kondangLeads![existingIndex].weakness,
+        source
+      };
+    } else {
+      globalThis.__kondangLeads = [newLead, ...(globalThis.__kondangLeads || [])];
+    }
 
-    // 2. Simpan di MySQL jika database aktif
+    // 2. Simpan di MySQL jika database aktif dengan deduplikasi
     try {
       await initDatabase();
       const connection = await pool.getConnection();
@@ -62,10 +94,23 @@ export async function POST(request: Request) {
           ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
         `);
 
-        await connection.query(
-          `INSERT INTO leads (name, whatsapp, source, score, weakness) VALUES (?, ?, ?, ?, ?)`,
-          [cleanName, cleanWa, source, typeof score === 'number' ? score : null, weakness || null]
+        const [existing] = await connection.query<any[]>(
+          'SELECT id FROM leads WHERE whatsapp = ? ORDER BY id DESC LIMIT 1',
+          [cleanWa]
         );
+
+        if (Array.isArray(existing) && existing.length > 0) {
+          const existingId = existing[0].id;
+          await connection.query(
+            'UPDATE leads SET name = ?, score = ?, weakness = ?, source = ?, createdAt = CURRENT_TIMESTAMP WHERE id = ?',
+            [cleanName, typeof score === 'number' ? score : null, weakness || null, source, existingId]
+          );
+        } else {
+          await connection.query(
+            `INSERT INTO leads (name, whatsapp, source, score, weakness) VALUES (?, ?, ?, ?, ?)`,
+            [cleanName, cleanWa, source, typeof score === 'number' ? score : null, weakness || null]
+          );
+        }
       } finally {
         connection.release();
       }

@@ -14,6 +14,8 @@ import { AdminPortal } from '../components/AdminPortal';
 import { ProfileModal } from '../components/ProfileModal';
 import { LandingPage } from '../components/LandingPage';
 import { MiniTryoutExperience } from '../components/MiniTryoutExperience';
+import { FloatingWhatsAppButton } from '../components/FloatingWhatsAppButton';
+import { TermsModal } from '../components/TermsModal';
 import {
   Play,
   Award,
@@ -70,6 +72,7 @@ export default function HomePage() {
   const [copiedRegNo, setCopiedRegNo] = useState(false);
   const [miniTryoutOpen, setMiniTryoutOpen] = useState(false);
   const [authModalOpen, setAuthModalOpen] = useState(false);
+  const [termsModalOpen, setTermsModalOpen] = useState(false);
 
   // Active view: 'dashboard' | 'exam' | 'report' | 'review' | 'admin'
   const [view, setView] = useState<'dashboard' | 'exam' | 'report' | 'review' | 'admin'>('dashboard');
@@ -786,6 +789,7 @@ export default function HomePage() {
             setLoginError(`Silakan buat akun atau masuk terlebih dahulu untuk membeli ${pkg.name}. Akun langsung aktif!`);
             setAuthModalOpen(true);
           }}
+          onOpenTerms={() => setTermsModalOpen(true)}
         />
 
         {/* 1 Mini Tryout Gratis (10–15 Soal) Modal / Experience */}
@@ -1022,6 +1026,15 @@ export default function HomePage() {
             </div>
           </div>
         )}
+
+        {/* Terms & Policies Modal */}
+        <TermsModal
+          isOpen={termsModalOpen}
+          onClose={() => setTermsModalOpen(false)}
+        />
+
+        {/* Floating WhatsApp CS Button */}
+        <FloatingWhatsAppButton />
       </div>
     );
   }
@@ -1693,6 +1706,7 @@ export default function HomePage() {
           handlePaymentSuccess(pkgId, method);
           if (currentUser?.id) loadPendingPayments(currentUser.id);
         }}
+        onOpenTerms={() => setTermsModalOpen(true)}
       />
 
       {/* Pending Payments List Modal */}
@@ -1941,6 +1955,17 @@ export default function HomePage() {
           }}
           onClose={() => setMiniTryoutOpen(false)}
         />
+      )}
+
+      {/* Terms & Policies Modal */}
+      <TermsModal
+        isOpen={termsModalOpen}
+        onClose={() => setTermsModalOpen(false)}
+      />
+
+      {/* Floating WhatsApp Customer Support (Hidden during active CBT exam) */}
+      {view !== 'exam' && (
+        <FloatingWhatsAppButton />
       )}
     </div>
   );

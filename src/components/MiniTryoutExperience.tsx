@@ -26,9 +26,12 @@ import {
   CreditCard,
   ShieldCheck,
   RotateCcw,
-  Play
+  Play,
+  Phone
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
+import { WHATSAPP_CONTACT_NUMBER } from '../lib/dataStore';
+import { MarketingConsentModal } from './MarketingConsentModal';
 
 interface MiniTryoutExperienceProps {
   currentUser?: User | null;
@@ -41,12 +44,13 @@ export const MiniTryoutExperience: React.FC<MiniTryoutExperienceProps> = ({
   onOpenFullPackagePayment,
   onClose
 }) => {
-  const [stage, setStage] = useState<'lead_form' | 'exam' | 'result' | 'review'>(() => {
-    return currentUser ? 'exam' : 'lead_form';
-  });
+  const [stage, setStage] = useState<'exam' | 'unlock_result' | 'result' | 'review'>('exam');
 
   const [leadName, setLeadName] = useState(currentUser?.name || '');
   const [leadWhatsapp, setLeadWhatsapp] = useState('');
+  const [phoneError, setPhoneError] = useState('');
+  const [agreeTerms, setAgreeTerms] = useState(true);
+  const [showConsentModal, setShowConsentModal] = useState(false);
   const [submittingLead, setSubmittingLead] = useState(false);
 
   // Exam States
@@ -128,28 +132,74 @@ export const MiniTryoutExperience: React.FC<MiniTryoutExperienceProps> = ({
     return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
   };
 
-  // Start exam from Lead Form
-  const handleStartExamFromLead = async (e: React.FormEvent) => {
+  // Live sanitization for WhatsApp input (strictly numbers only, auto-strips leading 0 or +62)
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const raw = e.target.value.replace(/[^0-9]/g, '');
+    let cleaned = raw;
+    if (cleaned.startsWith('62')) {
+      cleaned = cleaned.slice(2);
+    }
+    if (cleaned.startsWith('0')) {
+      cleaned = cleaned.slice(1);
+    }
+    setLeadWhatsapp(cleaned);
+    if (phoneError) setPhoneError('');
+  };
+
+  // Handle unlock result form submission (Name & WhatsApp + ToS agreement)
+  const handleUnlockResult = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!leadName.trim() || !leadWhatsapp.trim()) return;
+    const trimmedName = leadName.trim();
+    if (!trimmedName || !leadWhatsapp.trim()) return;
+
+    if (trimmedName.length < 2 || /^(test|testing|asdf|12345|qwerty)$/i.test(trimmedName)) {
+      setPhoneError('Silakan masukkan nama lengkap yang valid (bukan teks testing).');
+      return;
+    }
+
+    // Validasi nomor WhatsApp seluler Indonesia (wajib 628...)
+    const normalizedPhone = '62' + leadWhatsapp.replace(/[^0-9]/g, '');
+    if (!normalizedPhone.startsWith('628') || normalizedPhone.length < 11 || normalizedPhone.length > 15) {
+      setPhoneError('Nomor WhatsApp tidak valid. Masukkan nomor HP aktif diawali angka 8 (contoh: 81234567890).');
+      return;
+    }
+
+    if (!agreeTerms) {
+      alert('Silakan centang persetujuan kontak WhatsApp & kebijakan informasi edukasi terlebih dahulu.');
+      return;
+    }
 
     setSubmittingLead(true);
+    setPhoneError('');
     try {
-      await fetch('/api/leads', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: leadName.trim(),
-          whatsapp: leadWhatsapp.trim(),
-          source: 'mini_tryout_12q'
-        })
-      });
+      if (examResult) {
+        const res = await fetch('/api/leads', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: trimmedName,
+            whatsapp: normalizedPhone,
+            score: examResult.totalScore,
+            weakness: `${examResult.weakestSection.name} (${examResult.weakestSection.accuracy}%)`,
+            source: 'mini_tryout'
+          })
+        });
+
+        const data = await res.json();
+        if (!data.success) {
+          setPhoneError(data.message || 'Gagal menyimpan data nomor WhatsApp.');
+          setSubmittingLead(false);
+          return;
+        }
+      }
     } catch (err) {
       console.warn('Lead capture notice:', err);
     } finally {
       setSubmittingLead(false);
-      setStage('exam');
-      setTimeLeft(TOTAL_TIME);
+      setStage('result');
+      if (examResult?.isPassed) {
+        confetti({ particleCount: 70, spread: 60, origin: { y: 0.6 } });
+      }
     }
   };
 
@@ -253,25 +303,14 @@ export const MiniTryoutExperience: React.FC<MiniTryoutExperienceProps> = ({
     };
 
     setExamResult(resultData);
-    setStage('result');
 
-    // Trigger celebratory confetti if passed
-    if (isPassed) {
-      confetti({ particleCount: 70, spread: 60, origin: { y: 0.6 } });
-    }
-
-    // Update lead with results
-    if (leadWhatsapp) {
-      fetch('/api/leads', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: leadName || 'Peserta Mini Tryout',
-          whatsapp: leadWhatsapp,
-          score: totalScore,
-          weakness: `${weakestSection.name} (${weakestSection.accuracy}%)`
-        })
-      }).catch(console.warn);
+    if (currentUser) {
+      setStage('result');
+      if (isPassed) {
+        confetti({ particleCount: 70, spread: 60, origin: { y: 0.6 } });
+      }
+    } else {
+      setStage('unlock_result');
     }
   };
 
@@ -309,45 +348,41 @@ export const MiniTryoutExperience: React.FC<MiniTryoutExperienceProps> = ({
         </div>
 
         {/* ========================================================= */}
-        {/* STAGE 1: LEAD FORM (NAME & WHATSAPP) */}
+        {/* STAGE: UNLOCK RESULT GATE (NAME, WHATSAPP, TOS) */}
         {/* ========================================================= */}
-        {stage === 'lead_form' && (
-          <div className="p-6 sm:p-10 overflow-y-auto max-w-xl mx-auto w-full space-y-6">
+        {stage === 'unlock_result' && examResult && (
+          <div className="p-6 sm:p-10 overflow-y-auto max-w-xl mx-auto w-full space-y-6 animate-in fade-in zoom-in-95 duration-200">
             <div className="text-center space-y-2">
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 border border-amber-200 text-amber-900 text-xs font-bold">
-                <Sparkles className="w-3.5 h-3.5 text-amber-600" />
-                <span>Simulasi Kilat 15 Menit • Skor & Analisis Instan</span>
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold">
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                <span>12 Soal Mini Tryout Selesai Dikerjakan!</span>
               </span>
               <h3 className="text-xl sm:text-2xl font-black text-stone-900 tracking-tight">
-                Cek Kesiapan Ujian JFT-Basic A2 Kamu Sekarang!
+                Masukkan Nama & WhatsApp untuk Melihat Nilai
               </h3>
               <p className="text-xs sm:text-sm text-stone-600 leading-relaxed">
-                Kerjakan 12 butir soal asli (Moji-Goi, Percakapan, Audio Chōkai, dan Teks Bacaan). Cukup masukkan nomor WhatsApp untuk mulai tanpa biaya sepeserpun!
+                Rapor skor Anda, persentase kebenaran 4 seksi (Moji-Goi, Kaiwa, Chōkai, Dokkai), dan kunci pembahasan jawaban benar/salah sudah siap diakses.
               </p>
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 py-2">
-              <div className="p-3 bg-stone-50 rounded-2xl border border-stone-200 text-center space-y-1">
-                <div className="text-base font-black text-stone-900">12 Soal</div>
-                <div className="text-[11px] text-stone-500 font-medium">4 Seksi Lengkap</div>
+            <div className="p-4 bg-stone-50 rounded-2xl border border-stone-200 grid grid-cols-3 gap-2 text-center">
+              <div className="space-y-0.5">
+                <div className="text-xs text-stone-400">Total Soal</div>
+                <div className="text-sm sm:text-base font-black text-stone-800">12 Soal</div>
               </div>
-              <div className="p-3 bg-sky-50 rounded-2xl border border-sky-200 text-center space-y-1">
-                <div className="text-base font-black text-sky-900">Audio Asli</div>
-                <div className="text-[11px] text-sky-600 font-medium">Seksi Chōkai</div>
+              <div className="space-y-0.5 border-x border-stone-200">
+                <div className="text-xs text-stone-400">Status</div>
+                <div className="text-sm sm:text-base font-black text-emerald-600">Selesai</div>
               </div>
-              <div className="p-3 bg-amber-50 rounded-2xl border border-amber-200 text-center space-y-1">
-                <div className="text-base font-black text-amber-900">15 Menit</div>
-                <div className="text-[11px] text-amber-600 font-medium">Timer Nyata</div>
-              </div>
-              <div className="p-3 bg-emerald-50 rounded-2xl border border-emerald-200 text-center space-y-1">
-                <div className="text-base font-black text-emerald-900">Gratis</div>
-                <div className="text-[11px] text-emerald-600 font-medium">Skor & Rapor</div>
+              <div className="space-y-0.5">
+                <div className="text-xs text-stone-400">Rapor & Kunci</div>
+                <div className="text-sm sm:text-base font-black text-indigo-600">Tersedia</div>
               </div>
             </div>
 
-            <form onSubmit={handleStartExamFromLead} className="space-y-4 pt-1">
+            <form onSubmit={handleUnlockResult} className="space-y-4 pt-1">
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-stone-700">Nama Lengkap Kamu:</label>
+                <label className="text-xs font-bold text-stone-700">Nama Lengkap Anda:</label>
                 <input
                   type="text"
                   required
@@ -359,26 +394,71 @@ export const MiniTryoutExperience: React.FC<MiniTryoutExperienceProps> = ({
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-stone-700">Nomor WhatsApp Aktif:</label>
-                <input
-                  type="tel"
-                  required
-                  value={leadWhatsapp}
-                  onChange={(e) => setLeadWhatsapp(e.target.value)}
-                  placeholder="Contoh: 081234567890"
-                  className="w-full p-3.5 bg-stone-50 border border-stone-200 rounded-2xl text-xs sm:text-sm font-medium text-stone-900 focus:outline-none focus:ring-2 focus:ring-red-500 focus:bg-white transition"
-                />
-                <p className="text-[11px] text-stone-400">
-                  Hasil skor dan analisis kelemahan akan langsung tampil di layar setelah Anda selesai.
-                </p>
+                <label className="text-xs font-bold text-stone-700 flex items-center justify-between">
+                  <span>Nomor WhatsApp Aktif:</span>
+                  <span className="text-[10px] text-stone-400 font-normal">Hanya digit nomor HP (tanpa huruf/test)</span>
+                </label>
+                <div className="relative flex items-center">
+                  <div className="absolute left-3.5 flex items-center gap-1.5 text-xs font-mono font-black text-stone-700 border-r border-stone-200 pr-2.5 py-0.5 select-none pointer-events-none">
+                    <Phone className="w-3.5 h-3.5 text-emerald-600" />
+                    <span>+62</span>
+                  </div>
+                  <input
+                    type="tel"
+                    inputMode="numeric"
+                    required
+                    value={leadWhatsapp}
+                    onChange={handlePhoneChange}
+                    maxLength={13}
+                    placeholder="812-3456-7890"
+                    className={`w-full pl-20 p-3.5 bg-stone-50 border rounded-2xl text-xs sm:text-sm font-mono font-bold text-stone-900 focus:outline-none focus:bg-white transition ${
+                      phoneError
+                        ? 'border-red-500 focus:ring-2 focus:ring-red-400 bg-red-50/40'
+                        : 'border-stone-200 focus:ring-2 focus:ring-emerald-500'
+                    }`}
+                  />
+                </div>
+                {phoneError ? (
+                  <p className="text-[11px] text-red-600 font-bold flex items-center gap-1 pt-0.5">
+                    <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
+                    <span>{phoneError}</span>
+                  </p>
+                ) : (
+                  <p className="text-[10px] text-stone-400">
+                    Ketik nomor HP mulai dari angka 8 (contoh: 81234567890). Awalan +62 terpasang otomatis.
+                  </p>
+                )}
+              </div>
+
+              {/* WhatsApp Marketing & Contact Consent Box */}
+              <div className="p-3.5 bg-stone-50 rounded-2xl border border-stone-200 space-y-2">
+                <label className="flex items-start gap-2.5 cursor-pointer text-[11px] text-stone-700 leading-relaxed font-medium">
+                  <input
+                    type="checkbox"
+                    checked={agreeTerms}
+                    onChange={(e) => setAgreeTerms(e.target.checked)}
+                    className="mt-0.5 rounded border-stone-300 text-emerald-600 focus:ring-emerald-500 cursor-pointer shrink-0"
+                  />
+                  <span>
+                    Saya bersedia memberikan nama dan nomor WhatsApp untuk membuka rapor nilai, serta menyetujui{' '}
+                    <button
+                      type="button"
+                      onClick={() => setShowConsentModal(true)}
+                      className="text-emerald-700 hover:text-emerald-900 underline font-bold cursor-pointer"
+                    >
+                      Persetujuan Kontak WhatsApp & Informasi Edukasi
+                    </button>{' '}
+                    KondangSensei (termasuk konsultasi belajar & informasi penawaran program simulasi JFT).
+                  </span>
+                </label>
               </div>
 
               <button
                 type="submit"
-                disabled={submittingLead}
-                className="w-full py-4 px-6 bg-gradient-to-r from-red-600 via-rose-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-black text-sm rounded-2xl shadow-lg shadow-red-500/25 transition flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 transform hover:-translate-y-0.5"
+                disabled={submittingLead || !agreeTerms}
+                className="w-full py-4 px-6 bg-gradient-to-r from-red-600 via-rose-600 to-red-700 hover:from-red-700 hover:to-rose-800 text-white font-black text-sm rounded-2xl shadow-lg shadow-red-500/25 transition flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 transform hover:-translate-y-0.5"
               >
-                <span>Mulai Mini Tryout Sekarang (15 Menit)</span>
+                <span>{submittingLead ? 'Membuka Rapor...' : 'Buka Rapor Hasil & Pembahasan Soal Sekarang'}</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
             </form>
@@ -739,7 +819,7 @@ export const MiniTryoutExperience: React.FC<MiniTryoutExperienceProps> = ({
 
                 {/* WhatsApp Consultation Link with Prefilled Diagnostic Score */}
                 <a
-                  href={`https://wa.me/6281299998888?text=${encodeURIComponent(
+                  href={`https://wa.me/${WHATSAPP_CONTACT_NUMBER.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(
                     `Halo Admin KondangSensei, saya baru saja menyelesaikan Mini Tryout JFT Gratis dengan skor ${examResult.totalScore}/250. Kelemahan utama saya di ${examResult.weakestSection.name}. Saya mau tanya paket simulasi full length untuk persiapan kerja ke Jepang.`
                   )}`}
                   target="_blank"
@@ -877,6 +957,12 @@ export const MiniTryoutExperience: React.FC<MiniTryoutExperienceProps> = ({
           </div>
         )}
       </div>
+
+      {/* WhatsApp Marketing Consent Modal */}
+      <MarketingConsentModal
+        isOpen={showConsentModal}
+        onClose={() => setShowConsentModal(false)}
+      />
     </div>
   );
 };
