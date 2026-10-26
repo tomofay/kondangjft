@@ -15,10 +15,10 @@ interface ExamSetRow extends RowDataPacket {
 // GET: Ambil semua daftar paket ujian dari MySQL (fallback ke memory store)
 export async function GET() {
   try {
-    await initDatabase();
-    await syncExamSetsToDatabase();
-
     try {
+      await initDatabase();
+      await syncExamSetsToDatabase();
+
       const [rows] = await pool.query<ExamSetRow[]>('SELECT * FROM exam_sets ORDER BY id ASC');
       if (rows && rows.length > 0) {
         const examSets: ExamSet[] = rows.map((r) => ({
@@ -39,8 +39,8 @@ export async function GET() {
     const store = getStore();
     return NextResponse.json({ success: true, examSets: store.examSets || EXAM_SETS });
   } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
-    return NextResponse.json({ success: false, message }, { status: 500 });
+    console.warn('Exam sets fallback triggered:', error);
+    return NextResponse.json({ success: true, examSets: EXAM_SETS });
   }
 }
 

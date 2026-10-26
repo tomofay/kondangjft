@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { TryoutPackage, User } from '../types';
+import { DEFAULT_PACKAGES } from '../lib/dataStore';
 import {
   ShieldCheck,
   Flame,
@@ -35,7 +36,9 @@ export const PackagePaymentModal: React.FC<PackagePaymentModalProps> = ({
   onClose,
   onPaymentSuccess
 }) => {
-  const availablePackages = packages.filter((p) => p.id !== 'pkg_special_1h' && p.price > 100 && !p.firstTimeOnly);
+  const availablePackages = (packages && packages.length > 0 ? packages : DEFAULT_PACKAGES).filter(
+    (p) => p.id !== 'pkg_special_1h' && p.price > 100 && !p.firstTimeOnly
+  );
   const defaultPackage = availablePackages.find((p) => p.popular) || availablePackages[0] || null;
   const [selectedPkg, setSelectedPkg] = useState<TryoutPackage | null>(defaultPackage);
 

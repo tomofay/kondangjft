@@ -21,13 +21,13 @@ interface QuestionRow extends RowDataPacket {
 
 // GET: Ambil semua soal dari MySQL (dengan fallback ke memory store)
 export async function GET(request: Request) {
-  try {
-    await initDatabase();
-    const { searchParams } = new URL(request.url);
-    const packageIdParam = searchParams.get('packageId');
-    const syncParam = searchParams.get('sync');
+  const { searchParams } = new URL(request.url);
+  const packageIdParam = searchParams.get('packageId');
+  const syncParam = searchParams.get('sync');
 
+  try {
     try {
+      await initDatabase();
       if (syncParam === 'true') {
         await syncQuestionsToDatabase(undefined, true);
       }
@@ -79,8 +79,12 @@ export async function GET(request: Request) {
 
     return NextResponse.json({ success: true, questions });
   } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
-    return NextResponse.json({ success: false, message }, { status: 500 });
+    const store = getStore();
+    let questions = store.questions || [];
+    if (packageIdParam) {
+      questions = questions.filter((q) => q.packageId === Number(packageIdParam));
+    }
+    return NextResponse.json({ success: true, questions });
   }
 }
 

@@ -30,6 +30,7 @@ import {
   MapPin
 } from 'lucide-react';
 import { TryoutPackage } from '../types';
+import { DEFAULT_PACKAGES } from '../lib/dataStore';
 
 interface LandingPageProps {
   packages: TryoutPackage[];
@@ -417,7 +418,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {packages
+            {(packages && packages.length > 0 ? packages : DEFAULT_PACKAGES)
               .filter((p) => p.id !== 'pkg_special_1h' && p.price > 100 && !p.firstTimeOnly)
               .map((pkg) => {
                 const isPromo = pkg.firstTimeOnly;
@@ -695,7 +696,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
             <span className="font-black text-white">KondangSensei CBT</span>
-            <span>• Hak Cipta © {new Date().getFullYear()} KondangSensei Indonesia</span>
+            <span>• Hak Cipta © 2026 KondangSensei Indonesia</span>
           </div>
 
           <div className="text-[11px] text-stone-600 text-center sm:text-right">

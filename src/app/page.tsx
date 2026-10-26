@@ -57,7 +57,7 @@ export default function HomePage() {
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [isSessionLocked, setIsSessionLocked] = useState(false);
   const [sessionLockMessage, setSessionLockMessage] = useState('');
-  const [isRestoringAuth, setIsRestoringAuth] = useState(true);
+  const [isRestoringAuth, setIsRestoringAuth] = useState(false);
 
   // Auth mode: 'login' | 'signup'
   const [authMode, setAuthMode] = useState<'login' | 'signup'>('login');
@@ -76,13 +76,10 @@ export default function HomePage() {
 
   // App Data & Selected Question Package (1, 2, 3, 4, 5, ...)
   const [questions, setQuestions] = useState<Question[]>(() => getStore().questions);
-  const [examSets, setExamSets] = useState<ExamSet[]>(() => getStore().examSets || EXAM_SETS);
+  const [examSets, setExamSets] = useState<ExamSet[]>(() => (getStore().examSets && getStore().examSets.length > 0 ? getStore().examSets : EXAM_SETS));
   const [selectedPackageId, setSelectedPackageId] = useState<number>(1);
   const [examResults, setExamResults] = useState<ExamResult[]>(() => getStore().examResults);
-  const [packages] = useState<TryoutPackage[]>(() => {
-    const storePkgs = getStore().packages;
-    return storePkgs && storePkgs.length > 0 ? storePkgs : DEFAULT_PACKAGES;
-  });
+  const [packages] = useState<TryoutPackage[]>(DEFAULT_PACKAGES);
   const [transactions, setTransactions] = useState<Transaction[]>(() => getStore().transactions);
   const [pdfDrafts, setPdfDrafts] = useState<PDFQuestionDraft[]>(() => getStore().pdfDrafts);
   const [adminUsers, setAdminUsers] = useState<User[]>(() => getStore().users);
@@ -236,15 +233,20 @@ export default function HomePage() {
   useEffect(() => {
     async function restoreSession() {
       try {
-        const savedUserId = localStorage.getItem('kondang_user_id');
-        const savedSessionId = localStorage.getItem('kondang_session_id');
+        const savedUserId = typeof window !== 'undefined' ? localStorage.getItem('kondang_user_id') : null;
+        const savedSessionId = typeof window !== 'undefined' ? localStorage.getItem('kondang_session_id') : null;
 
-        if (savedUserId && savedSessionId) {
-          const res = await fetch('/api/auth/restore', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ userId: savedUserId, sessionId: savedSessionId })
-          });
+        if (!savedUserId || !savedSessionId) {
+          return;
+        }
+
+        setIsRestoringAuth(true);
+
+        const res = await fetch('/api/auth/restore', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId: savedUserId, sessionId: savedSessionId })
+        });
           const data = await res.json();
           if (data.success && data.user) {
             setCurrentUser(data.user);
@@ -284,8 +286,7 @@ export default function HomePage() {
               setSessionLockMessage(data.message || 'Akun Anda telah diakses di perangkat lain.');
             }
           }
-        }
-      } catch (err) {
+        } catch (err) {
         console.warn('Failed to restore session from localStorage:', err);
       } finally {
         setIsRestoringAuth(false);
@@ -1564,7 +1565,7 @@ export default function HomePage() {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {examSets.map((set, setIdx) => {
+                {(examSets && examSets.length > 0 ? examSets : EXAM_SETS).map((set, setIdx) => {
                   const setQuestionCount = questions.filter((q) => (q.packageId || 1) === set.id).length;
                   const isSelected = selectedPackageId === set.id;
 
