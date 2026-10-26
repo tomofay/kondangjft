@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { User, Question, ExamResult, TryoutPackage, Transaction, UserAnswer, PDFQuestionDraft, ExamSet } from '../types';
-import { getStore, isSubscriptionActive, getRemainingDays, getRemainingSubscriptionText, EXAM_SETS, DEFAULT_ANONYMOUS_PHOTO } from '../lib/dataStore';
+import { getStore, isSubscriptionActive, getRemainingDays, getRemainingSubscriptionText, EXAM_SETS, DEFAULT_PACKAGES, DEFAULT_ANONYMOUS_PHOTO } from '../lib/dataStore';
 import { Navbar } from '../components/Navbar';
 import { SingleSessionLockModal } from '../components/SingleSessionLockModal';
 import { CbtExamEngine } from '../components/CbtExamEngine';
@@ -79,7 +79,10 @@ export default function HomePage() {
   const [examSets, setExamSets] = useState<ExamSet[]>(() => getStore().examSets || EXAM_SETS);
   const [selectedPackageId, setSelectedPackageId] = useState<number>(1);
   const [examResults, setExamResults] = useState<ExamResult[]>(() => getStore().examResults);
-  const [packages] = useState<TryoutPackage[]>(() => getStore().packages);
+  const [packages] = useState<TryoutPackage[]>(() => {
+    const storePkgs = getStore().packages;
+    return storePkgs && storePkgs.length > 0 ? storePkgs : DEFAULT_PACKAGES;
+  });
   const [transactions, setTransactions] = useState<Transaction[]>(() => getStore().transactions);
   const [pdfDrafts, setPdfDrafts] = useState<PDFQuestionDraft[]>(() => getStore().pdfDrafts);
   const [adminUsers, setAdminUsers] = useState<User[]>(() => getStore().users);

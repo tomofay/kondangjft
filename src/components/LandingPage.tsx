@@ -26,7 +26,8 @@ import {
   Check,
   Flame,
   Layers,
-  Lock
+  Lock,
+  MapPin
 } from 'lucide-react';
 import { TryoutPackage } from '../types';
 
@@ -67,6 +68,14 @@ export const LandingPage: React.FC<LandingPageProps> = ({
     {
       q: 'Apakah lembar hasil evaluasi / sertifikat bisa diunduh ke PDF?',
       a: 'Ya! Setiap kali menyelesaikan simulasi ujian, sistem otomatis menerbitkan Lembar Rapor Evaluasi Hasil Simulasi resmi format A4 yang dapat Anda cetak atau unduh langsung dalam format PDF dan PNG resolusi tinggi.'
+    },
+    {
+      q: 'Apakah peserta atau siswa LPK dari Bogor dan sekitarnya bisa ikut simulasi ini?',
+      a: 'Tentu saja! Platform simulasi CBT KondangSensei (kondangsensei.my.id) beroperasi 100% online berbasis web. Peserta mandiri, siswa LPK bahasa Jepang di Kota Bogor, Kabupaten Bogor, Cibinong, Depok, Jabodetabek, hingga seluruh Indonesia dapat berlatih kapan saja langsung dari laptop atau smartphone tanpa perlu instalasi aplikasi.'
+    },
+    {
+      q: 'Bagaimana simulasi ini mempersiapkan peserta asal Bogor untuk ujian resmi Prometric?',
+      a: 'Calon pekerja SSW asal Bogor dan Jawa Barat umumnya mengikuti tes resmi JFT-Basic A2 di Prometric Test Center Jakarta dan sekitarnya. Simulasi CBT KondangSensei dirancang presisi meniru antarmuka Prometric asli — termasuk pembagian waktu 60 menit dan audio Chōkai anti-pause — sehingga peserta sudah terbiasa dan percaya diri saat menghadapi tes sesungguhnya.'
     }
   ];
 
@@ -76,8 +85,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       {/* 1. TOP ANNOUNCEMENT BAR */}
       {/* ========================================================= */}
       <div className="bg-gradient-to-r from-stone-900 via-rose-950 to-stone-900 text-white py-2 px-4 text-center text-xs font-semibold flex items-center justify-center gap-2 border-b border-rose-900/30">
-        <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-        <span>🔥 Promo Pengguna Baru: Coba 1 Mini Tryout Gratis (12 Soal) & Skor Real-Time Langsung di Layar!</span>
+        <span className="inline-flex items-center gap-1.5">
+          <Flame className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+          <span>Promo Pengguna Baru: Coba 1 Mini Tryout Gratis (12 Soal) & Skor Real-Time Langsung di Layar!</span>
+        </span>
         <button
           onClick={onOpenMiniTryout}
           className="hidden sm:inline-flex underline font-bold text-amber-300 hover:text-white transition cursor-pointer"
@@ -559,6 +570,49 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 <div>
                   <div className="font-bold text-xs text-stone-900">Rizky Wahyudi</div>
                   <div className="text-[10px] text-stone-500">SSW Pertanian, Gunma</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ========================================================= */}
+      {/* 7.5. LOCAL SEO & REGIONAL COVERAGE (BOGOR & INDONESIA) */}
+      {/* ========================================================= */}
+      <section className="py-12 bg-white border-t border-stone-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="bg-gradient-to-r from-rose-50/60 via-stone-50 to-amber-50/60 rounded-3xl border border-stone-200/90 p-6 sm:p-10 space-y-6 shadow-2xs">
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+              <div className="space-y-3 max-w-2xl">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white border border-stone-200 text-stone-800 text-xs font-black uppercase tracking-wider shadow-2xs">
+                  <MapPin className="w-3.5 h-3.5 text-red-600" />
+                  <span>Jangkauan Simulasi CBT JFT A2 Bogor, Jabodetabek &amp; Nasional</span>
+                </span>
+                <h3 className="text-xl sm:text-2xl font-black text-stone-900 tracking-tight leading-snug">
+                  Persiapan Ujian JFT-Basic A2 untuk Peserta &amp; LPK di Bogor &amp; Sekitarnya
+                </h3>
+                <p className="text-xs sm:text-sm text-stone-600 leading-relaxed">
+                  Bagi pembelajar bahasa Jepang, siswa mandiri, maupun lembaga pelatihan kerja (LPK) di wilayah <strong>Kota Bogor, Kabupaten Bogor, Cibinong, Depok, dan Jabodetabek</strong> yang hendak mengikuti tes resmi di Prometric Test Center, <strong>KondangSensei</strong> menyediakan fasilitas simulasi ujian CBT online penuh yang dapat diakses 24 jam tanpa batas ruang dan waktu.
+                </p>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3 sm:gap-4 shrink-0">
+                <div className="p-4 bg-white rounded-2xl border border-stone-200 shadow-2xs text-center space-y-1">
+                  <div className="text-lg font-black text-red-600">100% Online</div>
+                  <div className="text-[11px] text-stone-500 font-semibold">Akses Kapan Saja dari Bogor</div>
+                </div>
+                <div className="p-4 bg-white rounded-2xl border border-stone-200 shadow-2xs text-center space-y-1">
+                  <div className="text-lg font-black text-stone-900">Standar Prometric</div>
+                  <div className="text-[11px] text-stone-500 font-semibold">Seksi S1 - S4 Lengkap</div>
+                </div>
+                <div className="p-4 bg-white rounded-2xl border border-stone-200 shadow-2xs text-center space-y-1">
+                  <div className="text-lg font-black text-stone-900">Audio Chōkai</div>
+                  <div className="text-[11px] text-stone-500 font-semibold">Standar Japan Foundation</div>
+                </div>
+                <div className="p-4 bg-white rounded-2xl border border-stone-200 shadow-2xs text-center space-y-1">
+                  <div className="text-lg font-black text-emerald-600">Mini Tryout 0 Rp</div>
+                  <div className="text-[11px] text-stone-500 font-semibold">Langsung Coba Sekarang</div>
                 </div>
               </div>
             </div>

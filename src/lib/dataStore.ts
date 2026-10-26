@@ -105,6 +105,33 @@ export function getRemainingSubscriptionText(user: User | null): string {
   return `${remainingDays} Hari`;
 }
 
+export const DEFAULT_PACKAGES: TryoutPackage[] = [
+  {
+    id: 'pkg_7d',
+    name: 'Paket 1 Minggu',
+    description: 'Akses Tryout JFT-Basic Tanpa Batas (Unlimited) selama 7 Hari + Pembahasan Lengkap & Rapor Evaluasi',
+    durationDays: 7,
+    price: 35000,
+    popular: false
+  },
+  {
+    id: 'pkg_14d',
+    name: 'Paket 2 Minggu',
+    description: 'Akses Tryout JFT-Basic Tanpa Batas (Unlimited) selama 14 Hari + Pembahasan Detail & Evaluasi',
+    durationDays: 14,
+    price: 59000,
+    popular: true
+  },
+  {
+    id: 'pkg_30d',
+    name: 'Paket 1 Bulan',
+    description: 'Akses Tryout JFT-Basic Tanpa Batas (Unlimited) selama 30 Hari + Bank Soal & PDF Parser Importer',
+    durationDays: 30,
+    price: 99000,
+    popular: false
+  }
+];
+
 // In-Memory Global State (persisted across request handlers in Next.js Node process)
 globalThis.__kondangStore = globalThis.__kondangStore || {
   users: [
@@ -162,7 +189,7 @@ globalThis.__kondangStore = globalThis.__kondangStore || {
 
   examResults: [],
 
-  packages: [],
+  packages: [...DEFAULT_PACKAGES],
 
   transactions: [],
 
@@ -171,38 +198,15 @@ globalThis.__kondangStore = globalThis.__kondangStore || {
   examSets: [...EXAM_SETS]
 };
 
-export const DEFAULT_PACKAGES: TryoutPackage[] = [
-  {
-    id: 'pkg_7d',
-    name: 'Paket 1 Minggu',
-    description: 'Akses Tryout JFT-Basic Tanpa Batas (Unlimited) selama 7 Hari + Pembahasan Lengkap & Rapor Evaluasi',
-    durationDays: 7,
-    price: 35000,
-    popular: false
-  },
-  {
-    id: 'pkg_14d',
-    name: 'Paket 2 Minggu',
-    description: 'Akses Tryout JFT-Basic Tanpa Batas (Unlimited) selama 14 Hari + Pembahasan Detail & Evaluasi',
-    durationDays: 14,
-    price: 59000,
-    popular: true
-  },
-  {
-    id: 'pkg_30d',
-    name: 'Paket 1 Bulan',
-    description: 'Akses Tryout JFT-Basic Tanpa Batas (Unlimited) selama 30 Hari + Bank Soal & PDF Parser Importer',
-    durationDays: 30,
-    price: 99000,
-    popular: false
-  }
-];
-
 export const getStore = () => {
   const store = globalThis.__kondangStore!;
   // Ensure default packages list is always up-to-date and 100 perak promo is purged
-  if (!store.packages || store.packages.some((p) => p.id === 'pkg_special_1h' || p.price === 100 || p.firstTimeOnly)) {
-    store.packages = DEFAULT_PACKAGES;
+  if (
+    !store.packages ||
+    store.packages.length === 0 ||
+    store.packages.some((p) => p.id === 'pkg_special_1h' || p.price === 100 || p.firstTimeOnly)
+  ) {
+    store.packages = [...DEFAULT_PACKAGES];
   }
   if (!store.examSets || store.examSets.length === 0) {
     store.examSets = [...EXAM_SETS];

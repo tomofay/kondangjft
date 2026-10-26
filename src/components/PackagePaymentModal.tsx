@@ -38,6 +38,13 @@ export const PackagePaymentModal: React.FC<PackagePaymentModalProps> = ({
   const availablePackages = packages.filter((p) => p.id !== 'pkg_special_1h' && p.price > 100 && !p.firstTimeOnly);
   const defaultPackage = availablePackages.find((p) => p.popular) || availablePackages[0] || null;
   const [selectedPkg, setSelectedPkg] = useState<TryoutPackage | null>(defaultPackage);
+
+  useEffect(() => {
+    if (!selectedPkg || !availablePackages.some((p) => p.id === selectedPkg.id)) {
+      if (defaultPackage) setSelectedPkg(defaultPackage);
+    }
+  }, [availablePackages, defaultPackage, selectedPkg]);
+
   const [selectedChannel, setSelectedChannel] = useState<string>('QRIS');
   const [isProcessing, setIsProcessing] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
