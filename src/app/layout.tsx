@@ -74,7 +74,7 @@ export const metadata: Metadata = {
     type: "website",
     images: [
       {
-        url: "/og-image.svg",
+        url: "/og-image.png",
         width: 1200,
         height: 630,
         alt: "Simulasi JFT A2 Online KondangSensei Bogor & Indonesia",
@@ -86,7 +86,7 @@ export const metadata: Metadata = {
     title: "Simulasi JFT A2 Online & Tryout CBT Gratis | KondangSensei Bogor & Indonesia",
     description:
       "Simulasi CBT JFT-Basic A2 99% mirip ujian aslinya. Latihan soal resmi untuk peserta Tokutei Ginou SSW di Bogor & seluruh Indonesia di kondangsensei.my.id!",
-    images: ["/og-image.svg"],
+    images: ["/og-image.png"],
   },
   icons: {
     icon: "/favicon.svg",
@@ -113,7 +113,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         "name": "KondangSensei Indonesia",
         "url": "https://kondangsensei.my.id",
         "logo": "https://kondangsensei.my.id/favicon.svg",
-        "image": "https://kondangsensei.my.id/og-image.svg",
+        "image": "https://kondangsensei.my.id/og-image.png",
         "description": "Pusat Simulasi Ujian CBT JFT-Basic A2 Bahasa Jepang untuk Program Tokutei Ginou (SSW) di Bogor, Jabodetabek, dan Seluruh Indonesia",
         "address": {
           "@type": "PostalAddress",
