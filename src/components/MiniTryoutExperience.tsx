@@ -720,7 +720,7 @@ export const MiniTryoutExperience: React.FC<MiniTryoutExperienceProps> = ({
                   &ldquo;Mau latihan soal full-length yang mirip ujian aslinya biar makin siap? Buka akses 5 Paket Simulasi Full cuma Rp35.000!&rdquo;
                 </h3>
                 <p className="text-xs sm:text-sm text-stone-300 leading-relaxed">
-                  Buka akses <strong>5 Paket Simulasi Full (250 Soal Asli + Audio Chōkai Lengkap + Rapor Sertifikat Otomatis)</strong>. Bebas retake berkali-kali tanpa batas!
+                  Buka akses <strong>5 Paket Simulasi Full (250 Soal Asli + Audio Chōkai Lengkap + Lembar Hasil Evaluasi &amp; Sertifikat PDF)</strong>. Bebas retake berkali-kali tanpa batas!
                 </p>
               </div>
 

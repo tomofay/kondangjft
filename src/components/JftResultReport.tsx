@@ -386,7 +386,7 @@ export const JftResultReport: React.FC<JftResultReportProps> = ({
           <div className="w-full flex items-center justify-between pb-2.5 px-2 text-[11px] text-stone-500 font-medium">
             <span className="flex items-center gap-1.5">
               <span className="inline-block w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-              Sertifikat A4 otomatis disesuaikan ({Math.round(scale * 100)}%)
+              Sertifikat otomatis disesuaikan ({Math.round(scale * 100)}%)
             </span>
             <button
               type="button"

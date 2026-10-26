@@ -1173,7 +1173,7 @@ export default function HomePage() {
                   Uji Level Pemahaman & Deteksi Kelemahan Utama Anda (12 Soal)
                 </h3>
                 <p className="text-xs text-rose-100">
-                  Format CBT resmi 15 menit dengan audio Chōkai anti-cheat & evaluasi skor langsung untuk mengidentifikasi seksi yang perlu diperdalam.
+                  Format CBT resmi 15 menit dengan audio Chōkai standar ujian &amp; evaluasi skor langsung untuk mengidentifikasi seksi yang perlu diperdalam.
                 </p>
               </div>
               <button

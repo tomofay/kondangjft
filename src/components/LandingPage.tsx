@@ -59,7 +59,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
     },
     {
       q: 'Berapa banyak paket simulasi ujian yang tersedia?',
-      a: 'Kami menyediakan 5 Paket Ujian Lengkap (250 butir soal asli) yang mencakup 4 seksi ujian: Moji & Goi, Kaiwa & Hyougen, Chōkai (Audio), dan Dokkai (Bacaan). Setiap paket dilengkapi pembahasan detail dan rapor sertifikat A4 resmi.'
+      a: 'Kami menyediakan 5 Paket Ujian Lengkap (250 butir soal asli) yang mencakup 4 seksi ujian: Moji & Goi, Kaiwa & Hyougen, Chōkai (Audio), dan Dokkai (Bacaan). Setiap paket dilengkapi pembahasan detail serta Lembar Hasil Evaluasi & Sertifikat Resmi (PDF).'
     },
     {
       q: 'Metode pembayaran apa saja yang didukung?',
@@ -67,7 +67,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
     },
     {
       q: 'Apakah lembar hasil evaluasi / sertifikat bisa diunduh ke PDF?',
-      a: 'Ya! Setiap kali menyelesaikan simulasi ujian, sistem otomatis menerbitkan Lembar Rapor Evaluasi Hasil Simulasi resmi format A4 yang dapat Anda cetak atau unduh langsung dalam format PDF dan PNG resolusi tinggi.'
+      a: 'Ya! Setiap kali menyelesaikan simulasi ujian, sistem otomatis menerbitkan Lembar Hasil Evaluasi & Sertifikat resmi yang siap cetak atau diunduh langsung dalam format PDF dan PNG resolusi tinggi.'
     },
     {
       q: 'Apakah peserta atau siswa LPK dari Bogor dan sekitarnya bisa ikut simulasi ini?',
@@ -75,7 +75,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
     },
     {
       q: 'Bagaimana simulasi ini mempersiapkan peserta asal Bogor untuk ujian resmi Prometric?',
-      a: 'Calon pekerja SSW asal Bogor dan Jawa Barat umumnya mengikuti tes resmi JFT-Basic A2 di Prometric Test Center Jakarta dan sekitarnya. Simulasi CBT KondangSensei dirancang presisi meniru antarmuka Prometric asli — termasuk pembagian waktu 60 menit dan audio Chōkai anti-pause — sehingga peserta sudah terbiasa dan percaya diri saat menghadapi tes sesungguhnya.'
+      a: 'Calon pekerja SSW asal Bogor dan Jawa Barat umumnya mengikuti tes resmi JFT-Basic A2 di Prometric Test Center Jakarta dan sekitarnya. Simulasi CBT KondangSensei dirancang presisi meniru antarmuka Prometric asli — termasuk pembagian waktu 60 menit dan audio Chōkai standar Prometric (maks. 2x putar) — sehingga peserta sudah terbiasa dan percaya diri saat menghadapi tes sesungguhnya.'
     }
   ];
 
@@ -166,7 +166,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             </h1>
 
             <p className="text-xs sm:text-base text-stone-600 leading-relaxed max-w-2xl mx-auto">
-              Kuasai ujian kerja Tokutei Ginou (SSW) Jepang dengan latihan soal asli, audio Chōkai anti-cheat, skor real-time, dan rapor evaluasi resmi standar The Japan Foundation.
+              Kuasai ujian kerja Tokutei Ginou (SSW) Jepang dengan latihan soal asli, audio Chōkai terstandar, skor real-time, dan lembar hasil evaluasi resmi The Japan Foundation.
             </p>
 
             {/* Quick action buttons */}
@@ -196,11 +196,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               </span>
               <span className="flex items-center gap-1.5">
                 <Check className="w-4 h-4 text-emerald-600" />
-                <span>Audio Chōkai Anti-Cheat</span>
+                <span>Audio Chōkai Standar Ujian Asli</span>
               </span>
               <span className="flex items-center gap-1.5">
                 <Check className="w-4 h-4 text-emerald-600" />
-                <span>Rapor Sertifikat PDF Resmi</span>
+                <span>Lembar Hasil Evaluasi &amp; Sertifikat PDF</span>
               </span>
               <span className="flex items-center gap-1.5">
                 <Check className="w-4 h-4 text-emerald-600" />
@@ -313,9 +313,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               <div className="w-12 h-12 rounded-2xl bg-sky-100 text-sky-600 flex items-center justify-center font-bold">
                 <Volume2 className="w-6 h-6" />
               </div>
-              <h3 className="text-base font-black text-sky-950">Audio Chōkai Anti-Cheat</h3>
+              <h3 className="text-base font-black text-sky-950">Audio Chōkai Standar Ujian Asli</h3>
               <p className="text-xs text-sky-800/80 leading-relaxed">
-                Pemutar audio otomatis yang tidak bisa digeser atau dimajukan, dibatasi maksimal 2 kali putar agar Anda terbiasa dengan kecepatan percakapan penutur asli Jepang.
+                Pemutar audio otomatis yang mengikuti standar Prometric, dibatasi maksimal 2 kali putar agar Anda terbiasa dengan kecepatan percakapan penutur asli Jepang.
               </p>
             </div>
 
@@ -324,9 +324,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               <div className="w-12 h-12 rounded-2xl bg-amber-100 text-amber-700 flex items-center justify-center font-bold">
                 <Award className="w-6 h-6" />
               </div>
-              <h3 className="text-base font-black text-amber-950">Rapor & Sertifikat PDF A4</h3>
+              <h3 className="text-base font-black text-amber-950">Lembar Hasil Evaluasi &amp; Sertifikat (PDF)</h3>
               <p className="text-xs text-amber-800/80 leading-relaxed">
-                Setiap selesai simulasi, rapor evaluasi resmi langsung diterbitkan lengkap dengan foto peserta, passing benchmark A2, dan tombol unduh PDF format A4.
+                Setiap selesai simulasi, lembar evaluasi resmi langsung diterbitkan lengkap dengan foto peserta, passing benchmark A2, dan tombol cetak/unduh PDF.
               </p>
             </div>
 
@@ -373,7 +373,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               <div className="grid grid-cols-3 p-4 sm:p-5 items-center">
                 <div className="font-bold text-stone-800">Audio Chōkai Realistis</div>
                 <div className="text-center text-stone-500">Bisa diulang-ulang sesuka hati</div>
-                <div className="text-center font-bold text-emerald-700">Maks. 2x Putar (Anti-Cheat)</div>
+                <div className="text-center font-bold text-emerald-700">Maks. 2x Putar Otomatis</div>
               </div>
 
               <div className="grid grid-cols-3 p-4 sm:p-5 items-center">
@@ -389,9 +389,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               </div>
 
               <div className="grid grid-cols-3 p-4 sm:p-5 items-center">
-                <div className="font-bold text-stone-800">Sertifikat / Rapor</div>
-                <div className="text-center text-stone-500">Tidak ada rapor resmi</div>
-                <div className="text-center font-bold text-emerald-700">Rapor PDF Standar A4</div>
+                <div className="font-bold text-stone-800">Sertifikat / Lembar Hasil Ujian</div>
+                <div className="text-center text-stone-500">Tidak ada sertifikat resmi</div>
+                <div className="text-center font-bold text-emerald-700">Lembar Hasil Evaluasi &amp; Sertifikat (PDF)</div>
               </div>
             </div>
           </div>
@@ -412,7 +412,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               &ldquo;Mau latihan soal full-length yang mirip ujian aslinya biar makin siap? Buka akses 5 Paket Simulasi Full cuma Rp35.000!&rdquo;
             </h2>
             <p className="text-xs sm:text-sm text-stone-600 leading-relaxed">
-              Dapatkan total <strong>250 Soal Asli JFT-Basic A2 (5 Paket Penuh)</strong> dengan audio Chōkai anti-cheat, sistem skoring Prometric otomatis, dan sertifikat kelulusan A2.
+              Dapatkan total <strong>250 Soal Asli JFT-Basic A2 (5 Paket Penuh)</strong> dengan audio Chōkai standar ujian, sistem skoring Prometric otomatis, dan sertifikat kelulusan A2.
             </p>
           </div>
 
@@ -468,11 +468,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                       </div>
                       <div className="flex items-center gap-2">
                         <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                        <span>Audio Chōkai Anti-Cheat Asli</span>
+                        <span>Audio Chōkai Standar Ujian Asli</span>
                       </div>
                       <div className="flex items-center gap-2">
                         <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                        <span>Rapor & Sertifikat Evaluasi A4</span>
+                        <span>Lembar Hasil Evaluasi &amp; Sertifikat (PDF)</span>
                       </div>
                       <div className="flex items-center gap-2">
                         <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
