@@ -757,8 +757,8 @@ export default function HomePage() {
   if (isRestoringAuth) {
     return (
       <div className="min-h-screen bg-[#f8fafc] text-stone-900 flex flex-col items-center justify-center p-4 space-y-4">
-        <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-red-600 via-rose-600 to-red-700 flex items-center justify-center text-white shadow-xl shadow-red-500/20 animate-pulse">
-          <GraduationCap className="w-8 h-8" />
+        <div className="w-16 h-16 rounded-3xl bg-white border border-stone-200/90 flex items-center justify-center p-1 shadow-lg shadow-stone-200/60 animate-pulse">
+          <img src="/logo-icon.png" alt="KondangSensei" className="w-full h-full object-contain" />
         </div>
         <p className="text-xs text-stone-500 font-bold tracking-wide animate-pulse">
           Memulihkan sesi ujian KondangSensei...
@@ -822,8 +822,8 @@ export default function HomePage() {
 
               {/* Header Brand */}
               <div className="text-center space-y-2">
-                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-red-600 via-rose-600 to-red-700 flex items-center justify-center mx-auto text-white shadow-lg shadow-red-500/25">
-                  <GraduationCap className="w-8 h-8" />
+                <div className="w-16 h-16 rounded-3xl bg-white border border-stone-200/90 flex items-center justify-center mx-auto shadow-md shadow-stone-200/50 p-1">
+                  <img src="/logo-icon.png" alt="KondangSensei CBT" className="w-full h-full object-contain" />
                 </div>
                 <div>
                   <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-rose-50 text-red-700 border border-rose-200 text-[10px] font-black uppercase tracking-wider mb-1">

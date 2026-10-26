@@ -107,8 +107,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 sm:h-20 flex items-center justify-between gap-4">
           {/* Logo */}
           <div className="flex items-center gap-2.5">
-            <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-gradient-to-br from-red-600 via-rose-600 to-red-700 text-white flex items-center justify-center shadow-md shadow-red-500/20 shrink-0">
-              <GraduationCap className="w-6 h-6" />
+            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-white border border-stone-200/90 flex items-center justify-center shadow-xs shrink-0 p-1 overflow-hidden">
+              <img src="/logo-icon.png" alt="KondangSensei Logo" className="w-full h-full object-contain" />
             </div>
             <div>
               <div className="text-base sm:text-xl font-black text-stone-950 tracking-tight leading-none">
@@ -697,7 +697,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       <footer className="py-8 bg-stone-950 text-stone-500 text-xs border-t border-stone-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex flex-col sm:flex-row items-center gap-2 text-center sm:text-left">
-            <span className="font-black text-white">KondangSensei CBT</span>
+            <div className="flex items-center gap-2">
+              <img src="/logo-icon.png" alt="KondangSensei Logo" className="w-5 h-5 object-contain" />
+              <span className="font-black text-white">KondangSensei CBT</span>
+            </div>
             <span className="hidden sm:inline">•</span>
             <span>Hak Cipta © 2026 KondangSensei Indonesia</span>
             {onOpenTerms && (

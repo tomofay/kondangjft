@@ -54,8 +54,8 @@ export const Navbar: React.FC<NavbarProps> = ({
             }
           }}
         >
-          <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-tr from-amber-400 via-rose-500 to-sky-500 flex items-center justify-center text-white shadow-md shadow-rose-500/25 group-hover:scale-105 transition-transform duration-200 shrink-0">
-            <GraduationCap className="w-4 h-4 sm:w-5 sm:h-5" />
+          <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-xl bg-white border border-stone-200/90 flex items-center justify-center shadow-xs group-hover:scale-105 transition-transform duration-200 shrink-0 p-0.5 overflow-hidden">
+            <img src="/logo-icon.png" alt="KondangSensei Logo" className="w-full h-full object-contain" />
           </div>
           <div>
             <div className="flex items-center gap-1 sm:gap-1.5 font-black text-sm sm:text-lg tracking-tight text-stone-900 leading-none">

@@ -89,9 +89,17 @@ export const metadata: Metadata = {
     images: ["/og-image.png"],
   },
   icons: {
-    icon: "/favicon.svg",
-    apple: "/favicon.svg",
+    icon: [
+      { url: "/favicon.ico" },
+      { url: "/favicon-32x32.png", sizes: "32x32", type: "image/png" },
+      { url: "/favicon-16x16.png", sizes: "16x16", type: "image/png" },
+      { url: "/android-chrome-192x192.png", sizes: "192x192", type: "image/png" },
+    ],
+    apple: [
+      { url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
+    ],
   },
+  manifest: "/site.webmanifest",
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
@@ -112,7 +120,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         "@id": "https://kondangsensei.my.id/#organization",
         "name": "KondangSensei Indonesia",
         "url": "https://kondangsensei.my.id",
-        "logo": "https://kondangsensei.my.id/favicon.svg",
+        "logo": "https://kondangsensei.my.id/logo.png",
         "image": "https://kondangsensei.my.id/og-image.png",
         "description": "Pusat Simulasi Ujian CBT JFT-Basic A2 Bahasa Jepang untuk Program Tokutei Ginou (SSW) di Bogor, Jabodetabek, dan Seluruh Indonesia",
         "address": {
