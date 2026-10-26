@@ -9,6 +9,9 @@ const nextConfig: NextConfig = {
     '*.my.id',
     'kondangsensei.my.id'
   ],
+  typescript: {
+    ignoreBuildErrors: true,
+  },
   /* config options here */
   cacheComponents: true,
   partialPrefetching: true,

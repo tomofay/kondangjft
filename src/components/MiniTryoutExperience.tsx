@@ -645,7 +645,7 @@ export const MiniTryoutExperience: React.FC<MiniTryoutExperienceProps> = ({
                   {examResult.isPassed ? 'LULUS KUALIFIKASI A2 (A2到達)' : 'BELUM MENCAPAI TARGET KELULUSAN (A2未到達)'}
                 </div>
                 <p className="text-xs text-stone-500 font-medium">
-                  {examResult.correctCount} dari {examResult.totalQuestions} soal terjawab dengan benar • Standar Kelulusan Prometric: Minimal 200 Poin
+                  {examResult.correctCount} dari {examResult.totalQuestions} soal terjawab dengan benar • Standar Kelulusan Resmi: Minimal 200 Poin
                 </p>
               </div>
 

@@ -3,7 +3,6 @@
 import React, { useState } from 'react';
 import { User } from '../types';
 import {
-  Lock,
   LogOut,
   Zap,
   GraduationCap,
@@ -90,12 +89,6 @@ export const Navbar: React.FC<NavbarProps> = ({
 
         {/* Right side: Session status & Profile & Mobile Toggle */}
         <div className="flex items-center gap-1 sm:gap-2 text-xs shrink-0">
-          {/* Single Session Lock Status Badge (Desktop Large) */}
-          <div className="hidden xl:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 border border-emerald-200/80 text-emerald-700 text-[11px] font-bold">
-            <Lock className="w-3.5 h-3.5 text-emerald-600" />
-            <span>1 Sesi Aktif</span>
-          </div>
-
           {/* Pending Invoices Button (Pill Styled & Always Visible) */}
           {onOpenPendingPayments && (
             <button
@@ -243,12 +236,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             )}
           </div>
 
-          <div className="pt-2 border-t border-stone-100 flex items-center justify-between">
-            <div className="flex items-center gap-1.5 text-[11px] text-emerald-700 font-semibold">
-              <Lock className="w-3.5 h-3.5 text-emerald-600" />
-              <span>1 Sesi Terkunci</span>
-            </div>
-
+          <div className="pt-2 border-t border-stone-100 flex items-center justify-end">
             <button
               onClick={() => {
                 setMobileMenuOpen(false);

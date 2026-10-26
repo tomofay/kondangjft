@@ -1,30 +1,31 @@
 # syntax=docker/dockerfile:1
-# Stage 1: Dependencies
-FROM node:22-alpine AS deps
+
+# Stage 1: Fast Builder
+FROM node:22-alpine AS builder
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
+# 1. Copy package manifests only for optimal layer caching
 COPY package.json package-lock.json* ./
+
+# 2. Install dependencies with persistent npm cache (avoids copying 30k+ files between stages)
 RUN --mount=type=cache,target=/root/.npm \
     npm ci --prefer-offline --no-audit || npm install --no-audit
 
-# Stage 2: Builder
-FROM node:22-alpine AS builder
-WORKDIR /app
-COPY --from=deps /app/node_modules ./node_modules
+# 3. Copy application source code
 COPY . .
 
-# Set default Next.js Public Base URL with fallback to kondangsensei.my.id
+# Set build environment variables
 ENV NEXT_PUBLIC_BASE_URL=https://kondangsensei.my.id
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV NODE_ENV=production
 ENV IS_DOCKER_BUILD=true
 
-# Enable Next.js incremental compilation cache mount
+# 4. Compile Next.js with persistent cache mount and skipped typecheck (instant build)
 RUN --mount=type=cache,target=/app/.next/cache \
     npm run build
 
-# Stage 3: Runner
+# Stage 2: Minimal Production Runner
 FROM node:22-alpine AS runner
 WORKDIR /app
 

@@ -26,7 +26,7 @@ export const metadata: Metadata = {
     template: "%s | KondangSensei CBT"
   },
   description:
-    "Platform Simulasi CBT JFT-Basic A2 resmi 99% mirip ujian Prometric. Coba 1 Mini Tryout Gratis 12 Soal + Audio Chōkai! Pilihan tepat peserta Tokutei Ginou (SSW) & siswa LPK bahasa Jepang di Bogor, Jabodetabek, dan seluruh Indonesia di kondangsensei.my.id.",
+    "Platform Simulasi CBT JFT-Basic A2 resmi 99% mirip ujian aslinya. Coba 1 Mini Tryout Gratis 12 Soal + Audio Chōkai! Pilihan tepat peserta Tokutei Ginou (SSW) & siswa LPK bahasa Jepang di Bogor, Jabodetabek, dan seluruh Indonesia di kondangsensei.my.id.",
   keywords: [
     "simulasi jft a2",
     "simulasi jft a2 bogor",
@@ -67,7 +67,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Simulasi JFT A2 Online & Tryout CBT Gratis | KondangSensei Bogor & Indonesia",
     description:
-      "Simulasi CBT JFT-Basic A2 99% mirip Prometric asli. Coba Mini Tryout Gratis 12 Soal + Audio Chōkai langsung di kondangsensei.my.id. Terpercaya untuk siswa & LPK Bogor dan seluruh Indonesia!",
+      "Simulasi CBT JFT-Basic A2 99% mirip ujian aslinya. Coba Mini Tryout Gratis 12 Soal + Audio Chōkai langsung di kondangsensei.my.id. Terpercaya untuk siswa & LPK Bogor dan seluruh Indonesia!",
     url: "https://kondangsensei.my.id",
     siteName: "KondangSensei CBT",
     locale: "id_ID",
@@ -85,7 +85,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Simulasi JFT A2 Online & Tryout CBT Gratis | KondangSensei Bogor & Indonesia",
     description:
-      "Simulasi CBT JFT-Basic A2 99% mirip ujian Prometric. Latihan soal resmi untuk peserta Tokutei Ginou SSW di Bogor & seluruh Indonesia di kondangsensei.my.id!",
+      "Simulasi CBT JFT-Basic A2 99% mirip ujian aslinya. Latihan soal resmi untuk peserta Tokutei Ginou SSW di Bogor & seluruh Indonesia di kondangsensei.my.id!",
     images: ["/og-image.svg"],
   },
   icons: {
@@ -174,7 +174,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
             "name": "Apa itu ujian JFT-Basic A2 dan mengapa simulasi CBT sangat penting?",
             "acceptedAnswer": {
               "@type": "Answer",
-              "text": "JFT-Basic A2 adalah tes kemampuan bahasa Jepang berbasis komputer (CBT) yang diselenggarakan oleh The Japan Foundation via Prometric sebagai syarat wajib visa Tokutei Ginou (Specified Skilled Worker/SSW). Simulasi CBT KondangSensei dirancang 99% persis seperti sistem ujian asli dengan batas waktu 60 menit dan audio Chōkai anti-pause."
+              "text": "JFT-Basic A2 adalah tes kemampuan bahasa Jepang berbasis komputer (CBT) sebagai syarat wajib visa Tokutei Ginou (Specified Skilled Worker/SSW). Simulasi CBT KondangSensei dirancang 99% persis seperti sistem ujian asli dengan batas waktu 60 menit dan audio Chōkai standar resmi (maks. 2x putar)."
             }
           },
           {
@@ -190,7 +190,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
             "name": "Berapa passing grade resmi untuk lulus JFT-Basic A2?",
             "acceptedAnswer": {
               "@type": "Answer",
-              "text": "Berdasarkan standar resmi CEFR / Japan Foundation, total skor berkisar antara 10 - 250. Peserta dinyatakan lulus jika memperoleh skor minimal 200 poin (Level A2.2 / ~80% benar) atau 175 poin (Level A2.1)."
+              "text": "Berdasarkan standar kelulusan resmi Level A2, total skor berkisar antara 10 - 250. Peserta dinyatakan lulus jika memperoleh skor minimal 200 poin (Level A2.2 / ~80% benar) atau 175 poin (Level A2.1)."
             }
           }
         ]

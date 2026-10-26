@@ -282,7 +282,7 @@ export const CbtExamEngine: React.FC<CbtExamEngineProps> = ({
     { key: 'S4', title: 'S4 - Dokkai (読解 / bacaan)', label: 'S4 - Dokkai', ja: '読解', en: 'Reading Comprehension' }
   ];
 
-  // Active section index (0 = S1, 1 = S2, 2 = S3, 3 = S4) Prometric Section Locking
+  // Active section index (0 = S1, 1 = S2, 2 = S3, 3 = S4) CBT Section Locking
   const [activeSectionIndex, setActiveSectionIndex] = useState(() => {
     if (initialSaved && typeof initialSaved.activeSectionIndex === 'number') {
       return Math.max(0, Math.min(3, initialSaved.activeSectionIndex));
@@ -662,7 +662,7 @@ export const CbtExamEngine: React.FC<CbtExamEngineProps> = ({
         />
       )}
 
-      {/* Left Sidebar / Off-canvas Drawer: Prometric Navigation with Section Lock */}
+      {/* Left Sidebar / Off-canvas Drawer: CBT Navigation with Section Lock */}
       <aside
         className={`${
           sidebarOpen
@@ -675,7 +675,7 @@ export const CbtExamEngine: React.FC<CbtExamEngineProps> = ({
             <div className="flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
               <span className="text-[10px] font-black uppercase text-indigo-700 tracking-wider">
-                PROMETRIC CBT ENGINE
+                SIMULASI CBT ENGINE
               </span>
             </div>
             <h2 className="text-base font-black text-stone-900 leading-tight">
@@ -690,7 +690,7 @@ export const CbtExamEngine: React.FC<CbtExamEngineProps> = ({
           </button>
         </div>
 
-        {/* Prometric Active Section Indicator Pill */}
+        {/* CBT Active Section Indicator Pill */}
         <div className="p-3 rounded-2xl bg-gradient-to-r from-indigo-50/80 to-sky-50/80 border border-indigo-200/80 space-y-1">
           <div className="text-[10px] font-black uppercase text-indigo-700 tracking-wide flex items-center justify-between">
             <span>Seksi Aktif ({activeSectionIndex + 1}/4):</span>
@@ -949,7 +949,7 @@ export const CbtExamEngine: React.FC<CbtExamEngineProps> = ({
               <div className="flex items-center gap-2">
                 <Info className="w-4 h-4 text-amber-600 shrink-0" />
                 <span>
-                  <strong>Aturan Prometric:</strong> Anda saat ini sedang mengerjakan{' '}
+                  <strong>Tata Tertib CBT:</strong> Anda saat ini sedang mengerjakan{' '}
                   <strong className="underline">{activeSection.ja} ({activeSection.en})</strong>. Selesaikan seluruh soal pada seksi ini sebelum melanjutkan ke seksi berikutnya.
                 </span>
               </div>
@@ -1136,7 +1136,7 @@ export const CbtExamEngine: React.FC<CbtExamEngineProps> = ({
         </main>
       </div>
 
-      {/* Prometric Section Transition Confirmation Modal (Lock Enforcement) */}
+      {/* CBT Section Transition Confirmation Modal (Lock Enforcement) */}
       {sectionTransitionModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-stone-900/50 backdrop-blur-xs p-4 animate-in fade-in duration-150">
           <div className="max-w-md w-full bg-white border border-stone-200 rounded-3xl p-6 sm:p-7 shadow-2xl space-y-4">
@@ -1146,7 +1146,7 @@ export const CbtExamEngine: React.FC<CbtExamEngineProps> = ({
 
             <div className="text-center space-y-1">
               <span className="text-[10px] font-black uppercase text-amber-700 tracking-wider">
-                PROMETRIC CBT SECTION CONFIRMATION
+                KONFIRMASI SEKSI CBT
               </span>
               <h3 className="text-lg font-black text-stone-900 font-japanese">
                 セクション終了の確認
@@ -1176,7 +1176,7 @@ export const CbtExamEngine: React.FC<CbtExamEngineProps> = ({
               </div>
             </div>
 
-            {/* Prometric Official Warning Callout */}
+            {/* CBT Official Warning Callout */}
             <div className="p-3.5 bg-amber-50 border border-amber-300 rounded-2xl space-y-1 text-xs text-amber-950">
               <div className="font-bold flex items-center gap-1.5 font-japanese">
                 <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />
@@ -1211,7 +1211,7 @@ export const CbtExamEngine: React.FC<CbtExamEngineProps> = ({
         </div>
       )}
 
-      {/* Prometric Final Exam Submission Modal */}
+      {/* CBT Final Exam Submission Modal */}
       {confirmModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-stone-900/50 backdrop-blur-xs p-4 animate-in fade-in duration-150">
           <div className="max-w-md w-full bg-white border border-stone-200 rounded-3xl p-6 sm:p-7 shadow-2xl space-y-4">
@@ -1221,7 +1221,7 @@ export const CbtExamEngine: React.FC<CbtExamEngineProps> = ({
 
             <div className="text-center space-y-1">
               <span className="text-[10px] font-black uppercase text-emerald-700 tracking-wider">
-                PROMETRIC FINAL SUBMISSION
+                PENGUMPULAN AKHIR UJIAN CBT
               </span>
               <h3 className="text-lg font-black text-stone-900 font-japanese">
                 試験終了の確認
@@ -1249,7 +1249,7 @@ export const CbtExamEngine: React.FC<CbtExamEngineProps> = ({
               </div>
             </div>
 
-            {/* Prometric Official Warning */}
+            {/* CBT Official Warning */}
             <div className="p-3.5 bg-rose-50 border border-rose-300 rounded-2xl space-y-1 text-xs text-rose-950">
               <div className="font-bold flex items-center gap-1.5 font-japanese">
                 <AlertTriangle className="w-4 h-4 text-red-600 shrink-0" />

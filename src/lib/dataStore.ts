@@ -109,7 +109,7 @@ export const DEFAULT_PACKAGES: TryoutPackage[] = [
   {
     id: 'pkg_7d',
     name: 'Paket 1 Minggu',
-    description: 'Akses Tryout JFT-Basic Tanpa Batas (Unlimited) selama 7 Hari + Pembahasan Lengkap & Rapor Evaluasi',
+    description: 'Akses Tryout JFT-Basic Tanpa Batas (Unlimited) selama 7 Hari + Audio Chōkai, Pembahasan & Rapor Hasil',
     durationDays: 7,
     price: 35000,
     popular: false
@@ -117,7 +117,7 @@ export const DEFAULT_PACKAGES: TryoutPackage[] = [
   {
     id: 'pkg_14d',
     name: 'Paket 2 Minggu',
-    description: 'Akses Tryout JFT-Basic Tanpa Batas (Unlimited) selama 14 Hari + Pembahasan Detail & Evaluasi',
+    description: 'Akses Tryout JFT-Basic Tanpa Batas (Unlimited) selama 14 Hari + Audio Chōkai, Pembahasan & Rapor Hasil',
     durationDays: 14,
     price: 59000,
     popular: true
@@ -125,7 +125,7 @@ export const DEFAULT_PACKAGES: TryoutPackage[] = [
   {
     id: 'pkg_30d',
     name: 'Paket 1 Bulan',
-    description: 'Akses Tryout JFT-Basic Tanpa Batas (Unlimited) selama 30 Hari + Bank Soal & PDF Parser Importer',
+    description: 'Akses Tryout JFT-Basic Tanpa Batas (Unlimited) selama 30 Hari + Audio Chōkai, Pembahasan & Rapor Hasil',
     durationDays: 30,
     price: 99000,
     popular: false

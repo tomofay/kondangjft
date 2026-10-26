@@ -104,7 +104,7 @@ export default function HomePage() {
   // Selected result for report / review
   const [currentResult, setCurrentResult] = useState<ExamResult | null>(null);
 
-  // Prometric Pre-Exam Confirmation Modal
+  // CBT Pre-Exam Confirmation Modal
   const [preExamModalOpen, setPreExamModalOpen] = useState(false);
   const [pendingExamPackageId, setPendingExamPackageId] = useState<number>(1);
   const [preExamAgreement, setPreExamAgreement] = useState(false);
@@ -431,7 +431,7 @@ export default function HomePage() {
     return () => clearInterval(interval);
   }, [view, loadAdminData]);
 
-  // Start exam handler (Prometric Pre-Exam Check)
+  // Start exam handler (CBT Pre-Exam Check)
   const handleStartExam = (packageId?: number) => {
     const pkgIdToUse = packageId || selectedPackageId;
 
@@ -1146,14 +1146,6 @@ export default function HomePage() {
 
               <div className="flex flex-wrap items-center gap-2.5 w-full sm:w-auto">
                 <button
-                  type="button"
-                  onClick={() => setMiniTryoutOpen(true)}
-                  className="w-full sm:w-auto justify-center py-3 px-4 bg-rose-50 hover:bg-rose-100 text-red-700 border border-rose-200 font-black text-xs sm:text-sm rounded-xl sm:rounded-2xl transition flex items-center gap-2 cursor-pointer shadow-2xs"
-                >
-                  <Sparkles className="w-4 h-4 text-red-600" />
-                  <span>Mini Tryout Gratis (12 Soal)</span>
-                </button>
-                <button
                   onClick={() => handleStartExam()}
                   className="w-full sm:w-auto justify-center py-3 px-5 sm:px-6 bg-gradient-to-r from-amber-500 via-rose-500 to-indigo-600 hover:from-amber-600 hover:to-indigo-700 text-white font-black text-xs sm:text-sm rounded-xl sm:rounded-2xl shadow-md shadow-rose-500/20 transition flex items-center gap-2 transform hover:-translate-y-0.5 cursor-pointer"
                 >
@@ -1187,115 +1179,51 @@ export default function HomePage() {
               </button>
             </div>
 
-            {/* Row 1: Masa Berlaku Card & Referral/Registrasi Card */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
-              {/* Card 1: Masa Berlaku Langganan (Warm Amber / Mikan Theme) */}
-              <div className="bg-gradient-to-br from-amber-50/70 via-white to-orange-50/30 border border-amber-200/90 rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-xs flex flex-col justify-between gap-4">
-                <div className="flex items-start justify-between">
-                  <div className="space-y-1">
-                    <span className="text-[11px] font-black uppercase text-amber-800 tracking-wider">
-                      Masa Berlaku Langganan
-                    </span>
-                    <div className="text-xs font-semibold text-stone-500 flex items-center gap-1.5">
-                      <Calendar className="w-3.5 h-3.5 text-amber-600" />
-                      <span>
-                        {currentUser.subscriptionExpiresAt
-                          ? new Date(currentUser.subscriptionExpiresAt).toLocaleDateString('id-ID', {
-                              day: 'numeric',
-                              month: 'short',
-                              year: 'numeric'
-                            })
-                          : 'Belum Aktif'}
-                      </span>
-                    </div>
-                  </div>
-
-                  <span className="px-2.5 py-1 rounded-full bg-amber-100 text-amber-800 border border-amber-300 text-[10px] font-bold">
+            {/* Row 1: Masa Berlaku Langganan */}
+            <div className="bg-gradient-to-br from-amber-50/70 via-white to-orange-50/30 border border-amber-200/90 rounded-2xl sm:rounded-3xl p-5 sm:p-6 shadow-xs flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <span className="text-[11px] font-black uppercase text-amber-800 tracking-wider">
+                    Masa Berlaku Langganan
+                  </span>
+                  <span className="px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-300 text-[10px] font-bold">
                     {currentUser.role === 'admin' ? 'Unlimited (Admin)' : 'Unlimited Tryout'}
                   </span>
                 </div>
-
                 <div className="flex items-baseline gap-2 flex-wrap">
-                  <span className="text-3xl sm:text-5xl font-black text-amber-600 tracking-tight">
+                  <span className="text-3xl sm:text-4xl font-black text-amber-600 tracking-tight">
                     {getRemainingDays(currentUser)}
                   </span>
-                  <span className="text-lg sm:text-2xl font-black text-stone-800">
+                  <span className="text-lg sm:text-xl font-black text-stone-800">
                     Hari
                   </span>
                   <span className="text-xs text-stone-500 font-medium">
                     ({getRemainingSubscriptionText(currentUser)} tersisa)
                   </span>
                 </div>
-
-                <div className="pt-2 border-t border-amber-100 flex flex-col xs:flex-row items-start xs:items-center justify-between gap-2.5">
-                  <span className="text-xs text-stone-500">Akses seluruh paket tanpa batas</span>
-                  <button
-                    onClick={() => setPaymentModalOpen(true)}
-                    className="w-full xs:w-auto justify-center py-2 px-4 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white font-extrabold text-xs rounded-xl shadow-xs transition flex items-center gap-1.5 cursor-pointer"
-                  >
-                    <Zap className="w-3.5 h-3.5 text-amber-200 fill-amber-200" />
-                    Perpanjang Paket
-                  </button>
+                <div className="text-xs font-semibold text-stone-500 flex items-center gap-1.5">
+                  <Calendar className="w-3.5 h-3.5 text-amber-600" />
+                  <span>
+                    Berlaku s.d.{' '}
+                    {currentUser.subscriptionExpiresAt
+                      ? new Date(currentUser.subscriptionExpiresAt).toLocaleDateString('id-ID', {
+                          day: 'numeric',
+                          month: 'long',
+                          year: 'numeric'
+                        })
+                      : 'Belum Aktif'}
+                  </span>
                 </div>
               </div>
 
-              {/* Card 2: Kode Registrasi Resmi JFT & Akun (Ocean Sky / Sora Theme) */}
-              <div className="bg-gradient-to-br from-sky-50/70 via-white to-indigo-50/30 border border-sky-200/90 rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-xs flex flex-col justify-between gap-4">
-                <div className="flex items-start justify-between">
-                  <div className="space-y-1">
-                    <span className="text-[11px] font-black uppercase text-sky-800 tracking-wider">
-                      Nomor Registrasi Ujian Saya
-                    </span>
-                    <p className="text-xs text-stone-500">Tercetak pada Sertifikat & Rapor JFT</p>
-                  </div>
-
-                  <span className="px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-bold flex items-center gap-1">
-                    <Lock className="w-3 h-3 text-emerald-600" />
-                    1 Sesi CBT Aktif
-                  </span>
-                </div>
-
-                <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-                  <div className="px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl bg-white border border-sky-200 font-mono text-sm sm:text-lg font-black text-indigo-950 tracking-wide shadow-2xs">
-                    {currentUser.registrationNumber || 'JFT-2026-88912'}
-                  </div>
-
-                  <button
-                    onClick={() => {
-                      if (navigator.clipboard) {
-                        navigator.clipboard.writeText(currentUser.registrationNumber);
-                        setCopiedRegNo(true);
-                        setTimeout(() => setCopiedRegNo(false), 2000);
-                      }
-                    }}
-                    className="p-2 sm:p-2.5 rounded-xl border border-sky-200 hover:border-sky-400 hover:bg-sky-50 text-sky-700 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
-                  >
-                    {copiedRegNo ? (
-                      <>
-                        <Check className="w-4 h-4 text-emerald-600" />
-                        <span className="text-emerald-700">Tersalin!</span>
-                      </>
-                    ) : (
-                      <>
-                        <Copy className="w-4 h-4" />
-                        <span>Salin Nomor</span>
-                      </>
-                    )}
-                  </button>
-                </div>
-
-                <div className="pt-2 border-t border-sky-100 flex flex-col xs:flex-row items-start xs:items-center justify-between gap-2">
-                  <span className="text-xs text-stone-500 font-medium truncate max-w-full">
-                    Nama: <strong className="text-stone-800">{currentUser.name}</strong> • {currentUser.nationality}
-                  </span>
-                  <button
-                    onClick={() => setProfileModalOpen(true)}
-                    className="w-full xs:w-auto justify-center py-1.5 px-3 bg-sky-50 hover:bg-sky-100 text-sky-800 font-bold text-xs rounded-xl transition flex items-center gap-1 cursor-pointer"
-                  >
-                    <UserCheck className="w-3.5 h-3.5 text-sky-600" />
-                    Edit Profil
-                  </button>
-                </div>
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-auto">
+                <button
+                  onClick={() => setPaymentModalOpen(true)}
+                  className="w-full sm:w-auto justify-center py-2.5 px-5 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white font-extrabold text-xs rounded-xl shadow-xs transition flex items-center gap-1.5 cursor-pointer"
+                >
+                  <Zap className="w-3.5 h-3.5 text-amber-200 fill-amber-200" />
+                  Perpanjang Paket
+                </button>
               </div>
             </div>
 
@@ -1464,7 +1392,7 @@ export default function HomePage() {
                     ) : dashboardStats.sectionRank[0]?.score >= 80 ? (
                       <>
                         <Sparkles className="w-4 h-4 text-emerald-500 shrink-0 inline-block" />
-                        <span><strong>Luar Biasa!</strong> Rekor nilai seluruh 4 seksi Anda telah melampaui 80% (Standar Kelulusan A2.2). Pertahankan performa ini saat ujian resmi Prometric!</span>
+                        <span><strong>Luar Biasa!</strong> Rekor nilai seluruh 4 seksi Anda telah melampaui 80% (Standar Kelulusan A2.2). Pertahankan performa ini saat ujian resmi CBT!</span>
                       </>
                     ) : (
                       <>
@@ -1528,7 +1456,7 @@ export default function HomePage() {
                         <span className="font-mono font-bold text-sky-800">175 - 199 Poin</span>
                       </div>
                       <div className="flex items-center justify-between p-2.5 rounded-xl bg-emerald-50 border border-emerald-300 font-bold text-emerald-800 shadow-2xs">
-                        <span>Level A2.2 (LULUS SSW)</span>
+                        <span>Level A2.2 (LULUS JFT)</span>
                         <span className="font-mono font-black text-emerald-800">200 - 250 Poin</span>
                       </div>
                     </div>
@@ -1810,16 +1738,16 @@ export default function HomePage() {
         }}
       />
 
-      {/* Prometric Pre-Exam Simulation Confirmation Modal */}
+      {/* CBT Pre-Exam Simulation Confirmation Modal */}
       {preExamModalOpen && currentUser && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-stone-900/60 backdrop-blur-xs p-3 sm:p-4 animate-in fade-in duration-150 overflow-y-auto">
           <div className="max-w-xl w-full bg-white border border-stone-200 rounded-3xl p-5 sm:p-7 shadow-2xl space-y-4 my-8">
-            {/* Header Logos & Prometric Tag */}
+            {/* Header Logos & CBT Tag */}
             <div className="flex items-center justify-between border-b border-stone-100 pb-3">
               <div className="flex items-center gap-2">
                 <span className="w-2.5 h-2.5 rounded-full bg-indigo-600 animate-pulse"></span>
                 <span className="text-[10px] sm:text-xs font-black uppercase text-indigo-700 tracking-wider">
-                  PROMETRIC CBT ENGINE
+                  SIMULASI CBT ENGINE
                 </span>
               </div>
               <button
@@ -1906,11 +1834,11 @@ export default function HomePage() {
               </div>
             </div>
 
-            {/* Prometric Official Warning & Locking Notice */}
+            {/* CBT Official Warning & Locking Notice */}
             <div className="p-3.5 bg-amber-50 border border-amber-300 rounded-2xl space-y-2 text-xs text-amber-950">
               <div className="font-black flex items-center gap-1.5 text-amber-900">
                 <ShieldAlert className="w-4 h-4 text-amber-600 shrink-0" />
-                <span>Tata Tertib & Peraturan CBT Prometric:</span>
+                <span>Tata Tertib &amp; Peraturan Ujian CBT:</span>
               </div>
               <ul className="space-y-1.5 text-[11px] text-amber-900 leading-relaxed list-disc list-inside">
                 <li>

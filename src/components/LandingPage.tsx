@@ -52,7 +52,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
   const faqs = [
     {
       q: 'Apa itu ujian JFT-Basic A2 dan mengapa perlu simulasi CBT?',
-      a: 'JFT-Basic (Japan Foundation Test for Basic Japanese) adalah ujian resmi berbasis komputer (CBT) yang mengukur kemampuan bahasa Jepang tingkat A2 untuk syarat visa Tokutei Ginou (Specified Skilled Worker). Format ujian menggunakan komputer dengan timer ketat dan audio Chōkai yang hanya berputar 2 kali tanpa bisa diulang/dijeda. Simulasi CBT KondangSensei dirancang 99% mirip sistem Prometric asli agar Anda tidak kaget saat ujian sebenarnya.'
+      a: 'JFT-Basic adalah ujian resmi berbasis komputer (CBT) yang mengukur kemampuan bahasa Jepang tingkat A2 untuk syarat visa Tokutei Ginou (Specified Skilled Worker). Format ujian menggunakan komputer dengan timer ketat dan audio Chōkai yang hanya berputar 2 kali tanpa bisa diulang/dijeda. Simulasi CBT KondangSensei dirancang 99% mirip sistem ujian asli agar Anda tidak kaget saat menghadapi tes sebenarnya.'
     },
     {
       q: 'Apakah Mini Tryout 12 Soal benar-benar 100% gratis?',
@@ -75,8 +75,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       a: 'Tentu saja! Platform simulasi CBT KondangSensei (kondangsensei.my.id) beroperasi 100% online berbasis web. Peserta mandiri, siswa LPK bahasa Jepang di Kota Bogor, Kabupaten Bogor, Cibinong, Depok, Jabodetabek, hingga seluruh Indonesia dapat berlatih kapan saja langsung dari laptop atau smartphone tanpa perlu instalasi aplikasi.'
     },
     {
-      q: 'Bagaimana simulasi ini mempersiapkan peserta asal Bogor untuk ujian resmi Prometric?',
-      a: 'Calon pekerja SSW asal Bogor dan Jawa Barat umumnya mengikuti tes resmi JFT-Basic A2 di Prometric Test Center Jakarta dan sekitarnya. Simulasi CBT KondangSensei dirancang presisi meniru antarmuka Prometric asli — termasuk pembagian waktu 60 menit dan audio Chōkai standar Prometric (maks. 2x putar) — sehingga peserta sudah terbiasa dan percaya diri saat menghadapi tes sesungguhnya.'
+      q: 'Bagaimana simulasi ini mempersiapkan peserta asal Bogor untuk menghadapi ujian CBT resmi?',
+      a: 'Calon pekerja SSW asal Bogor dan Jawa Barat umumnya mengikuti tes resmi JFT-Basic A2 di pusat tes CBT Jakarta dan sekitarnya. Simulasi CBT KondangSensei dirancang presisi meniru antarmuka ujian CBT komputer asli — termasuk pembagian waktu 60 menit dan audio Chōkai standar resmi (maks. 2x putar) — sehingga peserta sudah terbiasa dan percaya diri saat menghadapi tes sesungguhnya.'
     }
   ];
 
@@ -163,11 +163,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             </div>
 
             <h1 className="text-2xl xs:text-3xl sm:text-5xl font-black text-stone-900 tracking-tight leading-tight sm:leading-none">
-              Simulasi CBT JFT-Basic A2 — <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-600 via-rose-600 to-amber-600">Mirip 99% Ujian Asli</span> Prometric
+              Simulasi CBT JFT-Basic A2 — <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-600 via-rose-600 to-amber-600">Mirip 99% Ujian Asli</span>
             </h1>
 
             <p className="text-xs sm:text-base text-stone-600 leading-relaxed max-w-2xl mx-auto">
-              Kuasai ujian kerja Tokutei Ginou (SSW) Jepang dengan latihan soal asli, audio Chōkai terstandar, skor real-time, dan lembar hasil evaluasi resmi The Japan Foundation.
+              Kuasai ujian kerja Tokutei Ginou (SSW) Jepang dengan latihan soal asli, audio Chōkai terstandar, skor real-time, dan lembar hasil evaluasi resmi JFT-Basic A2.
             </p>
 
             {/* Quick action buttons */}
@@ -293,7 +293,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               Fitur Lengkap yang Menjamin Kesiapan Mental Ujian Anda
             </h2>
             <p className="text-xs sm:text-sm text-stone-500">
-              Didesain khusus berdasarkan format ujian Prometric JFT-Basic A2 terbaru untuk calon pekerja Tokutei Ginou di Jepang.
+              Didesain khusus berdasarkan format ujian CBT JFT-Basic A2 terbaru untuk calon pekerja Tokutei Ginou di Jepang.
             </p>
           </div>
 
@@ -303,7 +303,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               <div className="w-12 h-12 rounded-2xl bg-red-100 text-red-600 flex items-center justify-center font-bold">
                 <Clock className="w-6 h-6" />
               </div>
-              <h3 className="text-base font-black text-stone-900">Engine CBT 1:1 Prometric</h3>
+              <h3 className="text-base font-black text-stone-900">Engine CBT 1:1 Ujian Asli</h3>
               <p className="text-xs text-stone-600 leading-relaxed">
                 Tata letak layar, countdown timer 60 menit, penguncian seksi berurutan, dan navigasi nomor soal yang persis seperti bilik ujian CBT resmi di pusat tes.
               </p>
@@ -316,7 +316,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               </div>
               <h3 className="text-base font-black text-sky-950">Audio Chōkai Standar Ujian Asli</h3>
               <p className="text-xs text-sky-800/80 leading-relaxed">
-                Pemutar audio otomatis yang mengikuti standar Prometric, dibatasi maksimal 2 kali putar agar Anda terbiasa dengan kecepatan percakapan penutur asli Jepang.
+                Pemutar audio otomatis yang mengikuti standar ujian resmi, dibatasi maksimal 2 kali putar agar Anda terbiasa dengan kecepatan percakapan penutur asli Jepang.
               </p>
             </div>
 
@@ -368,7 +368,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               <div className="grid grid-cols-3 p-4 sm:p-5 items-center">
                 <div className="font-bold text-stone-800">Pengalaman Layar Ujian</div>
                 <div className="text-center text-stone-500">Kertas cetak biasa</div>
-                <div className="text-center font-bold text-emerald-700">99% Mirip Prometric Asli</div>
+                <div className="text-center font-bold text-emerald-700">99% Mirip Ujian CBT Asli</div>
               </div>
 
               <div className="grid grid-cols-3 p-4 sm:p-5 items-center">
@@ -413,7 +413,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               &ldquo;Mau latihan soal full-length yang mirip ujian aslinya biar makin siap? Buka akses 5 Paket Simulasi Full cuma Rp35.000!&rdquo;
             </h2>
             <p className="text-xs sm:text-sm text-stone-600 leading-relaxed">
-              Dapatkan total <strong>250 Soal Asli JFT-Basic A2 (5 Paket Penuh)</strong> dengan audio Chōkai standar ujian, sistem skoring Prometric otomatis, dan sertifikat kelulusan A2.
+              Dapatkan total <strong>250 Soal Asli JFT-Basic A2 (5 Paket Penuh)</strong> dengan audio Chōkai standar ujian, sistem skoring otomatis resmi, dan sertifikat kelulusan A2.
             </p>
           </div>
 
@@ -594,7 +594,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   Persiapan Ujian JFT-Basic A2 untuk Peserta &amp; LPK di Bogor &amp; Sekitarnya
                 </h3>
                 <p className="text-xs sm:text-sm text-stone-600 leading-relaxed">
-                  Bagi pembelajar bahasa Jepang, siswa mandiri, maupun lembaga pelatihan kerja (LPK) di wilayah <strong>Kota Bogor, Kabupaten Bogor, Cibinong, Depok, dan Jabodetabek</strong> yang hendak mengikuti tes resmi di Prometric Test Center, <strong>KondangSensei</strong> menyediakan fasilitas simulasi ujian CBT online penuh yang dapat diakses 24 jam tanpa batas ruang dan waktu.
+                  Bagi pembelajar bahasa Jepang, siswa mandiri, maupun lembaga pelatihan kerja (LPK) di wilayah <strong>Kota Bogor, Kabupaten Bogor, Cibinong, Depok, dan Jabodetabek</strong> yang hendak mengikuti tes resmi di pusat tes CBT, <strong>KondangSensei</strong> menyediakan fasilitas simulasi ujian CBT online penuh yang dapat diakses 24 jam tanpa batas ruang dan waktu.
                 </p>
               </div>
 
@@ -604,12 +604,12 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   <div className="text-[11px] text-stone-500 font-semibold">Akses Kapan Saja dari Bogor</div>
                 </div>
                 <div className="p-4 bg-white rounded-2xl border border-stone-200 shadow-2xs text-center space-y-1">
-                  <div className="text-lg font-black text-stone-900">Standar Prometric</div>
+                  <div className="text-lg font-black text-stone-900">Standar Ujian Resmi</div>
                   <div className="text-[11px] text-stone-500 font-semibold">Seksi S1 - S4 Lengkap</div>
                 </div>
                 <div className="p-4 bg-white rounded-2xl border border-stone-200 shadow-2xs text-center space-y-1">
                   <div className="text-lg font-black text-stone-900">Audio Chōkai</div>
-                  <div className="text-[11px] text-stone-500 font-semibold">Standar Japan Foundation</div>
+                  <div className="text-[11px] text-stone-500 font-semibold">Standar Level A2 Resmi</div>
                 </div>
                 <div className="p-4 bg-white rounded-2xl border border-stone-200 shadow-2xs text-center space-y-1">
                   <div className="text-lg font-black text-emerald-600">Mini Tryout 0 Rp</div>
@@ -663,7 +663,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       <section className="py-12 sm:py-16 bg-gradient-to-br from-stone-900 via-stone-900 to-rose-950 text-white text-center">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
           <h2 className="text-2xl sm:text-4xl font-black tracking-tight">
-            Jangan Sampai Gagal di Bilik Ujian Prometric Asli!
+            Jangan Sampai Gagal di Bilik Ujian CBT Asli!
           </h2>
           <p className="text-xs sm:text-sm text-stone-300 max-w-xl mx-auto leading-relaxed">
             Biaya ujian asli JFT-Basic adalah ratusan ribu rupiah. Matangkan persiapan Anda sekarang dengan Mini Tryout Gratis & 5 Paket Simulasi CBT KondangSensei.

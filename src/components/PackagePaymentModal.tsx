@@ -388,7 +388,7 @@ export const PackagePaymentModal: React.FC<PackagePaymentModalProps> = ({
                   </label>
                   <span className="text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200 flex items-center gap-1">
                     <Sparkles className="w-3 h-3 text-emerald-600" />
-                    <span>Akses 4 Paket Soal JFT + Audio</span>
+                    <span>Akses Seluruh Paket Soal JFT + Audio</span>
                   </span>
                 </div>
 
@@ -514,9 +514,6 @@ export const PackagePaymentModal: React.FC<PackagePaymentModalProps> = ({
                     <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
                     2. Metode Pembayaran:
                   </label>
-                  <span className="text-[10px] text-emerald-800 font-bold bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md">
-                    Verifikasi Otomatis 24 Jam
-                  </span>
                 </div>
 
                 <div className="p-3.5 rounded-2xl border-2 border-emerald-500 bg-gradient-to-r from-emerald-50/70 via-white to-teal-50/30 shadow-xs flex items-center justify-between gap-3">
