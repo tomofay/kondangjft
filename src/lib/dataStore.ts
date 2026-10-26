@@ -1,5 +1,6 @@
 import { User, ExamResult, Transaction, TryoutPackage, Question, PDFQuestionDraft, ExamSet } from '../types/index';
 import { JFT_QUESTIONS_BANK } from './jftQuestions';
+import { MINI_TRYOUT_QUESTIONS } from './miniTryoutQuestions';
 
 export const WHATSAPP_CONTACT_NUMBER = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '6281299998888';
 export const WHATSAPP_DEFAULT_URL = `https://wa.me/${WHATSAPP_CONTACT_NUMBER}?text=${encodeURIComponent('Halo Admin KondangSensei, saya butuh bantuan mengenai simulasi CBT JFT-Basic.')}`;
@@ -8,6 +9,13 @@ export const DEFAULT_ANONYMOUS_PHOTO =
   "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 250' width='200' height='250'><rect width='200' height='250' fill='%23cbd5e1'/><circle cx='100' cy='85' r='42' fill='%2364748b'/><path d='M35 240 C35 165 65 145 100 145 C135 145 165 165 165 240 Z' fill='%23475569'/><path d='M85 145 L100 170 L115 145 Z' fill='%23f8fafc'/><path d='M100 170 L100 240' stroke='%23334155' stroke-width='2'/><rect x='8' y='8' width='184' height='234' fill='none' stroke='%2394a3b8' stroke-width='1.5' stroke-dasharray='4 3'/></svg>";
 
 export const EXAM_SETS: ExamSet[] = [
+  {
+    id: 99,
+    name: 'Mini Tryout Gratis (12 Soal)',
+    code: 'MINI-TRYOUT',
+    description: '12 Soal diagnostik gratis untuk calon siswa (Moji/Goi, Kaiwa, Chōkai Audio, Dokkai).',
+    totalQuestions: 12
+  },
   {
     id: 1,
     name: 'Paket Ujian #1 (Simulasi Utama)',
@@ -62,7 +70,7 @@ export function generateAllPackageQuestions(): Question[] {
     questionText: q.questionText.replace('【本】', '【魚】').replace('【雨】', '【雲】')
   }));
 
-  return [...pkg1, ...pkg2, ...pkg3, ...pkg4];
+  return [...pkg1, ...pkg2, ...pkg3, ...pkg4, ...MINI_TRYOUT_QUESTIONS];
 }
 
 declare global {

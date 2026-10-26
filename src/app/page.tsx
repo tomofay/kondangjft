@@ -537,6 +537,12 @@ export default function HomePage() {
   };
 
   const handleDeleteQuestion = async (questionId: number) => {
+    const targetQ = questions.find((q) => q.id === questionId);
+    if (targetQ?.packageId === 99 || (questionId >= 1001 && questionId <= 1099)) {
+      alert('Soal Mini Tryout dilindungi sistem dan tidak dapat dihapus. Anda hanya dapat mengeditnya.');
+      return;
+    }
+
     const res = await fetch(`/api/questions?id=${questionId}`, {
       method: 'DELETE'
     });

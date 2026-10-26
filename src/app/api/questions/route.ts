@@ -185,6 +185,24 @@ export async function DELETE(request: Request) {
 
     const questionId = Number(idParam);
 
+    // Proteksi: Soal Mini Tryout (packageId = 99 atau id 1001-1099) tidak dapat dihapus, hanya dapat diedit
+    if (questionId >= 1001 && questionId <= 1099) {
+      return NextResponse.json(
+        { success: false, message: 'Soal Mini Tryout dilindungi sistem dan tidak dapat dihapus. Anda hanya dapat mengeditnya.' },
+        { status: 403 }
+      );
+    }
+
+    try {
+      const [checkRows] = await pool.query<any[]>('SELECT packageId FROM questions WHERE id = ?', [questionId]);
+      if (checkRows?.[0]?.packageId === 99) {
+        return NextResponse.json(
+          { success: false, message: 'Soal Mini Tryout dilindungi sistem dan tidak dapat dihapus. Anda hanya dapat mengeditnya.' },
+          { status: 403 }
+        );
+      }
+    } catch {}
+
     // 1. Hapus dari MySQL
     try {
       await pool.query('DELETE FROM questions WHERE id = ?', [questionId]);

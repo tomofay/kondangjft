@@ -118,6 +118,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
 
   const allExamSets = React.useMemo(() => {
     const baseSets = examSets && examSets.length > 0 ? examSets : [
+      { id: 99, name: 'Mini Tryout Gratis (12 Soal)', code: 'MINI-TRYOUT', description: '12 Soal diagnostik gratis untuk calon siswa.', totalQuestions: 12 },
       { id: 1, name: 'Paket Ujian #1 (Simulasi Utama)', code: 'JFT-SET-A', description: 'Simulasi standar JFT-Basic.', totalQuestions: 50 },
       { id: 2, name: 'Paket Ujian #2 (Intensif Kosakata & Tata Bahasa)', code: 'JFT-SET-B', description: 'Variasi tata bahasa & kosakata A2.', totalQuestions: 50 },
       { id: 3, name: 'Paket Ujian #3 (Master Chōkai Pendengaran)', code: 'JFT-SET-C', description: 'Simulasi audio percakapan & pengumuman.', totalQuestions: 50 },
@@ -128,7 +129,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
       const qCount = questions.filter((q) => (q.packageId || 1) === s.id).length;
       return {
         ...s,
-        totalQuestions: qCount > 0 ? qCount : s.totalQuestions || 50
+        totalQuestions: qCount > 0 ? qCount : s.totalQuestions || (s.id === 99 ? 12 : 50)
       };
     });
   }, [examSets, questions]);
@@ -138,7 +139,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
     return questions.filter((q) => activePackageIds.has(q.packageId || 1));
   }, [questions, activePackageIds]);
 
-  const nextPackageId = Math.max(...allExamSets.map((s) => s.id), 4) + 1;
+  const nextPackageId = Math.max(...allExamSets.filter((s) => s.id !== 99).map((s) => s.id), 4) + 1;
   const nextLetter = String.fromCharCode(64 + Math.min(nextPackageId, 26));
 
   const [publishMode, setPublishMode] = useState<'new_package' | 'existing_package'>('new_package');
@@ -612,6 +613,10 @@ B：いえ、だいじょうぶですよ。
 
   const handleDeletePackage = async (pkg: import('../types').ExamSet, e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
+    if (pkg.id === 99) {
+      alert('Paket Mini Tryout Gratis dilindungi oleh sistem dan tidak dapat dihapus. Soal di dalamnya hanya dapat diedit.');
+      return;
+    }
     const pkgQuestions = questions.filter((q) => (q.packageId || 1) === pkg.id);
     const confirmText = `Apakah Anda yakin ingin menghapus '${pkg.name}' (${pkg.code})?\n\nPerhatian: ${pkgQuestions.length} soal di dalam paket ini akan ikut dihapus secara permanen dari database!`;
     if (!window.confirm(confirmText)) return;
@@ -1380,14 +1385,16 @@ B：いえ、だいじょうぶですよ。
                           >
                             <Edit3 className="w-3.5 h-3.5" />
                           </button>
-                          <button
-                            type="button"
-                            onClick={(e) => handleDeletePackage(pkg, e)}
-                            className="p-1.5 rounded-lg text-stone-400 hover:text-red-600 hover:bg-red-50 transition"
-                            title="Hapus Paket Ini"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
+                          {pkg.id !== 99 && (
+                            <button
+                              type="button"
+                              onClick={(e) => handleDeletePackage(pkg, e)}
+                              className="p-1.5 rounded-lg text-stone-400 hover:text-red-600 hover:bg-red-50 transition"
+                              title="Hapus Paket Ini"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -1451,14 +1458,16 @@ B：いえ、だいじょうぶですよ。
                         Edit Info Paket
                       </button>
 
-                      <button
-                        type="button"
-                        onClick={() => handleDeletePackage(currentPackage)}
-                        className="px-3.5 py-2 bg-red-100 hover:bg-red-200 text-red-700 font-bold text-xs rounded-xl transition flex items-center gap-1.5 border border-red-200"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                        Hapus Paket
-                      </button>
+                      {currentPackage?.id !== 99 && (
+                        <button
+                          type="button"
+                          onClick={() => handleDeletePackage(currentPackage)}
+                          className="px-3.5 py-2 bg-red-100 hover:bg-red-200 text-red-700 font-bold text-xs rounded-xl transition flex items-center gap-1.5 border border-red-200"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                          Hapus Paket
+                        </button>
+                      )}
 
                       <button
                         type="button"
@@ -1577,16 +1586,22 @@ B：いえ、だいじょうぶですよ。
                               Edit Soal
                             </button>
                             {onDeleteQuestion && (
-                              <button
-                                onClick={() => {
-                                  if (confirm(`Hapus soal #${q.number} dari Paket #${q.packageId || 1}?`)) {
-                                    onDeleteQuestion(q.id);
-                                  }
-                                }}
-                                className="px-3 py-1 bg-red-600 hover:bg-red-700 text-white font-bold rounded-lg transition"
-                              >
-                                Hapus
-                              </button>
+                              q.packageId === 99 || (q.id >= 1001 && q.id <= 1099) ? (
+                                <span className="px-2.5 py-1 bg-amber-50 text-amber-700 border border-amber-200/80 font-bold text-[10px] rounded-lg">
+                                  Hanya Bisa Diedit
+                                </span>
+                              ) : (
+                                <button
+                                  onClick={() => {
+                                    if (confirm(`Hapus soal #${q.number} dari Paket #${q.packageId || 1}?`)) {
+                                      onDeleteQuestion(q.id);
+                                    }
+                                  }}
+                                  className="px-3 py-1 bg-red-600 hover:bg-red-700 text-white font-bold rounded-lg transition"
+                                >
+                                  Hapus
+                                </button>
+                              )
                             )}
                           </div>
                         </div>

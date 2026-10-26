@@ -316,24 +316,20 @@ export async function syncUsersToDatabase(existingConn?: mysql.PoolConnection, f
 export async function syncExamSetsToDatabase(existingConn?: mysql.PoolConnection) {
   const conn = existingConn || (await pool.getConnection());
   try {
-    const [countRows] = await conn.query<any[]>('SELECT COUNT(*) as count FROM exam_sets');
-    const count = countRows?.[0]?.count || 0;
-    if (count === 0) {
-      const { EXAM_SETS } = await import('./dataStore');
-      for (const set of EXAM_SETS) {
-        await conn.query(
-          `INSERT INTO exam_sets (id, name, code, description, totalQuestions)
-           VALUES (?, ?, ?, ?, ?)
-           ON DUPLICATE KEY UPDATE
-             name = VALUES(name),
-             code = VALUES(code),
-             description = VALUES(description),
-             totalQuestions = VALUES(totalQuestions)`,
-          [set.id, set.name, set.code, set.description, set.totalQuestions]
-        );
-      }
-      console.log('✅ Berhasil menyinkronkan daftar paket awal (Paket 1 - 4) ke MySQL.');
+    const { EXAM_SETS } = await import('./dataStore');
+    for (const set of EXAM_SETS) {
+      await conn.query(
+        `INSERT INTO exam_sets (id, name, code, description, totalQuestions)
+         VALUES (?, ?, ?, ?, ?)
+         ON DUPLICATE KEY UPDATE
+           name = VALUES(name),
+           code = VALUES(code),
+           description = VALUES(description),
+           totalQuestions = VALUES(totalQuestions)`,
+        [set.id, set.name, set.code, set.description, set.totalQuestions]
+      );
     }
+    console.log('✅ Berhasil menyinkronkan daftar paket awal (termasuk Mini Tryout) ke MySQL.');
   } catch (err) {
     console.warn('⚠️ Gagal menyinkronkan exam_sets ke MySQL:', err);
   } finally {
@@ -391,6 +387,36 @@ export async function syncQuestionsToDatabase(existingConn?: mysql.PoolConnectio
         );
       }
       console.log('✅ Berhasil menyinkronkan seluruh Bank Soal ke MySQL.');
+    }
+
+    // Pastikan 12 Soal Mini Tryout (packageId = 99) selalu tersimpan di MySQL jika belum ada
+    const [miniRows] = await conn.query<any[]>('SELECT COUNT(*) as count FROM questions WHERE packageId = 99');
+    if ((miniRows?.[0]?.count || 0) < 12) {
+      const { MINI_TRYOUT_QUESTIONS } = await import('./miniTryoutQuestions');
+      for (const q of MINI_TRYOUT_QUESTIONS) {
+        await conn.query(
+          `INSERT INTO questions 
+           (id, packageId, section, sectionTitle, number, questionText, readingPassage, imageUrl, audioUrl, options, correctAnswer, explanation)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+           ON DUPLICATE KEY UPDATE
+             packageId = VALUES(packageId)`,
+          [
+            q.id,
+            99,
+            q.section,
+            q.sectionTitle,
+            q.number,
+            q.questionText,
+            q.readingPassage || null,
+            q.imageUrl || null,
+            q.audioUrl || null,
+            JSON.stringify(q.options),
+            q.correctAnswer,
+            q.explanation
+          ]
+        );
+      }
+      console.log('✅ Berhasil memastikan 12 Soal Mini Tryout tersimpan di database MySQL.');
     }
   } catch (seedErr) {
     console.warn('⚠️ Gagal menyinkronkan bank soal ke MySQL:', seedErr);

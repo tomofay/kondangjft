@@ -53,18 +53,50 @@ export const MiniTryoutExperience: React.FC<MiniTryoutExperienceProps> = ({
   const [showConsentModal, setShowConsentModal] = useState(false);
   const [submittingLead, setSubmittingLead] = useState(false);
 
-  // Exam States
-  const questions = MINI_TRYOUT_QUESTIONS;
+  // Exam States: Live synced with database (packageId = 99), fallback to default static questions
+  const [questions, setQuestions] = useState<Question[]>(MINI_TRYOUT_QUESTIONS);
   const TOTAL_TIME = 15 * 60; // 15 menit
   const [timeLeft, setTimeLeft] = useState(TOTAL_TIME);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answers, setAnswers] = useState<Map<number, UserAnswer>>(() => {
     const map = new Map<number, UserAnswer>();
-    questions.forEach((q) => {
+    MINI_TRYOUT_QUESTIONS.forEach((q) => {
       map.set(q.id, { questionId: q.id, selectedOption: null, isFlagged: false });
     });
     return map;
   });
+
+  useEffect(() => {
+    let isMounted = true;
+    fetch('/api/questions?packageId=99')
+      .then((res) => res.json())
+      .then((data) => {
+        if (isMounted && data.success && Array.isArray(data.questions) && data.questions.length > 0) {
+          const sorted = [...data.questions].sort((a, b) => (a.number || a.id) - (b.number || b.id));
+          setQuestions(sorted);
+        }
+      })
+      .catch((err) => {
+        console.warn('Mini tryout questions live fetch notice:', err);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  // Sync answers map if live questions update
+  useEffect(() => {
+    setAnswers((prev) => {
+      const next = new Map(prev);
+      questions.forEach((q) => {
+        if (!next.has(q.id)) {
+          next.set(q.id, { questionId: q.id, selectedOption: null, isFlagged: false });
+        }
+      });
+      return next;
+    });
+  }, [questions]);
 
   // Audio Play Count per question (Max 2 plays for Chōkai)
   const [audioPlayCounts, setAudioPlayCounts] = useState<Record<number, number>>({});

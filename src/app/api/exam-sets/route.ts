@@ -119,6 +119,13 @@ export async function DELETE(request: Request) {
       );
     }
 
+    if (id === 99) {
+      return NextResponse.json(
+        { success: false, message: 'Paket Mini Tryout Gratis dilindungi oleh sistem dan tidak dapat dihapus.' },
+        { status: 403 }
+      );
+    }
+
     try {
       await pool.query('DELETE FROM exam_sets WHERE id = ?', [id]);
       await pool.query('DELETE FROM questions WHERE packageId = ?', [id]);
