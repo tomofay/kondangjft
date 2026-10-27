@@ -102,15 +102,26 @@ export async function initDatabase() {
           sectionTitle VARCHAR(255) NOT NULL,
           number INT NOT NULL,
           questionText TEXT NOT NULL,
-          readingPassage TEXT NULL,
-          imageUrl TEXT NULL,
-          audioUrl TEXT NULL,
+          readingPassage MEDIUMTEXT NULL,
+          imageUrl MEDIUMTEXT NULL,
+          audioUrl MEDIUMTEXT NULL,
           options JSON NOT NULL,
           correctAnswer ENUM('A', 'B', 'C', 'D') NOT NULL,
           explanation TEXT NOT NULL,
           createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
       `);
+
+      // Migration: Ensure imageUrl and audioUrl are MEDIUMTEXT
+      try {
+        await connection.query(`ALTER TABLE questions MODIFY COLUMN imageUrl MEDIUMTEXT NULL`);
+      } catch {}
+      try {
+        await connection.query(`ALTER TABLE questions MODIFY COLUMN audioUrl MEDIUMTEXT NULL`);
+      } catch {}
+      try {
+        await connection.query(`ALTER TABLE questions MODIFY COLUMN readingPassage MEDIUMTEXT NULL`);
+      } catch {}
 
       // 3. Exam Results Table
       await connection.query(`

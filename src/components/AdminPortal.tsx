@@ -300,6 +300,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
   const pdfFileInputRef = useRef<HTMLInputElement | null>(null);
   const draftSpecificImageInputRef = useRef<HTMLInputElement | null>(null);
   const [activeDraftIdForImage, setActiveDraftIdForImage] = useState<string | null>(null);
+  const activeDraftIdForImageRef = useRef<string | null>(null);
 
   // 1-second dynamic ticker to keep time and relative status ("Baru saja", "x dtk lalu") live
   const [, setTick] = useState(0);
@@ -413,6 +414,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
   const [uploadImageError, setUploadImageError] = useState('');
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const inputEl = fileInputRef.current;
     const file = e.target.files?.[0];
     if (!file || !editingQuestion) return;
 
@@ -431,6 +433,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
       const data = await res.json();
       if (data.success && data.url) {
         setEditingQuestion((prev) => prev ? { ...prev, imageUrl: data.url } : null);
+        setUploadImageError('');
       } else {
         setUploadImageError(data.message || 'Gagal mengunggah gambar.');
       }
@@ -439,7 +442,11 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
       setUploadImageError('Gagal menghubungi server: ' + msg);
     } finally {
       setIsUploadingImage(false);
-      if (e.target) e.target.value = '';
+      if (inputEl) inputEl.value = '';
+      if (fileInputRef.current) fileInputRef.current.value = '';
+      if (e?.target) {
+        try { e.target.value = ''; } catch {}
+      }
     }
   };
 
@@ -449,6 +456,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
   const [uploadAudioError, setUploadAudioError] = useState('');
 
   const handleAudioUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const inputEl = audioFileInputRef.current;
     const file = e.target.files?.[0];
     if (!file || !editingQuestion) return;
 
@@ -467,6 +475,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
       const data = await res.json();
       if (data.success && data.url) {
         setEditingQuestion((prev) => prev ? { ...prev, audioUrl: data.url } : null);
+        setUploadAudioError('');
       } else {
         setUploadAudioError(data.message || 'Gagal mengunggah file audio.');
       }
@@ -475,7 +484,11 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
       setUploadAudioError('Gagal menghubungi server: ' + msg);
     } finally {
       setIsUploadingAudio(false);
-      if (e.target) e.target.value = '';
+      if (inputEl) inputEl.value = '';
+      if (audioFileInputRef.current) audioFileInputRef.current.value = '';
+      if (e?.target) {
+        try { e.target.value = ''; } catch {}
+      }
     }
   };
 
@@ -734,7 +747,8 @@ B：いえ、だいじょうぶですよ。
 
   const handleUploadDraftSpecificImage = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file || !activeDraftIdForImage) return;
+    const targetDraftId = activeDraftIdForImageRef.current || activeDraftIdForImage;
+    if (!file || !targetDraftId) return;
 
     try {
       const formData = new FormData();
@@ -746,7 +760,7 @@ B：いえ、だいじょうぶですよ。
       const data = await res.json();
       if (data.success && data.url) {
         setLocalDrafts((prev) =>
-          prev.map((d) => (d.id === activeDraftIdForImage ? { ...d, imageUrl: data.url } : d))
+          prev.map((d) => (d.id === targetDraftId ? { ...d, imageUrl: data.url } : d))
         );
       } else {
         alert(data.message || 'Gagal mengunggah gambar');
@@ -754,8 +768,12 @@ B：いえ、だいじょうぶですよ。
     } catch (err) {
       alert('Gagal mengunggah: ' + err);
     } finally {
+      activeDraftIdForImageRef.current = null;
       setActiveDraftIdForImage(null);
-      if (e.target) e.target.value = '';
+      if (draftSpecificImageInputRef.current) draftSpecificImageInputRef.current.value = '';
+      if (e?.target) {
+        try { e.target.value = ''; } catch {}
+      }
     }
   };
 
@@ -849,6 +867,8 @@ B：いえ、だいじょうぶですよ。
   };
 
   const handleOpenEdit = (q: Question) => {
+    setUploadImageError('');
+    setUploadAudioError('');
     const pkgId = q.packageId ?? (q.id >= 1001 && q.id <= 1099 ? 99 : (openedPackageId !== null ? openedPackageId : 1));
     setEditingQuestion({
       ...q,
@@ -859,6 +879,8 @@ B：いえ、だいじょうぶですよ。
   };
 
   const handleOpenAdd = () => {
+    setUploadImageError('');
+    setUploadAudioError('');
     const nextId = questions.length > 0 ? Math.max(...questions.map((q) => q.id)) + 1 : 1;
     const targetPkg = openedPackageId !== null ? openedPackageId : (selectedPkgFilter > 0 ? selectedPkgFilter : 1);
     const pkgQuestions = questions.filter((q) => (q.packageId || (q.id >= 1001 && q.id <= 1099 ? 99 : 1)) === targetPkg);
@@ -2314,7 +2336,9 @@ B：いえ、だいじょうぶですよ。
                               <button
                                 type="button"
                                 onClick={() => {
+                                  activeDraftIdForImageRef.current = draft.id;
                                   setActiveDraftIdForImage(draft.id);
+                                  if (draftSpecificImageInputRef.current) draftSpecificImageInputRef.current.value = '';
                                   draftSpecificImageInputRef.current?.click();
                                 }}
                                 className="text-red-600 hover:underline font-semibold"
@@ -2337,7 +2361,9 @@ B：いえ、だいじょうぶですよ。
                           <button
                             type="button"
                             onClick={() => {
+                              activeDraftIdForImageRef.current = draft.id;
                               setActiveDraftIdForImage(draft.id);
+                              if (draftSpecificImageInputRef.current) draftSpecificImageInputRef.current.value = '';
                               draftSpecificImageInputRef.current?.click();
                             }}
                             className="text-[11px] font-bold text-stone-500 hover:text-red-600 flex items-center gap-1 border border-dashed border-stone-200 px-2.5 py-1.5 rounded-xl hover:border-indigo-400 transition"
@@ -3590,7 +3616,11 @@ B：いえ、だいじょうぶですよ。
                   <button
                     type="button"
                     disabled={isUploadingAudio}
-                    onClick={() => audioFileInputRef.current?.click()}
+                    onClick={() => {
+                      if (audioFileInputRef.current) audioFileInputRef.current.value = '';
+                      setUploadAudioError('');
+                      audioFileInputRef.current?.click();
+                    }}
                     className="w-full py-2.5 px-3 bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 rounded-xl font-bold flex items-center justify-center gap-2 transition disabled:opacity-50"
                   >
                     <UploadCloud className="w-4 h-4" />
@@ -3679,7 +3709,11 @@ B：いえ、だいじょうぶですよ。
                   <button
                     type="button"
                     disabled={isUploadingImage}
-                    onClick={() => fileInputRef.current?.click()}
+                    onClick={() => {
+                      if (fileInputRef.current) fileInputRef.current.value = '';
+                      setUploadImageError('');
+                      fileInputRef.current?.click();
+                    }}
                     className="w-full py-2.5 px-3 bg-rose-50 hover:bg-rose-100 text-red-700 border border-rose-200 rounded-xl font-bold flex items-center justify-center gap-2 transition disabled:opacity-50"
                   >
                     <UploadCloud className="w-4 h-4" />

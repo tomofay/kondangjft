@@ -14,18 +14,24 @@ export async function POST(request: Request) {
       );
     }
 
-    // Validasi mime type
-    if (!file.type.startsWith('image/')) {
+    // Ekstrak ekstensi berkas
+    const rawExt = path.extname(file.name || '').toLowerCase();
+    const allowedImageExts = ['.jpg', '.jpeg', '.png', '.webp', '.gif', '.svg', '.bmp', '.jfif', '.avif'];
+    const hasImageExt = allowedImageExts.includes(rawExt);
+    const isImageMime = file.type && file.type.startsWith('image/');
+
+    // Validasi mime type atau ekstensi
+    if (!isImageMime && !hasImageExt) {
       return NextResponse.json(
         { success: false, message: 'File harus berupa gambar (JPG, PNG, WebP, GIF, SVG).' },
         { status: 400 }
       );
     }
 
-    // Validasi ukuran (maksimal 10MB)
-    if (file.size > 10 * 1024 * 1024) {
+    // Validasi ukuran (maksimal 15MB)
+    if (file.size > 15 * 1024 * 1024) {
       return NextResponse.json(
-        { success: false, message: 'Ukuran foto maksimal 10MB.' },
+        { success: false, message: 'Ukuran foto maksimal 15MB.' },
         { status: 400 }
       );
     }
@@ -39,8 +45,8 @@ export async function POST(request: Request) {
       const uploadDir = path.join(process.cwd(), 'public', 'uploads', 'questions');
       await mkdir(uploadDir, { recursive: true });
 
-      // Generate nama file unik
-      const ext = path.extname(file.name) || '.png';
+      // Generate nama file unik aman
+      const ext = rawExt && allowedImageExts.includes(rawExt) ? rawExt : '.png';
       const cleanExt = ext.replace(/[^a-zA-Z0-9.]/g, '').toLowerCase() || '.png';
       const filename = `soal-${Date.now()}-${Math.random().toString(36).substring(2, 8)}${cleanExt}`;
       const filePath = path.join(uploadDir, filename);
