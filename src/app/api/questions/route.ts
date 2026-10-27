@@ -88,6 +88,11 @@ export async function GET(request: Request) {
   }
 }
 
+// PUT: Perbarui Soal (alias to POST)
+export async function PUT(request: Request) {
+  return POST(request);
+}
+
 // POST: Simpan / Perbarui / Tambah Soal (Tunggal atau Batch) ke MySQL & Memory Store
 export async function POST(request: Request) {
   try {
@@ -112,11 +117,20 @@ export async function POST(request: Request) {
 
     const store = getStore();
 
-    // 1. Simpan ke MySQL (bisa single atau batch)
-    try {
-      for (const question of questionsToSave) {
-        if (!question.id || !question.questionText || !question.correctAnswer) continue;
+    // 1. Simpan ke MySQL & Memory Store per soal
+    for (const question of questionsToSave) {
+      if (!question.id || !question.questionText || !question.correctAnswer) continue;
 
+      const pkgId = question.packageId ?? (question.id >= 1001 && question.id <= 1099 ? 99 : 1);
+      const normalizedQuestion: Question = {
+        ...question,
+        packageId: pkgId,
+        readingPassage: question.readingPassage || undefined,
+        imageUrl: question.imageUrl || undefined,
+        audioUrl: question.audioUrl || undefined
+      };
+
+      try {
         await pool.query(
           `INSERT INTO questions 
            (id, packageId, section, sectionTitle, number, questionText, readingPassage, imageUrl, audioUrl, options, correctAnswer, explanation)
@@ -134,37 +148,38 @@ export async function POST(request: Request) {
              correctAnswer = VALUES(correctAnswer),
              explanation = VALUES(explanation)`,
           [
-            question.id,
-            question.packageId || 1,
-            question.section,
-            question.sectionTitle,
-            question.number,
-            question.questionText,
-            question.readingPassage || null,
-            question.imageUrl || null,
-            question.audioUrl || null,
-            JSON.stringify(question.options),
-            question.correctAnswer,
-            question.explanation
+            normalizedQuestion.id,
+            normalizedQuestion.packageId,
+            normalizedQuestion.section,
+            normalizedQuestion.sectionTitle,
+            normalizedQuestion.number,
+            normalizedQuestion.questionText,
+            normalizedQuestion.readingPassage || null,
+            normalizedQuestion.imageUrl || null,
+            normalizedQuestion.audioUrl || null,
+            JSON.stringify(normalizedQuestion.options),
+            normalizedQuestion.correctAnswer,
+            normalizedQuestion.explanation
           ]
         );
-
-        // Update memory store
-        const idx = store.questions.findIndex((q) => q.id === question.id);
-        if (idx !== -1) {
-          store.questions[idx] = question;
-        } else {
-          store.questions.push(question);
-        }
+      } catch (dbErr) {
+        console.warn('MySQL save question error:', dbErr);
       }
-    } catch (dbErr) {
-      console.warn('MySQL save questions batch error:', dbErr);
+
+      // Update memory store
+      const idx = store.questions.findIndex((q) => q.id === normalizedQuestion.id);
+      if (idx !== -1) {
+        store.questions[idx] = normalizedQuestion;
+      } else {
+        store.questions.push(normalizedQuestion);
+      }
     }
 
     return NextResponse.json({
       success: true,
       count: questionsToSave.length,
-      message: `Berhasil menyimpan ${questionsToSave.length} soal ke database MySQL.`
+      question: questionsToSave.length === 1 ? questionsToSave[0] : undefined,
+      message: `Berhasil menyimpan ${questionsToSave.length} soal ke database.`
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);

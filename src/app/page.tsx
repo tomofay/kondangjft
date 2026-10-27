@@ -523,16 +523,25 @@ export default function HomePage() {
 
   // Question handlers for Admin
   const handleSaveQuestion = async (updatedQ: Question) => {
-    const res = await fetch('/api/questions', {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(updatedQ)
-    });
-    const data = await res.json();
-    if (data.success) {
-      setQuestions((prev) => prev.map((q) => (q.id === updatedQ.id ? updatedQ : q)));
-    } else {
-      alert(data.message || 'Gagal memperbarui soal di basis data');
+    try {
+      const pkgId = updatedQ.packageId ?? (updatedQ.id >= 1001 && updatedQ.id <= 1099 ? 99 : 1);
+      const questionToSend = { ...updatedQ, packageId: pkgId };
+      const res = await fetch('/api/questions', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(questionToSend)
+      });
+      const data = await res.json();
+      if (data.success) {
+        setQuestions((prev) => prev.map((q) => (q.id === updatedQ.id ? questionToSend : q)));
+      } else {
+        alert(data.message || 'Gagal memperbarui soal di basis data');
+        throw new Error(data.message || 'Gagal menyimpan');
+      }
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      console.error('Save question error:', msg);
+      throw err;
     }
   };
 

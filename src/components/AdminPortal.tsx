@@ -374,6 +374,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [editingQuestion, setEditingQuestion] = useState<Question | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isSavingQuestion, setIsSavingQuestion] = useState(false);
 
   // Bank Soal: Tampilan Per Paket (null = Daftar Paket, number = Detail Soal Paket)
   const [openedPackageId, setOpenedPackageId] = useState<number | null>(null);
@@ -848,14 +849,19 @@ B：いえ、だいじょうぶですよ。
   };
 
   const handleOpenEdit = (q: Question) => {
-    setEditingQuestion({ ...q, options: q.options.map(o => ({ ...o })) });
+    const pkgId = q.packageId ?? (q.id >= 1001 && q.id <= 1099 ? 99 : (openedPackageId !== null ? openedPackageId : 1));
+    setEditingQuestion({
+      ...q,
+      packageId: pkgId,
+      options: q.options.map(o => ({ ...o }))
+    });
     setIsEditModalOpen(true);
   };
 
   const handleOpenAdd = () => {
     const nextId = questions.length > 0 ? Math.max(...questions.map((q) => q.id)) + 1 : 1;
     const targetPkg = openedPackageId !== null ? openedPackageId : (selectedPkgFilter > 0 ? selectedPkgFilter : 1);
-    const pkgQuestions = questions.filter((q) => (q.packageId || 1) === targetPkg);
+    const pkgQuestions = questions.filter((q) => (q.packageId || (q.id >= 1001 && q.id <= 1099 ? 99 : 1)) === targetPkg);
     const nextNumber = pkgQuestions.length > 0 ? Math.max(...pkgQuestions.map((q) => q.number)) + 1 : 1;
 
     setEditingQuestion({
@@ -877,20 +883,31 @@ B：いえ、だいじょうぶですよ。
     setIsEditModalOpen(true);
   };
 
-  const handleSaveEditModal = () => {
+  const handleSaveEditModal = async () => {
     if (!editingQuestion || !onSaveQuestion) return;
     if (!editingQuestion.questionText.trim()) {
       alert('Teks pertanyaan tidak boleh kosong!');
       return;
     }
-    onSaveQuestion(editingQuestion);
-    setIsEditModalOpen(false);
-    setEditingQuestion(null);
+    setIsSavingQuestion(true);
+    try {
+      await onSaveQuestion(editingQuestion);
+      if (onRefreshData) {
+        await onRefreshData();
+      }
+      setIsEditModalOpen(false);
+      setEditingQuestion(null);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      alert('Gagal menyimpan perubahan soal: ' + msg);
+    } finally {
+      setIsSavingQuestion(false);
+    }
   };
 
   // Filter questions list (jika membuka paket tertentu, filter khusus paket tersebut)
   const filteredQuestions = questions.filter((q) => {
-    const pkg = q.packageId || 1;
+    const pkg = q.packageId || (q.id >= 1001 && q.id <= 1099 ? 99 : 1);
     if (openedPackageId !== null) {
       if (pkg !== openedPackageId) return false;
     } else if (selectedPkgFilter > 0 && pkg !== selectedPkgFilter) {
@@ -1536,7 +1553,7 @@ B：いえ、だいじょうぶですよ。
               {/* Grid of Package Cards */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {allExamSets.map((pkg) => {
-                  const pkgQuestions = questions.filter((q) => (q.packageId || 1) === pkg.id);
+                  const pkgQuestions = questions.filter((q) => (q.packageId || (q.id >= 1001 && q.id <= 1099 ? 99 : 1)) === pkg.id);
                   const s1Count = pkgQuestions.filter((q) => q.section === 'S1').length;
                   const s2Count = pkgQuestions.filter((q) => q.section === 'S2').length;
                   const s3Count = pkgQuestions.filter((q) => q.section === 'S3').length;
@@ -1635,7 +1652,7 @@ B：いえ、だいじょうぶですよ。
                   description: '',
                   totalQuestions: 50
                 };
-              const currentPackageQuestions = questions.filter((q) => (q.packageId || 1) === openedPackageId);
+              const currentPackageQuestions = questions.filter((q) => (q.packageId || (q.id >= 1001 && q.id <= 1099 ? 99 : 1)) === openedPackageId);
 
               return (
                 <div className="space-y-6">
@@ -3738,16 +3755,25 @@ B：いえ、だいじょうぶですよ。
               <button
                 type="button"
                 onClick={() => setIsEditModalOpen(false)}
-                className="px-4 py-2 bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold rounded-xl text-xs transition"
+                disabled={isSavingQuestion}
+                className="px-4 py-2 bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold rounded-xl text-xs transition disabled:opacity-50"
               >
                 Batal
               </button>
               <button
                 type="button"
+                disabled={isSavingQuestion}
                 onClick={handleSaveEditModal}
-                className="px-5 py-2 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl text-xs transition shadow-lg"
+                className="px-5 py-2 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl text-xs transition shadow-lg flex items-center gap-2 disabled:opacity-50 cursor-pointer"
               >
-                Simpan Perubahan Soal
+                {isSavingQuestion ? (
+                  <>
+                    <RefreshCw className="w-3.5 h-3.5 animate-spin text-white" />
+                    <span>Menyimpan Soal...</span>
+                  </>
+                ) : (
+                  <span>Simpan Perubahan Soal</span>
+                )}
               </button>
             </div>
           </div>
