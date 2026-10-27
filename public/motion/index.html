@@ -3,10 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>KondangSensei • 30s Meta Ads Motion Video Generator</title>
+  <title>KondangSensei • Generator Video Motion Iklan Meta Ads 30s</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800;900&family=Noto+Sans+JP:wght@700;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=Noto+Sans+JP:wght@500;700;900&family=JetBrains+Mono:wght@700;800&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/png" href="/logo-icon.png">
   <style>
     * {
       box-sizing: border-box;
@@ -15,424 +16,726 @@
     }
 
     body {
-      background: #090d16;
-      color: #f8fafc;
+      background: #f8fafc;
+      color: #0f172a;
       font-family: 'Plus Jakarta Sans', sans-serif;
       min-height: 100vh;
       display: flex;
       flex-direction: column;
-      align-items: center;
-      padding: 24px 16px 60px;
     }
 
-    .app-header {
+    /* Top Announcement Bar */
+    .top-announcement {
+      background: linear-gradient(to right, #1c1917, #4c0519, #1c1917);
+      color: white;
+      padding: 8px 16px;
       text-align: center;
-      margin-bottom: 24px;
-      max-width: 800px;
+      font-size: 12px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      border-bottom: 1px solid rgba(159, 18, 57, 0.4);
     }
 
-    .app-badge {
+    .top-announcement a {
+      color: #fde047;
+      text-decoration: underline;
+      font-weight: 800;
+      margin-left: 6px;
+    }
+
+    /* Sticky Navbar */
+    .site-nav {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid #e2e8f0;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    }
+
+    .nav-container {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 12px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .brand-wrap {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+    }
+
+    .brand-logo-icon {
+      width: 42px;
+      height: 42px;
+      border-radius: 12px;
+      background: #fee2e2;
+      border: 1.5px solid #fca5a5;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+    }
+
+    .brand-text-title {
+      font-size: 20px;
+      font-weight: 900;
+      color: #0f172a;
+      letter-spacing: -0.5px;
+      line-height: 1;
+    }
+
+    .brand-text-title span {
+      color: #dc2626;
+    }
+
+    .brand-text-sub {
+      font-size: 10px;
+      font-weight: 800;
+      color: #64748b;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin-top: 3px;
+    }
+
+    .nav-menu {
+      display: none;
+      align-items: center;
+      gap: 24px;
+      font-size: 13px;
+      font-weight: 800;
+      color: #475569;
+    }
+
+    @media (min-width: 768px) {
+      .nav-menu { display: flex; }
+    }
+
+    .nav-menu a {
+      text-decoration: none;
+      color: inherit;
+      transition: color 0.15s;
+    }
+
+    .nav-menu a:hover, .nav-menu a.active {
+      color: #dc2626;
+    }
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .btn-nav-primary {
+      padding: 9px 18px;
+      background: linear-gradient(135deg, #dc2626, #b91c1c);
+      color: white;
+      font-size: 13px;
+      font-weight: 800;
+      border-radius: 12px;
+      text-decoration: none;
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      padding: 6px 16px;
-      background: rgba(220, 38, 38, 0.15);
-      border: 1px solid rgba(220, 38, 38, 0.4);
-      color: #f87171;
+      box-shadow: 0 4px 12px rgba(220, 38, 38, 0.25);
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+
+    .btn-nav-secondary {
+      padding: 8px 16px;
+      background: #f1f5f9;
+      color: #334155;
+      font-size: 13px;
+      font-weight: 800;
+      border-radius: 12px;
+      text-decoration: none;
+      transition: background 0.15s;
+    }
+
+    /* Main Page Content */
+    .main-body {
+      flex: 1;
+      max-width: 1280px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 28px 20px 80px;
+    }
+
+    /* Header Section */
+    .page-hero {
+      text-align: center;
+      margin-bottom: 28px;
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 18px;
+      background: #fee2e2;
+      border: 1px solid #fca5a5;
+      color: #b91c1c;
       border-radius: 9999px;
       font-size: 12px;
-      font-weight: 800;
+      font-weight: 900;
       text-transform: uppercase;
       letter-spacing: 1px;
       margin-bottom: 12px;
     }
 
-    .app-title {
-      font-size: 28px;
+    .hero-title {
+      font-size: 30px;
       font-weight: 900;
-      color: white;
+      color: #0f172a;
       letter-spacing: -0.5px;
-      margin-bottom: 6px;
+      margin-bottom: 8px;
     }
 
-    .app-title span {
+    .hero-title span {
       color: #dc2626;
     }
 
-    .app-desc {
+    .hero-subtitle {
       font-size: 14px;
-      color: #94a3b8;
+      color: #64748b;
+      max-width: 720px;
+      margin: 0 auto;
+      line-height: 1.6;
     }
 
-    /* Main Workspace */
-    .workspace {
-      display: flex;
-      flex-direction: column;
-      lg-flex-direction: row;
-      gap: 32px;
-      align-items: center;
-      justify-content: center;
-      max-width: 1200px;
-      width: 100%;
+    /* Workspace: Left Player, Right Controls */
+    .workspace-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 28px;
+      align-items: start;
     }
 
     @media (min-width: 1024px) {
-      .workspace {
-        flex-direction: row;
-        align-items: flex-start;
+      .workspace-grid {
+        grid-template-columns: 460px 1fr;
       }
     }
 
-    /* Video Player Canvas Container */
-    .player-container {
+    /* Left Video Canvas Card */
+    .player-card {
+      background: #090d16;
+      border-radius: 28px;
+      padding: 16px;
+      box-shadow: 0 25px 60px -15px rgba(220, 38, 38, 0.25), 0 0 0 1px rgba(226, 232, 240, 0.8);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+    }
+
+    .player-wrapper {
       position: relative;
       background: #000;
-      border-radius: 28px;
-      box-shadow: 0 25px 60px -15px rgba(220, 38, 38, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.1);
+      border-radius: 20px;
       overflow: hidden;
       display: flex;
       align-items: center;
       justify-content: center;
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1);
     }
 
-    /* Default 9:16 vertical (Reels / TikTok / Stories) */
     .aspect-9-16 {
       width: 360px;
       height: 640px;
     }
 
     .aspect-1-1 {
-      width: 480px;
-      height: 480px;
+      width: 400px;
+      height: 400px;
     }
 
-    #motionCanvas {
+    canvas {
       width: 100%;
       height: 100%;
+      object-fit: contain;
       display: block;
     }
 
-    /* Scene Overlay Pill on Canvas */
     .scene-pill {
       position: absolute;
-      top: 16px;
-      left: 16px;
-      background: rgba(0, 0, 0, 0.75);
+      top: 14px;
+      left: 14px;
+      background: rgba(0, 0, 0, 0.8);
       backdrop-filter: blur(8px);
       border: 1px solid rgba(255, 255, 255, 0.2);
-      color: white;
-      padding: 6px 14px;
       border-radius: 9999px;
+      padding: 6px 14px;
       font-size: 11px;
       font-weight: 800;
-      letter-spacing: 0.5px;
-      z-index: 20;
+      color: white;
       display: flex;
       align-items: center;
       gap: 6px;
+      z-index: 10;
       pointer-events: none;
     }
 
     .scene-pill .dot {
       width: 8px;
       height: 8px;
-      border-radius: 50%;
-      background: #dc2626;
+      border-radius: 9999px;
+      background: #ef4444;
       animation: pulse 1s infinite;
     }
 
-    /* Controls Panel */
-    .controls-panel {
-      background: #111827;
-      border: 1px solid #1f2937;
-      border-radius: 24px;
+    /* Right Controls Panel Card */
+    .controls-card {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 28px;
       padding: 24px;
-      width: 100%;
-      max-width: 480px;
+      box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.05);
       display: flex;
       flex-direction: column;
       gap: 20px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
     }
 
     /* Timeline Section */
-    .timeline-box {
-      background: #0b0f19;
-      border: 1px solid #1e293b;
-      border-radius: 16px;
-      padding: 16px;
+    .panel-section {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
     }
 
-    .time-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
+    .section-title {
       font-size: 13px;
-      font-weight: 700;
-      margin-bottom: 8px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #64748b;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
     }
 
     .time-badge {
-      font-family: monospace;
-      font-size: 18px;
-      font-weight: 900;
-      color: #38bdf8;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 14px;
+      font-weight: 800;
+      color: #dc2626;
+      background: #fee2e2;
+      padding: 4px 10px;
+      border-radius: 8px;
     }
 
     .seek-slider {
       width: 100%;
-      -webkit-appearance: none;
       height: 8px;
+      -webkit-appearance: none;
+      background: #e2e8f0;
       border-radius: 4px;
-      background: #334155;
       outline: none;
       cursor: pointer;
     }
 
     .seek-slider::-webkit-slider-thumb {
       -webkit-appearance: none;
-      width: 18px;
-      height: 18px;
+      width: 22px;
+      height: 22px;
       border-radius: 50%;
       background: #dc2626;
+      border: 3px solid #ffffff;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.25);
       cursor: pointer;
-      box-shadow: 0 0 10px rgba(220, 38, 38, 0.8);
-      border: 2px solid white;
     }
 
-    /* Scene Timeline Markers */
+    /* Scene Jump Markers */
     .scene-markers {
       display: grid;
-      grid-template-columns: 5fr 8fr 9fr 8fr;
-      gap: 4px;
-      margin-top: 10px;
-      font-size: 10px;
-      font-weight: 800;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+    }
+
+    .marker-btn {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 10px 6px;
       text-align: center;
-    }
-
-    .marker-item {
-      padding: 6px 2px;
-      background: rgba(255, 255, 255, 0.05);
-      border-radius: 6px;
-      color: #94a3b8;
       cursor: pointer;
-      transition: all 0.2s;
+      transition: all 0.15s;
     }
 
-    .marker-item.active {
+    .marker-btn:hover {
+      background: #fee2e2;
+      border-color: #fca5a5;
+    }
+
+    .marker-btn.active {
       background: #dc2626;
+      border-color: #b91c1c;
       color: white;
+      box-shadow: 0 4px 12px rgba(220, 38, 38, 0.25);
     }
 
-    /* Control Buttons */
+    .marker-btn strong {
+      display: block;
+      font-size: 11px;
+      font-weight: 900;
+      margin-bottom: 2px;
+    }
+
+    .marker-btn span {
+      font-size: 10px;
+      font-weight: 700;
+      opacity: 0.8;
+    }
+
+    /* Playback Action Buttons */
     .btn-row {
       display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
+      grid-template-columns: 2fr 1fr;
+      gap: 12px;
     }
 
-    .btn {
+    .btn-play {
+      padding: 14px 24px;
+      background: linear-gradient(135deg, #dc2626, #b91c1c);
+      color: white;
+      border: none;
+      border-radius: 16px;
+      font-size: 15px;
+      font-weight: 900;
+      cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
       gap: 8px;
-      padding: 12px 18px;
-      border-radius: 14px;
-      font-size: 13px;
+      box-shadow: 0 8px 20px -4px rgba(220, 38, 38, 0.4);
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+
+    .btn-play:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 24px -4px rgba(220, 38, 38, 0.5);
+    }
+
+    .btn-reset {
+      padding: 14px 18px;
+      background: #f1f5f9;
+      color: #334155;
+      border: 1px solid #cbd5e1;
+      border-radius: 16px;
+      font-size: 14px;
       font-weight: 800;
-      border: none;
       cursor: pointer;
-      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: background 0.15s;
     }
 
-    .btn-primary {
-      background: #dc2626;
-      color: white;
-      box-shadow: 0 4px 14px rgba(220, 38, 38, 0.4);
+    .btn-reset:hover {
+      background: #e2e8f0;
     }
 
-    .btn-primary:hover {
-      background: #b91c1c;
-      transform: translateY(-1px);
-    }
-
-    .btn-secondary {
-      background: #1e293b;
-      color: #f8fafc;
-      border: 1px solid #334155;
-    }
-
-    .btn-secondary:hover {
-      background: #334155;
-    }
-
-    .btn-record {
-      grid-column: span 2;
-      background: linear-gradient(135deg, #dc2626 0%, #ea580c 100%);
-      color: white;
-      font-size: 15px;
-      padding: 14px;
-      box-shadow: 0 8px 20px rgba(220, 38, 38, 0.4);
-    }
-
-    .btn-record:hover {
-      filter: brightness(1.1);
-    }
-
-    /* Toggles Grid */
+    /* Options Toggles */
     .options-grid {
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: repeat(3, 1fr);
       gap: 10px;
     }
 
     .toggle-card {
-      background: #0b0f19;
-      border: 1px solid #1e293b;
-      border-radius: 14px;
-      padding: 12px 14px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 16px;
+      padding: 12px;
       cursor: pointer;
-      font-size: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      transition: all 0.15s;
+    }
+
+    .toggle-card span {
+      font-size: 11px;
       font-weight: 700;
-      color: #cbd5e1;
+      color: #64748b;
+    }
+
+    .toggle-card strong {
+      font-size: 13px;
+      font-weight: 900;
+      color: #0f172a;
     }
 
     .toggle-card.active {
-      border-color: #dc2626;
-      background: rgba(220, 38, 38, 0.08);
-      color: white;
+      background: #fff1f2;
+      border-color: #fca5a5;
     }
 
-    /* Script Reference Box */
-    .script-box {
-      background: #0b0f19;
-      border: 1px solid #1e293b;
+    .toggle-card.active strong {
+      color: #dc2626;
+    }
+
+    /* Record Video Export Button */
+    .btn-export {
+      padding: 16px 24px;
+      background: linear-gradient(135deg, #0f172a, #1e293b);
+      color: white;
+      border: 2px solid #334155;
+      border-radius: 18px;
+      font-size: 15px;
+      font-weight: 900;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.2);
+      transition: all 0.2s;
+    }
+
+    .btn-export:hover {
+      background: linear-gradient(135deg, #dc2626, #991b1b);
+      border-color: #ef4444;
+      box-shadow: 0 10px 25px -5px rgba(220, 38, 38, 0.4);
+    }
+
+    .btn-export.recording {
+      background: #dc2626 !important;
+      border-color: #f87171 !important;
+      animation: pulse 1.2s infinite;
+    }
+
+    /* Download Ready Card */
+    .download-card {
+      display: none;
+      background: #ecfdf5;
+      border: 1.5px solid #a7f3d0;
       border-radius: 16px;
-      padding: 14px;
+      padding: 14px 18px;
+      color: #065f46;
+      font-size: 13px;
+      font-weight: 700;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .btn-download-link {
+      background: #059669;
+      color: white;
+      padding: 8px 14px;
+      border-radius: 10px;
+      text-decoration: none;
+      font-weight: 800;
       font-size: 12px;
-      color: #94a3b8;
-      max-height: 120px;
-      overflow-y: auto;
+      white-space: nowrap;
+      transition: background 0.15s;
+    }
+
+    .btn-download-link:hover {
+      background: #047857;
+    }
+
+    /* Voiceover Script Box */
+    .script-box {
+      background: #fffbeb;
+      border: 1px solid #fed7aa;
+      border-radius: 16px;
+      padding: 14px 16px;
+      font-size: 13px;
+      color: #78350f;
       line-height: 1.5;
     }
 
-    .script-title {
+    .script-header {
       font-size: 11px;
-      font-weight: 800;
+      font-weight: 900;
       text-transform: uppercase;
-      color: #f87171;
+      letter-spacing: 0.5px;
+      color: #b45309;
       margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* Site Footer */
+    .site-footer {
+      background: white;
+      border-top: 1px solid #e2e8f0;
+      padding: 30px 24px;
+      text-align: center;
+      color: #64748b;
+      font-size: 13px;
+      margin-top: auto;
     }
 
     @keyframes pulse {
       0%, 100% { opacity: 1; transform: scale(1); }
-      50% { opacity: 0.5; transform: scale(1.1); }
+      50% { opacity: 0.85; transform: scale(0.98); }
     }
   </style>
 </head>
 <body>
 
-  <!-- Top Header -->
-  <div class="app-header">
-    <div class="app-badge">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
-      <span>Motion Video Generator • Meta Ads 30s</span>
-    </div>
-    <h1 class="app-title">Kondang<span>Sensei</span> Motion Video Engine</h1>
-    <p class="app-desc">Animasi Motion Rekam Layar & Promo Voucher JFT-Basic A2 (Durasi 30 Detik) Siap Upload ke Reels, TikTok, & Feed</p>
+  <!-- 1. TOP ANNOUNCEMENT BAR -->
+  <div class="top-announcement">
+    <span>🔥 Promo Pengguna Baru: Coba 1 Mini Tryout Gratis (12 Soal) & Skor Real-Time Langsung di Layar!</span>
+    <a href="/" target="_blank">Kunjungi Website Utama →</a>
   </div>
 
-  <div class="workspace">
+  <!-- 2. STICKY NAVBAR -->
+  <header class="site-nav">
+    <div class="nav-container">
+      <a href="/" class="brand-wrap">
+        <div class="brand-logo-icon">🇯🇵</div>
+        <div>
+          <div class="brand-text-title">Kondang<span>Sensei</span></div>
+          <div class="brand-text-sub">CBT 日本語能力判定テスト</div>
+        </div>
+      </a>
 
-    <!-- Video Canvas Viewport -->
-    <div class="player-container aspect-9-16" id="playerWrapper">
-      <div class="scene-pill" id="sceneIndicator">
-        <span class="dot"></span>
-        <span id="sceneText">SCENE 1: HOOK (00:00 - 00:05)</span>
+      <nav class="nav-menu">
+        <a href="/">Beranda</a>
+        <a href="/poster/" target="_blank">Poster Konten</a>
+        <a href="#" class="active">Motion Ads Generator</a>
+        <a href="/#paket">Paket Simulasi</a>
+      </nav>
+
+      <div class="nav-actions">
+        <a href="/" class="btn-nav-secondary">Kembali ke Web</a>
+        <a href="/#mini-tryout" class="btn-nav-primary">
+          <span>⚡ Tryout Gratis</span>
+        </a>
       </div>
-      <canvas id="motionCanvas" width="1080" height="1920"></canvas>
+    </div>
+  </header>
+
+  <!-- 3. MAIN WORKSPACE -->
+  <main class="main-body">
+    <div class="page-hero">
+      <div class="hero-badge">
+        <span>🇯🇵 MOTION VIDEO ENGINE • META ADS (30 DETIK)</span>
+      </div>
+      <h1 class="hero-title">Generator Video Iklan <span>KondangSensei</span></h1>
+      <p class="hero-subtitle">
+        Tampilan Antarmuka Simulasi CBT JFT-Basic A2 99% Mirip Ujian Asli • Animasi Rekam Layar & Promo Voucher KONDANG50 Siap Ekspor untuk Reels, TikTok Ads, & Feed.
+      </p>
     </div>
 
-    <!-- Controls Panel -->
-    <div class="controls-panel">
+    <div class="workspace-grid">
 
-      <!-- Timeline & Scrubbing -->
-      <div class="timeline-box">
-        <div class="time-header">
-          <span>Timeline Durasi</span>
-          <span class="time-badge" id="timeDisplay">00:00.00 / 00:30.00</span>
-        </div>
-        <input type="range" id="seekSlider" class="seek-slider" min="0" max="30" step="0.05" value="0">
-        
-        <div class="scene-markers">
-          <div class="marker-item active" onclick="jumpTo(0)" id="m1">
-            <strong>S1: HOOK</strong><br>00-05s
+      <!-- LEFT: Video Player Container -->
+      <div class="player-card">
+        <div class="player-wrapper aspect-9-16" id="playerWrapper">
+          <div class="scene-pill" id="sceneIndicator">
+            <span class="dot"></span>
+            <span id="sceneText">SCENE 1: HOOK (00:00 - 00:05)</span>
           </div>
-          <div class="marker-item" onclick="jumpTo(5)" id="m2">
-            <strong>S2: BODY</strong><br>05-13s
-          </div>
-          <div class="marker-item" onclick="jumpTo(13)" id="m3">
-            <strong>S3: VOUCHER</strong><br>13-22s
-          </div>
-          <div class="marker-item" onclick="jumpTo(22)" id="m4">
-            <strong>S4: CTA</strong><br>22-30s
-          </div>
+          <canvas id="motionCanvas" width="1080" height="1920"></canvas>
         </div>
       </div>
 
-      <!-- Playback Buttons -->
-      <div class="btn-row">
-        <button class="btn btn-primary" id="playBtn" onclick="togglePlay()">
-          <span id="playIcon">▶</span>
-          <span id="playLabel">Putar Video</span>
+      <!-- RIGHT: Interactive Controls Card -->
+      <div class="controls-card">
+
+        <!-- Timeline Section -->
+        <div class="panel-section">
+          <div class="section-title">
+            <span>Timeline Durasi (30 Detik)</span>
+            <span class="time-badge" id="timeDisplay">00:00.00 / 00:30.00</span>
+          </div>
+          <input type="range" id="seekSlider" class="seek-slider" min="0" max="30" step="0.05" value="0">
+          
+          <div class="scene-markers">
+            <div class="marker-btn active" onclick="jumpTo(0)" id="m1">
+              <strong>S1: HOOK</strong>
+              <span>00-05s</span>
+            </div>
+            <div class="marker-btn" onclick="jumpTo(5)" id="m2">
+              <strong>S2: UJIAN CBT</strong>
+              <span>05-13s</span>
+            </div>
+            <div class="marker-btn" onclick="jumpTo(13)" id="m3">
+              <strong>S3: VOUCHER</strong>
+              <span>13-22s</span>
+            </div>
+            <div class="marker-btn" onclick="jumpTo(22)" id="m4">
+              <strong>S4: CTA</strong>
+              <span>22-30s</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Playback Buttons -->
+        <div class="btn-row">
+          <button class="btn-play" id="playBtn" onclick="togglePlay()">
+            <span id="playIcon">▶</span>
+            <span id="playLabel">Putar Video Motion</span>
+          </button>
+          <button class="btn-reset" onclick="resetVideo()">
+            <span>↺</span>
+            <span>Reset</span>
+          </button>
+        </div>
+
+        <!-- Settings Toggles -->
+        <div class="options-grid">
+          <div class="toggle-card active" id="toggleAspect" onclick="toggleAspectRatio()">
+            <span>Format Rasio</span>
+            <strong id="aspectLabel">9:16 Vertikal (Reels)</strong>
+          </div>
+          <div class="toggle-card active" id="toggleSfx" onclick="toggleSfx()">
+            <span>Sound Effects (SFX)</span>
+            <strong id="sfxLabel">AKTIF</strong>
+          </div>
+          <div class="toggle-card active" id="toggleSubtitles" onclick="toggleSubtitles()">
+            <span>Subtitel Teks</span>
+            <strong id="subLabel">TAMPIL</strong>
+          </div>
+        </div>
+
+        <!-- One Click Video Recorder / Export -->
+        <button class="btn-export" id="recordBtn" onclick="toggleExport()">
+          <span style="font-size: 18px;" id="recordIcon">🎥</span>
+          <span id="recordLabel">Rekam & Ekspor Video (.webm / .mp4)</span>
         </button>
-        <button class="btn btn-secondary" onclick="resetVideo()">
-          <span>↺</span>
-          <span>Mulai Ulang</span>
-        </button>
-      </div>
 
-      <!-- Settings Toggles -->
-      <div class="options-grid">
-        <div class="toggle-card active" id="toggleAspect" onclick="toggleAspectRatio()">
-          <span>Format Aspek</span>
-          <strong id="aspectLabel">9:16 Vertikal</strong>
+        <!-- Direct Download Card when finished -->
+        <div class="download-card" id="downloadCard">
+          <span>✅ Video 30s berhasil direkam!</span>
+          <a href="#" class="btn-download-link" id="directDownloadBtn" download="kondangsensei-ads-30s.webm">⬇ Simpan Video</a>
         </div>
-        <div class="toggle-card active" id="toggleVoice" onclick="toggleVoiceover()">
-          <span>Voiceover AI</span>
-          <strong id="voiceLabel">AKTIF (id-ID)</strong>
-        </div>
-        <div class="toggle-card active" id="toggleSfx" onclick="toggleSfx()">
-          <span>Sound FX (SFX)</span>
-          <strong id="sfxLabel">AKTIF</strong>
-        </div>
-        <div class="toggle-card active" id="toggleSubtitles" onclick="toggleSubtitles()">
-          <span>Subtitel Teks</span>
-          <strong id="subLabel">TAMPIL</strong>
-        </div>
-      </div>
 
-      <!-- One Click Video Recorder / Export -->
-      <button class="btn btn-record" id="recordBtn" onclick="startExport()">
-        <span>🎥</span>
-        <span id="recordLabel">Rekam & Ekspor Video (.webm / .mp4)</span>
-      </button>
-
-      <!-- Script Guidance Preview for Voiceover -->
-      <div class="script-box">
-        <div class="script-title">Naskah Voiceover per Scene:</div>
-        <div id="scriptText">
-          <strong>[00-05s]:</strong> "Uang tes JFT A2 itu 550 ribu! Jangan sampai hangus cuma gara-gara kamu kaget sama sistem komputer Prometric!"
+        <!-- Voiceover Text Live Guide (User-recorded) -->
+        <div class="script-box">
+          <div class="script-header">
+            <span>🎙️ Panduan Naskah Voiceover (Silakan Dubbing Sendiri):</span>
+          </div>
+          <div id="scriptText" style="font-weight: 600;">
+            <strong>[00-05s HOOK]:</strong> "Uang tes JFT A2 itu 550 ribu! Jangan sampai hangus cuma gara-gara kamu kaget sama sistem komputer Prometric!"
+          </div>
         </div>
+
       </div>
 
     </div>
+  </main>
 
-  </div>
+  <!-- 4. SITE FOOTER -->
+  <footer class="site-footer">
+    <p><strong>© 2026 KondangSensei</strong> • Sistem Simulasi CBT JFT-Basic A2 Terpercaya di Indonesia</p>
+  </footer>
 
   <script>
     const canvas = document.getElementById('motionCanvas');
@@ -444,15 +747,20 @@
     const playIcon = document.getElementById('playIcon');
     const playLabel = document.getElementById('playLabel');
     const scriptText = document.getElementById('scriptText');
+    const recordBtn = document.getElementById('recordBtn');
+    const recordLabel = document.getElementById('recordLabel');
+    const recordIcon = document.getElementById('recordIcon');
+    const downloadCard = document.getElementById('downloadCard');
+    const directDownloadBtn = document.getElementById('directDownloadBtn');
 
     let currentTime = 0;
     const DURATION = 30.0;
     let isPlaying = false;
+    let animFrameId = null;
     let lastTimestamp = 0;
     let isVertical = true;
 
     // Feature Toggles
-    let enableVoice = true;
     let enableSfx = true;
     let enableSubtitles = true;
     let isRecording = false;
@@ -461,12 +769,22 @@
 
     // Web Audio Synthesizer for SFX
     let audioCtx = null;
+    let audioDestNode = null;
+
     function initAudio() {
-      if (!audioCtx) {
-        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-      }
-      if (audioCtx.state === 'suspended') {
-        audioCtx.resume();
+      try {
+        if (!audioCtx) {
+          const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+          if (AudioContextClass) {
+            audioCtx = new AudioContextClass();
+            audioDestNode = audioCtx.createMediaStreamDestination();
+          }
+        }
+        if (audioCtx && audioCtx.state === 'suspended') {
+          audioCtx.resume();
+        }
+      } catch (e) {
+        console.warn('AudioContext init note:', e);
       }
     }
 
@@ -474,123 +792,105 @@
     function playSfx(type) {
       if (!enableSfx) return;
       initAudio();
-      const now = audioCtx.currentTime;
+      if (!audioCtx) return;
+      try {
+        const now = audioCtx.currentTime;
 
-      if (type === 'tick') {
-        const osc = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(800, now);
-        osc.frequency.exponentialRampToValueAtTime(300, now + 0.04);
-        gain.gain.setValueAtTime(0.3, now);
-        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.04);
-        osc.connect(gain);
-        gain.connect(audioCtx.destination);
-        osc.start(now);
-        osc.stop(now + 0.05);
-      } else if (type === 'chime') {
-        [523.25, 659.25, 783.99, 1046.50].forEach((freq, idx) => {
+        if (type === 'tick') {
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(800, now);
+          osc.frequency.exponentialRampToValueAtTime(300, now + 0.04);
+          gain.gain.setValueAtTime(0.2, now);
+          gain.gain.exponentialRampToValueAtTime(0.01, now + 0.04);
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
+          if (audioDestNode) gain.connect(audioDestNode);
+          osc.start(now);
+          osc.stop(now + 0.05);
+        } else if (type === 'chime') {
+          [523.25, 659.25, 783.99, 1046.50].forEach((freq, idx) => {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(freq, now + idx * 0.08);
+            gain.gain.setValueAtTime(0.2, now + idx * 0.08);
+            gain.gain.exponentialRampToValueAtTime(0.01, now + idx * 0.08 + 0.6);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            if (audioDestNode) gain.connect(audioDestNode);
+            osc.start(now + idx * 0.08);
+            osc.stop(now + idx * 0.08 + 0.7);
+          });
+        } else if (type === 'click') {
           const osc = audioCtx.createOscillator();
           const gain = audioCtx.createGain();
           osc.type = 'triangle';
-          osc.frequency.setValueAtTime(freq, now + idx * 0.08);
-          gain.gain.setValueAtTime(0.2, now + idx * 0.08);
-          gain.gain.exponentialRampToValueAtTime(0.01, now + idx * 0.08 + 0.6);
+          osc.frequency.setValueAtTime(1200, now);
+          osc.frequency.exponentialRampToValueAtTime(400, now + 0.06);
+          gain.gain.setValueAtTime(0.3, now);
+          gain.gain.exponentialRampToValueAtTime(0.01, now + 0.06);
           osc.connect(gain);
           gain.connect(audioCtx.destination);
-          osc.start(now + idx * 0.08);
-          osc.stop(now + idx * 0.08 + 0.7);
-        });
-      } else if (type === 'click') {
-        const osc = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
-        osc.type = 'triangle';
-        osc.frequency.setValueAtTime(1200, now);
-        osc.frequency.exponentialRampToValueAtTime(400, now + 0.06);
-        gain.gain.setValueAtTime(0.4, now);
-        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.06);
-        osc.connect(gain);
-        gain.connect(audioCtx.destination);
-        osc.start(now);
-        osc.stop(now + 0.07);
-      } else if (type === 'alarm') {
-        const osc = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
-        osc.type = 'sawtooth';
-        osc.frequency.setValueAtTime(440, now);
-        osc.frequency.setValueAtTime(550, now + 0.1);
-        gain.gain.setValueAtTime(0.25, now);
-        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
-        osc.connect(gain);
-        gain.connect(audioCtx.destination);
-        osc.start(now);
-        osc.stop(now + 0.26);
-      }
-    }
-
-    // Voiceover Synthesis (Web Speech API)
-    const voiceLines = [
-      {
-        start: 0.1,
-        end: 4.8,
-        text: "Uang tes JFT A2 itu 550 ribu! Jangan sampai hangus cuma gara-gara kamu kaget sama sistem komputer Prometric!"
-      },
-      {
-        start: 5.2,
-        end: 12.8,
-        text: "Biar nggak panik pas audio Choukai diputar, simulasi dulu di KondangSensei! Tampilannya 99 persen mirip ujian asli, lengkap dengan timer dan audio autentik."
-      },
-      {
-        start: 13.2,
-        end: 21.8,
-        text: "Khusus hari ini, masukkan kode voucher KONDANG50 dan dapatkan diskon 50 persen untuk semua paket latihan!"
-      },
-      {
-        start: 22.2,
-        end: 29.8,
-        text: "Coba Mini Tryout Gratisnya sekarang dan klaim diskonnya sebelum kuota habis! Klik tombol di bawah ini sekarang juga!"
-      }
-    ];
-
-    let currentUtterance = null;
-    let spokenIndices = new Set();
-
-    function triggerVoiceForTime(t) {
-      if (!enableVoice || !('speechSynthesis' in window)) return;
-      voiceLines.forEach((line, idx) => {
-        if (t >= line.start && t < line.end && !spokenIndices.has(idx)) {
-          spokenIndices.add(idx);
-          window.speechSynthesis.cancel();
-          const ut = new SpeechSynthesisUtterance(line.text);
-          ut.lang = 'id-ID';
-          ut.rate = 1.1; // Pace cepat & tegas
-          ut.pitch = 1.0;
-          window.speechSynthesis.speak(ut);
+          if (audioDestNode) gain.connect(audioDestNode);
+          osc.start(now);
+          osc.stop(now + 0.07);
+        } else if (type === 'alarm') {
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.type = 'sawtooth';
+          osc.frequency.setValueAtTime(440, now);
+          osc.frequency.setValueAtTime(550, now + 0.1);
+          gain.gain.setValueAtTime(0.18, now);
+          gain.gain.exponentialRampToValueAtTime(0.01, now + 0.22);
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
+          if (audioDestNode) gain.connect(audioDestNode);
+          osc.start(now);
+          osc.stop(now + 0.24);
         }
-      });
+      } catch (e) {
+        console.warn('SFX note:', e);
+      }
     }
 
-    // Toggle Handlers
+    // Playback Controls
+    function updatePlayButtonUI(playing) {
+      if (playing) {
+        playIcon.textContent = '⏸';
+        playLabel.textContent = 'Jeda Video';
+      } else {
+        playIcon.textContent = '▶';
+        playLabel.textContent = 'Putar Video Motion';
+      }
+    }
+
     function togglePlay() {
+      if (currentTime >= DURATION) {
+        currentTime = 0;
+        seekSlider.value = 0;
+      }
+
       isPlaying = !isPlaying;
       if (isPlaying) {
         initAudio();
         lastTimestamp = performance.now();
-        playIcon.textContent = '⏸';
-        playLabel.textContent = 'Jeda Video';
-        requestAnimationFrame(renderLoop);
+        updatePlayButtonUI(true);
+        cancelAnimationFrame(animFrameId);
+        animFrameId = requestAnimationFrame(renderLoop);
       } else {
-        if ('speechSynthesis' in window) window.speechSynthesis.cancel();
-        playIcon.textContent = '▶';
-        playLabel.textContent = 'Putar Video';
+        updatePlayButtonUI(false);
+        cancelAnimationFrame(animFrameId);
       }
     }
 
     function resetVideo() {
+      isPlaying = false;
+      cancelAnimationFrame(animFrameId);
+      updatePlayButtonUI(false);
       currentTime = 0;
       seekSlider.value = 0;
-      spokenIndices.clear();
-      if ('speechSynthesis' in window) window.speechSynthesis.cancel();
       updateTimeDisplay();
       drawScene(0);
     }
@@ -598,16 +898,12 @@
     function jumpTo(sec) {
       currentTime = sec;
       seekSlider.value = sec;
-      spokenIndices.clear();
-      if ('speechSynthesis' in window) window.speechSynthesis.cancel();
       updateTimeDisplay();
       drawScene(sec);
     }
 
     seekSlider.addEventListener('input', (e) => {
       currentTime = parseFloat(e.target.value);
-      spokenIndices.clear();
-      if ('speechSynthesis' in window) window.speechSynthesis.cancel();
       updateTimeDisplay();
       drawScene(currentTime);
     });
@@ -617,24 +913,17 @@
       const wrap = document.getElementById('playerWrapper');
       const label = document.getElementById('aspectLabel');
       if (isVertical) {
-        wrap.className = 'player-container aspect-9-16';
+        wrap.className = 'player-wrapper aspect-9-16';
         canvas.width = 1080;
         canvas.height = 1920;
-        label.textContent = '9:16 Vertikal';
+        label.textContent = '9:16 Vertikal (Reels)';
       } else {
-        wrap.className = 'player-container aspect-1-1';
+        wrap.className = 'player-wrapper aspect-1-1';
         canvas.width = 1080;
         canvas.height = 1080;
-        label.textContent = '1:1 Kotak Feed';
+        label.textContent = '1:1 Kotak (Feed)';
       }
       drawScene(currentTime);
-    }
-
-    function toggleVoiceover() {
-      enableVoice = !enableVoice;
-      document.getElementById('toggleVoice').classList.toggle('active', enableVoice);
-      document.getElementById('voiceLabel').textContent = enableVoice ? 'AKTIF (id-ID)' : 'NONAKTIF (Mute)';
-      if (!enableVoice && 'speechSynthesis' in window) window.speechSynthesis.cancel();
     }
 
     function toggleSfx() {
@@ -668,13 +957,13 @@
         sceneText.textContent = 'SCENE 1: HOOK (00:00 - 00:05)';
         scriptText.innerHTML = '<strong>[00-05s HOOK]:</strong> "Uang tes JFT A2 itu 550 ribu! Jangan sampai hangus cuma gara-gara kamu kaget sama sistem komputer Prometric!"';
       } else if (currentTime < 13) {
-        sceneText.textContent = 'SCENE 2: BODY (00:05 - 00:13)';
+        sceneText.textContent = 'SCENE 2: UJIAN CBT KONDANGSENSEI (00:05 - 00:13)';
         scriptText.innerHTML = '<strong>[05-13s BODY]:</strong> "Biar nggak panik pas audio Choukai diputar, simulasi dulu di KondangSensei! Tampilannya 99 persen mirip ujian asli, lengkap dengan timer dan audio autentik."';
       } else if (currentTime < 22) {
-        sceneText.textContent = 'SCENE 3: OFFER (00:13 - 00:22)';
+        sceneText.textContent = 'SCENE 3: VOUCHER PROMO (00:13 - 00:22)';
         scriptText.innerHTML = '<strong>[13-22s VOUCHER]:</strong> "Khusus hari ini, masukkan kode voucher KONDANG50 dan dapatkan diskon 50 persen untuk semua paket latihan!"';
       } else {
-        sceneText.textContent = 'SCENE 4: CTA (00:22 - 00:30)';
+        sceneText.textContent = 'SCENE 4: CTA PENAWARAN (00:22 - 00:30)';
         scriptText.innerHTML = '<strong>[22-30s CTA]:</strong> "Coba Mini Tryout Gratisnya sekarang dan klaim diskonnya sebelum kuota habis! Klik tombol di bawah ini sekarang juga!"';
       }
     }
@@ -683,15 +972,14 @@
     let lastSecondInt = -1;
     function renderLoop(timestamp) {
       if (!isPlaying) return;
-      const delta = (timestamp - lastTimestamp) / 1000;
+      const delta = Math.min((timestamp - lastTimestamp) / 1000, 0.1);
       lastTimestamp = timestamp;
 
       currentTime += delta;
       if (currentTime >= DURATION) {
         currentTime = DURATION;
         isPlaying = false;
-        playIcon.textContent = '▶';
-        playLabel.textContent = 'Putar Video';
+        updatePlayButtonUI(false);
         if (isRecording) stopExport();
       }
 
@@ -708,19 +996,51 @@
         else if (currentSecInt === 22) playSfx('click');
       }
 
-      triggerVoiceForTime(currentTime);
+      // Live recorder label update
+      if (isRecording) {
+        const pct = Math.floor((currentTime / DURATION) * 100);
+        recordLabel.textContent = `🔴 Merekam: ${currentTime.toFixed(1)}s / 30.0s (${pct}%) • Klik untuk Selesai`;
+      }
+
       drawScene(currentTime);
 
       if (isPlaying) {
-        requestAnimationFrame(renderLoop);
+        animFrameId = requestAnimationFrame(renderLoop);
       }
     }
 
     // =========================================================================
-    // CANVAS RENDERING ENGINE (4 SCENES)
+    // CANVAS RENDERING ENGINE (EXACT KONDANGSENSEI CBT INTERFACE)
     // =========================================================================
-    const logoImg = new Image();
-    logoImg.src = '/logo-icon.png';
+
+    // Vector Brand Drawing (Never taints canvas, works on file:// and localhost)
+    function drawVectorLogo(cx, cy, size) {
+      ctx.save();
+      ctx.translate(cx, cy);
+
+      // Red rounded emblem background
+      ctx.fillStyle = '#fee2e2';
+      ctx.beginPath();
+      ctx.roundRect(-size/2, -size/2, size, size, size * 0.28);
+      ctx.fill();
+      ctx.strokeStyle = '#fca5a5';
+      ctx.lineWidth = size * 0.05;
+      ctx.stroke();
+
+      // Japanese Red Sun / Torii stylized emblem
+      ctx.fillStyle = '#dc2626';
+      ctx.beginPath();
+      ctx.arc(0, 0, size * 0.28, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = '#ffffff';
+      ctx.font = `900 ${Math.floor(size * 0.32)}px "Noto Sans JP", sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('近', 0, 0);
+
+      ctx.restore();
+    }
 
     function drawScene(t) {
       const W = canvas.width;
@@ -732,19 +1052,19 @@
       if (t < 5.0) {
         drawScene1Hook(t, W, H);
       } else if (t < 13.0) {
-        drawScene2Body(t - 5.0, W, H);
+        drawScene2Exam(t - 5.0, W, H);
       } else if (t < 22.0) {
         drawScene3Offer(t - 13.0, W, H);
       } else {
         drawScene4CTA(t - 22.0, W, H);
       }
 
-      // Draw Subtitles Overlay (Karaoke style)
+      // Subtitles Overlay (High Visibility Viral Style)
       if (enableSubtitles) {
         drawSubtitles(t, W, H);
       }
 
-      // Draw Top Brand Pill
+      // Top Brand Pill
       drawTopBrand(t, W, H);
 
       ctx.restore();
@@ -752,73 +1072,81 @@
 
     function drawTopBrand(t, W, H) {
       ctx.save();
-      const padY = isVertical ? 80 : 50;
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
+      const padY = isVertical ? 65 : 45;
+
+      // Dark glass pill
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.75)';
       ctx.beginPath();
-      ctx.roundRect(W/2 - 200, padY, 400, 64, 32);
+      ctx.roundRect(W/2 - 240, padY, 480, 68, 34);
       ctx.fill();
       ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
       ctx.lineWidth = 2;
       ctx.stroke();
 
-      // Logo Icon
-      if (logoImg.complete) {
-        ctx.drawImage(logoImg, W/2 - 180, padY + 10, 44, 44);
-      }
+      // Vector Logo
+      drawVectorLogo(W/2 - 195, padY + 34, 46);
 
+      // Brand text
       ctx.font = '900 24px "Plus Jakarta Sans"';
       ctx.fillStyle = '#ffffff';
       ctx.textAlign = 'left';
       ctx.textBaseline = 'middle';
-      ctx.fillText('Kondang', W/2 - 125, padY + 32);
+      ctx.fillText('Kondang', W/2 - 155, padY + 34);
       ctx.fillStyle = '#dc2626';
-      ctx.fillText('Sensei', W/2 - 25, padY + 32);
+      ctx.fillText('Sensei', W/2 - 48, padY + 34);
 
-      ctx.font = '800 13px "Plus Jakarta Sans"';
-      ctx.fillStyle = '#fca5a5';
-      ctx.fillText('CBT JFT-BASIC A2', W/2 + 65, padY + 32);
+      // Sub badge
+      ctx.fillStyle = '#fee2e2';
+      ctx.beginPath();
+      ctx.roundRect(W/2 + 50, padY + 16, 160, 36, 18);
+      ctx.fill();
+
+      ctx.font = '900 13px "Plus Jakarta Sans"';
+      ctx.fillStyle = '#b91c1c';
+      ctx.textAlign = 'center';
+      ctx.fillText('CBT JFT-BASIC A2', W/2 + 130, padY + 34);
+
       ctx.restore();
     }
 
     // =========================================================================
     // SCENE 1: HOOK (00:00 - 00:05)
-    // Pain Point: "UANG 550 RIBU HANGUS?!" + Rapid Blinking Timer
+    // Pain Point: "UANG 550 RIBU HANGUS?!" + Countdown Timer Prometric
     // =========================================================================
     function drawScene1Hook(t, W, H) {
-      // Background dark with flashing red emergency lighting
       const pulse = Math.sin(t * 8) * 0.5 + 0.5;
-      const bgGrad = ctx.createRadialGradient(W/2, H/2, 50, W/2, H/2, W);
-      bgGrad.addColorStop(0, `rgba(220, 38, 38, ${0.25 + pulse * 0.25})`);
-      bgGrad.addColorStop(0.7, '#110708');
+      const bgGrad = ctx.createRadialGradient(W/2, H/2, 40, W/2, H/2, W);
+      bgGrad.addColorStop(0, `rgba(220, 38, 38, ${0.35 + pulse * 0.3})`);
+      bgGrad.addColorStop(0.65, '#120507');
       bgGrad.addColorStop(1, '#050203');
       ctx.fillStyle = bgGrad;
       ctx.fillRect(0, 0, W, H);
 
-      // Dramatic Zoom-in camera effect
+      // Dramatic Zoom
       const zoom = 1.0 + (t / 5.0) * 0.15;
       ctx.save();
       ctx.translate(W/2, H/2);
       ctx.scale(zoom, zoom);
       ctx.translate(-W/2, -H/2);
 
-      // Mockup of CBT screen in background with fading grid
+      // Background grid lines
       ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
       ctx.lineWidth = 2;
-      for (let y = 100; y < H; y += 80) {
+      for (let y = 100; y < H; y += 75) {
         ctx.beginPath();
         ctx.moveTo(0, y);
         ctx.lineTo(W, y);
         ctx.stroke();
       }
 
-      // Blinking Fast Countdown Timer Mockup Card
-      const timerVal = Math.max(0, 60 - Math.floor(t * 12));
+      // Blinking Prometric Warning Timer Card
+      const timerVal = Math.max(0, 59 - Math.floor(t * 12));
       const timerSec = Math.max(0, 59 - Math.floor((t * 24) % 60));
       
-      const cardY = isVertical ? H/2 - 260 : H/2 - 200;
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.85)';
+      const cardY = isVertical ? H/2 - 290 : H/2 - 230;
+      ctx.fillStyle = 'rgba(15, 23, 42, 0.92)';
       ctx.beginPath();
-      ctx.roundRect(W/2 - 280, cardY, 560, 110, 24);
+      ctx.roundRect(W/2 - 300, cardY, 600, 120, 24);
       ctx.fill();
       ctx.strokeStyle = pulse > 0.4 ? '#dc2626' : '#7f1d1d';
       ctx.lineWidth = 4;
@@ -827,317 +1155,499 @@
       ctx.fillStyle = '#f87171';
       ctx.font = '900 16px "Plus Jakarta Sans"';
       ctx.textAlign = 'center';
-      ctx.fillText('PROMETRIC CBT ENGINE • WAKTU HABIS!', W/2, cardY + 36);
+      ctx.fillText('⚠️ SISTEM PROMETRIC CBT • PERINGATAN WAKTU HABIS!', W/2, cardY + 38);
 
       ctx.fillStyle = '#ffffff';
-      ctx.font = '900 48px monospace';
-      ctx.fillText(`00:${String(timerVal).padStart(2,'0')}:${String(timerSec).padStart(2,'0')}`, W/2, cardY + 86);
+      ctx.font = '900 52px "JetBrains Mono", monospace';
+      ctx.fillText(`00:${String(timerVal).padStart(2,'0')}:${String(timerSec).padStart(2,'0')}`, W/2, cardY + 92);
 
-      // Big Bold Hook Text: "UANG 550 RIBU HANGUS?!"
-      const shake = t < 3.0 ? (Math.random() - 0.5) * 8 : 0;
+      // Bold Hook Text: "UANG 550 RIBU HANGUS?!"
+      const shake = t < 2.8 ? (Math.random() - 0.5) * 8 : 0;
       ctx.save();
-      ctx.translate(W/2 + shake, H/2 + (isVertical ? 40 : 20));
+      ctx.translate(W/2 + shake, H/2 + (isVertical ? 45 : 20));
 
-      // Fiery glowing drop shadow
       ctx.shadowColor = '#dc2626';
       ctx.shadowBlur = 40;
 
-      ctx.font = '900 72px "Plus Jakarta Sans"';
+      ctx.font = '900 76px "Plus Jakarta Sans"';
       ctx.fillStyle = '#ffffff';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      ctx.fillText('UANG 550 RIBU', 0, -40);
+      ctx.fillText('UANG 550 RIBU', 0, -45);
 
       ctx.fillStyle = '#ef4444';
-      ctx.font = '900 86px "Plus Jakarta Sans"';
+      ctx.font = '900 90px "Plus Jakarta Sans"';
       ctx.fillText('HANGUS?!', 0, 55);
 
       ctx.restore();
 
       // Subtitle Warning banner
-      const bannerY = isVertical ? H/2 + 220 : H/2 + 150;
-      ctx.fillStyle = 'rgba(239, 68, 68, 0.2)';
+      const bannerY = isVertical ? H/2 + 230 : H/2 + 160;
+      ctx.fillStyle = 'rgba(239, 68, 68, 0.25)';
       ctx.beginPath();
-      ctx.roundRect(W/2 - 380, bannerY, 760, 74, 20);
+      ctx.roundRect(W/2 - 400, bannerY, 800, 80, 22);
       ctx.fill();
       ctx.strokeStyle = '#dc2626';
       ctx.lineWidth = 2;
       ctx.stroke();
 
       ctx.fillStyle = '#fee2e2';
-      ctx.font = '800 22px "Plus Jakarta Sans"';
+      ctx.font = '800 23px "Plus Jakarta Sans"';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      ctx.fillText('Kaget Sistem Komputer Prometric Saat Tes JFT A2', W/2, bannerY + 37);
+      ctx.fillText('Kaget Sistem Komputer Prometric Saat Tes JFT A2', W/2, bannerY + 40);
 
       ctx.restore();
     }
 
     // =========================================================================
-    // SCENE 2: BODY (00:05 - 00:13)
-    // Solution: Real KondangSensei CBT UI Mockup + Audio Choukai + Cursor
+    // SCENE 2: UJIAN CBT KONDANGSENSEI (00:05 - 00:13)
+    // PERSIS TAMPILAN CBT EXAM ENGINE KONDANGSENSEI (CbtExamEngine.tsx)
     // =========================================================================
-    function drawScene2Body(t, W, H) {
-      // Fresh clean background matching KondangSensei
-      ctx.fillStyle = '#f8fafc';
+    function drawScene2Exam(t, W, H) {
+      // Clean background matching website
+      ctx.fillStyle = '#f1f5f9';
       ctx.fillRect(0, 0, W, H);
 
       // Soft ambient rose glow
-      const glow = ctx.createRadialGradient(W/2, 300, 50, W/2, 300, 600);
-      glow.addColorStop(0, 'rgba(254, 205, 211, 0.4)');
+      const glow = ctx.createRadialGradient(W/2, 250, 40, W/2, 250, 600);
+      glow.addColorStop(0, 'rgba(254, 205, 211, 0.45)');
       glow.addColorStop(1, 'transparent');
       ctx.fillStyle = glow;
       ctx.fillRect(0, 0, W, H);
 
-      // Section Badge
-      const topBadgeY = isVertical ? 180 : 130;
-      ctx.fillStyle = '#fee2e2';
+      // Floating Badge: "SIMULASI 99% MIRIP ASLI"
+      const badgeY = isVertical ? 160 : 115;
+      ctx.fillStyle = '#dc2626';
+      ctx.shadowColor = 'rgba(220, 38, 38, 0.4)';
+      ctx.shadowBlur = 18;
       ctx.beginPath();
-      ctx.roundRect(W/2 - 240, topBadgeY, 480, 52, 26);
-      ctx.fill();
-      ctx.strokeStyle = '#fca5a5';
-      ctx.lineWidth = 2;
-      ctx.stroke();
-
-      ctx.fillStyle = '#b91c1c';
-      ctx.font = '900 18px "Plus Jakarta Sans"';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText('SIMULASI 99% MIRIP UJIAN ASLI CBT', W/2, topBadgeY + 26);
-
-      // Main CBT Screen Mockup Window
-      const winW = isVertical ? 920 : 960;
-      const winH = isVertical ? 1040 : 660;
-      const winX = (W - winW) / 2;
-      const winY = isVertical ? 260 : 200;
-
-      // Window Shadow & Base
-      ctx.fillStyle = '#ffffff';
-      ctx.shadowColor = 'rgba(0, 0, 0, 0.12)';
-      ctx.shadowBlur = 30;
-      ctx.beginPath();
-      ctx.roundRect(winX, winY, winW, winH, 28);
+      ctx.roundRect(W/2 - 270, badgeY, 540, 56, 28);
       ctx.fill();
       ctx.shadowBlur = 0;
-      ctx.strokeStyle = '#e2e8f0';
+
+      ctx.fillStyle = '#ffffff';
+      ctx.font = '900 20px "Plus Jakarta Sans"';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('✨ SIMULASI 99% MIRIP UJIAN ASLI CBT', W/2, badgeY + 28);
+
+      // Main CBT Screen Mockup Window (Exact dimensions)
+      const winW = isVertical ? 980 : 1000;
+      const winH = isVertical ? 1220 : 740;
+      const winX = (W - winW) / 2;
+      const winY = isVertical ? 240 : 185;
+
+      // Outer Desktop Browser Window
+      ctx.fillStyle = '#ffffff';
+      ctx.shadowColor = 'rgba(15, 23, 42, 0.14)';
+      ctx.shadowBlur = 35;
+      ctx.beginPath();
+      ctx.roundRect(winX, winY, winW, winH, 24);
+      ctx.fill();
+      ctx.shadowBlur = 0;
+      ctx.strokeStyle = '#cbd5e1';
       ctx.lineWidth = 3;
       ctx.stroke();
 
-      // Window Header: Section Tabs
-      ctx.fillStyle = '#f1f5f9';
+      // Browser Title Bar
+      ctx.fillStyle = '#e2e8f0';
       ctx.beginPath();
-      ctx.roundRect(winX, winY, winW, 64, [28, 28, 0, 0]);
+      ctx.roundRect(winX, winY, winW, 46, [24, 24, 0, 0]);
       ctx.fill();
 
-      // Tabs: S1, S2, S3 (Active Choukai), S4
-      const tabs = [
-        { name: 'S1 文字・語彙', active: false },
-        { name: 'S2 会話・表現', active: false },
-        { name: 'S3 聴解 (CHOUKAI)', active: true },
-        { name: 'S4 読解', active: false }
-      ];
-      tabs.forEach((tab, i) => {
-        const tabX = winX + 24 + i * 215;
-        if (tab.active) {
-          ctx.fillStyle = '#dc2626';
-          ctx.beginPath();
-          ctx.roundRect(tabX, winY + 12, 205, 42, 12);
-          ctx.fill();
-          ctx.fillStyle = '#ffffff';
-        } else {
-          ctx.fillStyle = 'rgba(255,255,255,0.7)';
-          ctx.beginPath();
-          ctx.roundRect(tabX, winY + 12, 205, 42, 12);
-          ctx.fill();
-          ctx.fillStyle = '#64748b';
-        }
-        ctx.font = '800 13px "Plus Jakarta Sans"';
-        ctx.textAlign = 'center';
-        ctx.fillText(tab.name, tabX + 102, winY + 33);
+      // Browser dots (red, yellow, green)
+      const dots = ['#ef4444', '#f59e0b', '#22c55e'];
+      dots.forEach((dotColor, i) => {
+        ctx.fillStyle = dotColor;
+        ctx.beginPath();
+        ctx.arc(winX + 28 + i * 18, winY + 23, 6, 0, Math.PI * 2);
+        ctx.fill();
       });
 
-      // Audio Choukai Player Mockup (Interactive Animation)
-      const audioBoxY = winY + 88;
-      ctx.fillStyle = '#0f172a';
+      // Browser URL pill
+      ctx.fillStyle = '#ffffff';
       ctx.beginPath();
-      ctx.roundRect(winX + 28, audioBoxY, winW - 56, 140, 20);
+      ctx.roundRect(winX + 110, winY + 8, winW - 220, 30, 15);
       ctx.fill();
+      ctx.strokeStyle = '#cbd5e1';
+      ctx.lineWidth = 1;
+      ctx.stroke();
 
-      // Audio Play button pulsating
-      const isAudioPlaying = t > 1.5;
-      const playBtnPulse = isAudioPlaying ? Math.sin(t * 12) * 4 : 0;
-      ctx.fillStyle = '#dc2626';
+      ctx.font = '800 12px "Plus Jakarta Sans"';
+      ctx.fillStyle = '#475569';
+      ctx.textAlign = 'center';
+      ctx.fillText('🔒 kondangsensei.my.id/exam/simulasi-cbt-jft-a2', winX + winW/2, winY + 23);
+
+      // CBT Exam Engine Header Bar (Exact CbtExamEngine.tsx lines 862-927)
+      const cbtHeaderY = winY + 46;
+      ctx.fillStyle = '#ffffff';
       ctx.beginPath();
-      ctx.arc(winX + 80, audioBoxY + 70, 36 + playBtnPulse, 0, Math.PI * 2);
+      ctx.roundRect(winX, cbtHeaderY, winW, 68, 0);
+      ctx.fill();
+      ctx.strokeStyle = '#e2e8f0';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(winX, cbtHeaderY + 68);
+      ctx.lineTo(winX + winW, cbtHeaderY + 68);
+      ctx.stroke();
+
+      // Navigasi button [👁 Navigasi]
+      ctx.fillStyle = '#eef2ff';
+      ctx.beginPath();
+      ctx.roundRect(winX + 20, cbtHeaderY + 14, 115, 40, 12);
+      ctx.fill();
+      ctx.strokeStyle = '#c7d2fe';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+
+      ctx.fillStyle = '#4338ca';
+      ctx.font = '900 13px "Plus Jakarta Sans"';
+      ctx.textAlign = 'center';
+      ctx.fillText('👁 Navigasi', winX + 77, cbtHeaderY + 34);
+
+      // Section Pill [S3]
+      ctx.fillStyle = '#eef2ff';
+      ctx.beginPath();
+      ctx.roundRect(winX + 145, cbtHeaderY + 16, 44, 36, 10);
+      ctx.fill();
+      ctx.strokeStyle = '#c7d2fe';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+
+      ctx.fillStyle = '#4338ca';
+      ctx.font = '900 15px "JetBrains Mono"';
+      ctx.fillText('S3', winX + 167, cbtHeaderY + 34);
+
+      // Title: "Soal #15 — Chōkai (聴解)"
+      ctx.textAlign = 'left';
+      ctx.fillStyle = '#0f172a';
+      ctx.font = '900 18px "Plus Jakarta Sans"';
+      ctx.fillText('Soal #15', winX + 200, cbtHeaderY + 34);
+      ctx.fillStyle = '#64748b';
+      ctx.font = '700 15px "Plus Jakarta Sans"';
+      ctx.fillText('— Chōkai (聴解 Audio)', winX + 280, cbtHeaderY + 34);
+
+      // Real Countdown Timer Badge (Sky blue pill)
+      const timerX = winX + winW - 270;
+      ctx.fillStyle = '#f0f9ff';
+      ctx.beginPath();
+      ctx.roundRect(timerX, cbtHeaderY + 14, 130, 40, 12);
+      ctx.fill();
+      ctx.strokeStyle = '#bae6fd';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+
+      ctx.fillStyle = '#0369a1';
+      ctx.font = '900 14px "JetBrains Mono"';
+      ctx.textAlign = 'center';
+      ctx.fillText('⏱ 58:24', timerX + 65, cbtHeaderY + 34);
+
+      // Selesai S3 Button (amber/orange gradient)
+      ctx.fillStyle = '#ea580c';
+      ctx.beginPath();
+      ctx.roundRect(winX + winW - 130, cbtHeaderY + 14, 110, 40, 12);
       ctx.fill();
 
       ctx.fillStyle = '#ffffff';
+      ctx.font = '900 12px "Plus Jakarta Sans"';
+      ctx.fillText('Selesai S3 →', winX + winW - 75, cbtHeaderY + 34);
+
+      // Inner Layout: Left Drawer / Soal Palette (width 260px) + Main Question View
+      const innerY = cbtHeaderY + 68;
+      const sidebarW = isVertical ? 0 : 260; // Embedded in horizontal mode
+      const mainContentX = winX + sidebarW + 20;
+      const mainContentW = winW - sidebarW - 40;
+
+      // REAL CHOUKAI AUDIO COMPONENT (Exact ChoukaiAudioPlayer lines 140-205)
+      const audioY = innerY + 16;
+      const audioH = 145;
+
+      const audioGrad = ctx.createLinearGradient(mainContentX, audioY, mainContentX + mainContentW, audioY);
+      audioGrad.addColorStop(0, '#f0f9ff');
+      audioGrad.addColorStop(1, '#eef2ff');
+      ctx.fillStyle = audioGrad;
       ctx.beginPath();
-      ctx.moveTo(winX + 74, audioBoxY + 56);
-      ctx.lineTo(winX + 94, audioBoxY + 70);
-      ctx.lineTo(winX + 74, audioBoxY + 84);
+      ctx.roundRect(mainContentX, audioY, mainContentW, audioH, 20);
+      ctx.fill();
+      ctx.strokeStyle = '#bae6fd';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      // Audio Component Header
+      ctx.textAlign = 'left';
+      ctx.fillStyle = '#0369a1';
+      ctx.font = '900 15px "Plus Jakarta Sans"';
+      ctx.fillText('🔊 Pemutar Audio Chōkai (聴解 Audio)', mainContentX + 24, audioY + 32);
+
+      // Counter Badge: "Diputar: 1 / 2 kali"
+      ctx.fillStyle = '#dcfce7';
+      ctx.beginPath();
+      ctx.roundRect(mainContentX + mainContentW - 180, audioY + 16, 156, 30, 15);
+      ctx.fill();
+      ctx.strokeStyle = '#86efac';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+
+      ctx.fillStyle = '#166534';
+      ctx.font = '900 12px "Plus Jakarta Sans"';
+      ctx.textAlign = 'center';
+      ctx.fillText('Diputar: 1 / 2 kali', mainContentX + mainContentW - 102, audioY + 31);
+
+      // Play Button in Audio Player
+      const isAudioPlaying = t > 1.8;
+      const playBtnX = mainContentX + 70;
+      const playBtnY = audioY + 88;
+
+      ctx.fillStyle = isAudioPlaying ? '#0284c7' : '#0284c7';
+      ctx.beginPath();
+      ctx.roundRect(mainContentX + 24, audioY + 62, 160, 48, 14);
       ctx.fill();
 
-      // Track info
-      ctx.textAlign = 'left';
-      ctx.fillStyle = '#38bdf8';
-      ctx.font = '900 18px "Plus Jakarta Sans"';
-      ctx.fillText('Audio Resmi Choukai JFT A2 • Track #04', winX + 140, audioBoxY + 50);
+      ctx.fillStyle = '#ffffff';
+      ctx.font = '900 14px "Plus Jakarta Sans"';
+      ctx.textAlign = 'center';
+      ctx.fillText(isAudioPlaying ? '🔊 Memutar...' : '▶ Putar Audio', mainContentX + 104, audioY + 87);
 
-      // Sound Wave Visualizer Animation
-      ctx.fillStyle = '#94a3b8';
-      ctx.font = '700 13px "Plus Jakarta Sans"';
-      ctx.fillText('Sistem Prometric Asli (Maks 2x Putar Otomatis)', winX + 140, audioBoxY + 76);
-
-      // Waveform bars
-      for (let b = 0; b < 24; b++) {
-        const barH = isAudioPlaying ? Math.sin(t * 10 + b * 0.8) * 16 + 22 : 6;
-        ctx.fillStyle = isAudioPlaying ? '#38bdf8' : '#475569';
+      // Waveform equalizer bars
+      for (let b = 0; b < 22; b++) {
+        const barH = isAudioPlaying ? Math.sin(t * 10 + b * 0.9) * 14 + 18 : 6;
+        ctx.fillStyle = isAudioPlaying ? '#0284c7' : '#94a3b8';
         ctx.beginPath();
-        ctx.roundRect(winX + 140 + b * 16, audioBoxY + 114 - barH/2, 10, barH, 4);
+        ctx.roundRect(mainContentX + 200 + b * 16, audioY + 86 - barH/2, 9, barH, 4);
         ctx.fill();
       }
 
-      // Audio timer
+      // Audio Time Counter
       ctx.textAlign = 'right';
-      ctx.fillStyle = '#f87171';
-      ctx.font = '900 18px monospace';
-      ctx.fillText('⏱ 00:45 / 01:20', winX + winW - 60, audioBoxY + 70);
+      ctx.fillStyle = '#0369a1';
+      ctx.font = '900 15px "JetBrains Mono"';
+      ctx.fillText('⏱ 00:48 / 01:25', mainContentX + mainContentW - 30, audioY + 88);
 
-      // Question Mockup Card
-      const qBoxY = audioBoxY + 160;
-      ctx.fillStyle = '#f8fafc';
+      // Section Rule Reminder Strip (From CbtExamEngine.tsx line 932)
+      const ruleY = audioY + audioH + 12;
+      ctx.fillStyle = '#e0f2fe';
       ctx.beginPath();
-      ctx.roundRect(winX + 28, qBoxY, winW - 56, isVertical ? 420 : 220, 20);
+      ctx.roundRect(mainContentX, ruleY, mainContentW, 38, 12);
+      ctx.fill();
+      ctx.strokeStyle = '#bae6fd';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+
+      ctx.fillStyle = '#0369a1';
+      ctx.font = '800 12px "Plus Jakarta Sans"';
+      ctx.textAlign = 'left';
+      ctx.fillText('ℹ️ Aturan Chōkai: Audio diputar maks. 2 kali. Kerjakan secara berurutan tanpa melompat.', mainContentX + 18, ruleY + 23);
+
+      // QUESTION CARD
+      const qCardY = ruleY + 52;
+      const qCardH = isVertical ? 460 : 320;
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath();
+      ctx.roundRect(mainContentX, qCardY, mainContentW, qCardH, 20);
       ctx.fill();
       ctx.strokeStyle = '#e2e8f0';
       ctx.lineWidth = 2;
       ctx.stroke();
 
-      ctx.textAlign = 'left';
+      // Question Japanese Title
       ctx.fillStyle = '#0f172a';
-      ctx.font = '900 24px "Noto Sans JP", "Plus Jakarta Sans"';
-      ctx.fillText('第 4 問：会話を 聞いて、正しい ものを 1 つ 選んでください。', winX + 50, qBoxY + 45);
+      ctx.font = '900 22px "Noto Sans JP", sans-serif';
+      ctx.fillText('第 15 問：２人は 何時に どこで 会いますか。', mainContentX + 28, qCardY + 44);
 
-      // Multiple choice option rows
-      const opts = [
-        'A. 明日の 午前10時に 事務所へ 行きます。',
-        'B. 今日の 午後2時に 会議室で 会います。',
-        'C. 来週の 月曜日に 電話を かけます。',
-        'D. レポートを メールで 送ります。'
+      ctx.fillStyle = '#64748b';
+      ctx.font = '700 15px "Noto Sans JP", sans-serif';
+      ctx.fillText('一番 いい ものを １つ 選んで ください。', mainContentX + 28, qCardY + 74);
+
+      // Options (4 Options)
+      const options = [
+        'A. 明日の 午前 10時に 事務所の前で 会います。',
+        'B. 明日の 午後 2時に 駅の改札口で 会います。',
+        'C. 来週の 月曜日に カフェで 会います。',
+        'D. 今日の 夕方 5時に 工場のロビーで 会います。'
       ];
 
-      const selectedOpt = t > 4.5 ? 0 : -1;
-      opts.forEach((optText, oi) => {
-        const optY = qBoxY + 70 + oi * 76;
+      const isOptSelected = t > 4.5;
+
+      options.forEach((optText, oi) => {
+        const optY = qCardY + 104 + oi * 80;
         if (oi < (isVertical ? 4 : 2)) {
-          const isSel = selectedOpt === oi;
-          ctx.fillStyle = isSel ? '#fee2e2' : '#ffffff';
+          const isSelected = oi === 0 && isOptSelected;
+
+          // Option Box
+          ctx.fillStyle = isSelected ? '#fff1f2' : '#ffffff';
           ctx.beginPath();
-          ctx.roundRect(winX + 50, optY, winW - 100, 60, 14);
+          ctx.roundRect(mainContentX + 28, optY, mainContentW - 56, 66, 14);
           ctx.fill();
-          ctx.strokeStyle = isSel ? '#dc2626' : '#cbd5e1';
-          ctx.lineWidth = isSel ? 3 : 2;
+          ctx.strokeStyle = isSelected ? '#dc2626' : '#cbd5e1';
+          ctx.lineWidth = isSelected ? 3 : 2;
           ctx.stroke();
 
-          // Radio dot
+          // Radio Circle
           ctx.beginPath();
-          ctx.arc(winX + 80, optY + 30, 12, 0, Math.PI * 2);
-          ctx.fillStyle = isSel ? '#dc2626' : '#ffffff';
+          ctx.arc(mainContentX + 60, optY + 33, 13, 0, Math.PI * 2);
+          ctx.fillStyle = isSelected ? '#dc2626' : '#ffffff';
           ctx.fill();
-          ctx.strokeStyle = isSel ? '#dc2626' : '#94a3b8';
+          ctx.strokeStyle = isSelected ? '#dc2626' : '#94a3b8';
           ctx.lineWidth = 2;
           ctx.stroke();
 
-          ctx.font = '800 17px "Noto Sans JP", sans-serif';
-          ctx.fillStyle = '#1e293b';
-          ctx.fillText(optText, winX + 110, optY + 36);
+          if (isSelected) {
+            ctx.fillStyle = '#ffffff';
+            ctx.beginPath();
+            ctx.arc(mainContentX + 60, optY + 33, 5, 0, Math.PI * 2);
+            ctx.fill();
+          }
+
+          // Option Japanese text
+          ctx.font = isSelected ? '900 17px "Noto Sans JP"' : '700 17px "Noto Sans JP"';
+          ctx.fillStyle = isSelected ? '#b91c1c' : '#1e293b';
+          ctx.fillText(optText, mainContentX + 90, optY + 39);
         }
       });
 
-      // Animated Mouse Cursor moving dynamically
-      let cursorX = winX + 80;
-      let cursorY = audioBoxY + 70;
+      // Question Navigator Palette Grid in vertical mode (Under question card)
+      if (isVertical) {
+        const palY = qCardY + qCardH + 16;
+        ctx.fillStyle = '#f8fafc';
+        ctx.beginPath();
+        ctx.roundRect(mainContentX, palY, mainContentW, 145, 16);
+        ctx.fill();
+        ctx.strokeStyle = '#e2e8f0';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        ctx.fillStyle = '#334155';
+        ctx.font = '900 14px "Plus Jakarta Sans"';
+        ctx.textAlign = 'left';
+        ctx.fillText('Navigasi Soal • 14 / 20 Terjawab (Seksi S3)', mainContentX + 20, palY + 28);
+
+        // Pills 1..16 (Green answered, 15 active red, 16..20 locked)
+        for (let n = 1; n <= 16; n++) {
+          const pillX = mainContentX + 20 + ((n - 1) % 8) * 110;
+          const pillY = palY + 45 + Math.floor((n - 1) / 8) * 44;
+
+          if (n < 15) {
+            ctx.fillStyle = '#22c55e'; // Answered green
+            ctx.beginPath();
+            ctx.roundRect(pillX, pillY, 100, 36, 10);
+            ctx.fill();
+            ctx.fillStyle = '#ffffff';
+            ctx.font = '900 14px "JetBrains Mono"';
+          } else if (n === 15) {
+            ctx.fillStyle = '#dc2626'; // Active red
+            ctx.beginPath();
+            ctx.roundRect(pillX, pillY, 100, 36, 10);
+            ctx.fill();
+            ctx.strokeStyle = '#fca5a5';
+            ctx.lineWidth = 3;
+            ctx.stroke();
+            ctx.fillStyle = '#ffffff';
+            ctx.font = '900 15px "JetBrains Mono"';
+          } else {
+            ctx.fillStyle = '#e2e8f0'; // Locked gray
+            ctx.beginPath();
+            ctx.roundRect(pillX, pillY, 100, 36, 10);
+            ctx.fill();
+            ctx.fillStyle = '#64748b';
+            ctx.font = '700 14px "JetBrains Mono"';
+          }
+
+          ctx.textAlign = 'center';
+          ctx.fillText(`No. ${n}`, pillX + 50, pillY + 23);
+        }
+      }
+
+      // Bottom Navigation Buttons (Sebelumnya, Ragu-ragu, Berikutnya)
+      const botY = isVertical ? winY + winH - 70 : winY + winH - 60;
+      
+      // Sebelumnya (Disabled)
+      ctx.fillStyle = '#f1f5f9';
+      ctx.beginPath();
+      ctx.roundRect(mainContentX, botY, 130, 44, 12);
+      ctx.fill();
+      ctx.fillStyle = '#94a3b8';
+      ctx.font = '800 13px "Plus Jakarta Sans"';
+      ctx.textAlign = 'center';
+      ctx.fillText('🔒 Sebelumnya', mainContentX + 65, botY + 26);
+
+      // Berikutnya (Active Indigo)
+      ctx.fillStyle = '#4f46e5';
+      ctx.beginPath();
+      ctx.roundRect(mainContentX + mainContentW - 150, botY, 150, 44, 12);
+      ctx.fill();
+      ctx.fillStyle = '#ffffff';
+      ctx.font = '900 13px "Plus Jakarta Sans"';
+      ctx.fillText('Berikutnya →', mainContentX + mainContentW - 75, botY + 26);
+
+      // ANIMATED MOUSE CURSOR GLIDING & CLICKING
+      let cursorX = mainContentX + 250;
+      let cursorY = audioY + 140;
 
       if (t < 2.0) {
-        // Move towards play button
+        // Gliding to audio play button
         const prog = Math.min(1, t / 2.0);
-        cursorX = (winX + 300) + (80 - 300) * prog;
-        cursorY = (audioBoxY + 200) + (70 - 200) * prog;
-      } else if (t < 5.0) {
-        // Move towards option A
-        const prog = Math.min(1, (t - 2.0) / 3.0);
-        cursorX = (winX + 80) + (winX + 200 - (winX + 80)) * prog;
-        cursorY = (audioBoxY + 70) + (qBoxY + 100 - (audioBoxY + 70)) * prog;
+        cursorX = (mainContentX + 400) + (mainContentX + 104 - (mainContentX + 400)) * prog;
+        cursorY = (audioY + 180) + (audioY + 87 - (audioY + 180)) * prog;
+      } else if (t < 4.8) {
+        // Gliding down to Option A
+        const prog = Math.min(1, (t - 2.0) / 2.8);
+        cursorX = (mainContentX + 104) + (mainContentX + 180 - (mainContentX + 104)) * prog;
+        cursorY = (audioY + 87) + (qCardY + 137 - (audioY + 87)) * prog;
       } else {
-        // Stay near option A with click ripple
-        cursorX = winX + 200;
-        cursorY = qBoxY + 100;
+        // Staying on Option A with click ripple
+        cursorX = mainContentX + 180;
+        cursorY = qCardY + 137;
 
-        const ripple = (t - 5.0) % 1.5;
+        const ripple = (t - 4.8) % 1.5;
         ctx.strokeStyle = `rgba(220, 38, 38, ${Math.max(0, 1 - ripple)})`;
         ctx.lineWidth = 3;
         ctx.beginPath();
-        ctx.arc(cursorX, cursorY, ripple * 40, 0, Math.PI * 2);
+        ctx.arc(cursorX, cursorY, ripple * 45, 0, Math.PI * 2);
         ctx.stroke();
       }
 
-      // Draw Cursor Arrow
+      // Draw Cursor Arrow Pointer
       ctx.save();
       ctx.translate(cursorX, cursorY);
-      ctx.fillStyle = '#1e293b';
+      ctx.fillStyle = '#0f172a';
       ctx.strokeStyle = '#ffffff';
-      ctx.lineWidth = 2;
+      ctx.lineWidth = 2.5;
       ctx.beginPath();
       ctx.moveTo(0, 0);
-      ctx.lineTo(0, 24);
-      ctx.lineTo(6, 18);
-      ctx.lineTo(16, 26);
-      ctx.lineTo(20, 22);
-      ctx.lineTo(10, 14);
-      ctx.lineTo(18, 14);
+      ctx.lineTo(0, 26);
+      ctx.lineTo(7, 20);
+      ctx.lineTo(17, 29);
+      ctx.lineTo(22, 24);
+      ctx.lineTo(11, 15);
+      ctx.lineTo(20, 15);
       ctx.closePath();
       ctx.fill();
       ctx.stroke();
       ctx.restore();
-
-      // Bottom floating feature bar
-      if (isVertical) {
-        const featY = winY + winH + 30;
-        ctx.fillStyle = '#0f172a';
-        ctx.beginPath();
-        ctx.roundRect(W/2 - 380, featY, 760, 70, 20);
-        ctx.fill();
-
-        ctx.font = '800 20px "Plus Jakarta Sans"';
-        ctx.fillStyle = '#ffffff';
-        ctx.textAlign = 'center';
-        ctx.fillText('✓ Audio Asli  •  ✓ 4 Seksi Lengkap  •  ✓ Timer 60 Menit CBT', W/2, featY + 42);
-      }
     }
 
     // =========================================================================
-    // SCENE 3: OFFER (00:13 - 00:22)
-    // Voucher Promo: 3D Coupon Card "KONDANG50" + 50% Off (Center Frame)
+    // SCENE 3: VOUCHER PROMO (00:13 - 00:22)
+    // 3D VOUCHER IN CENTER FRAME (SAFE ZONE FOR META ADS)
     // =========================================================================
     function drawScene3Offer(t, W, H) {
-      // Dimmed cinematic dark background
-      ctx.fillStyle = '#090d16';
+      ctx.fillStyle = '#0b0f19';
       ctx.fillRect(0, 0, W, H);
 
-      // Gold / Rose glow burst behind coupon
+      // Ambient Gold & Rose Burst behind coupon
       const pulse = Math.sin(t * 4) * 0.2 + 0.8;
-      const glow = ctx.createRadialGradient(W/2, H/2, 40, W/2, H/2, 500);
-      glow.addColorStop(0, `rgba(245, 158, 11, ${0.4 * pulse})`);
-      glow.addColorStop(0.5, `rgba(220, 38, 38, ${0.2 * pulse})`);
+      const glow = ctx.createRadialGradient(W/2, H/2, 40, W/2, H/2, 520);
+      glow.addColorStop(0, `rgba(245, 158, 11, ${0.45 * pulse})`);
+      glow.addColorStop(0.5, `rgba(220, 38, 38, ${0.25 * pulse})`);
       glow.addColorStop(1, 'transparent');
       ctx.fillStyle = glow;
       ctx.fillRect(0, 0, W, H);
 
       // Floating celebratory confetti particles
       for (let p = 0; p < 36; p++) {
-        const px = (p * 73 + t * 40) % W;
-        const py = (p * 57 + t * 60) % H;
+        const px = (p * 73 + t * 45) % W;
+        const py = (p * 57 + t * 65) % H;
         const pColor = p % 3 === 0 ? '#fbbf24' : p % 3 === 1 ? '#f87171' : '#38bdf8';
         ctx.fillStyle = pColor;
         ctx.beginPath();
@@ -1145,10 +1655,10 @@
         ctx.fill();
       }
 
-      // 3D Animated Voucher Coupon Card in Center Frame (Meta Ads Safe Zone)
-      const popProg = Math.min(1, t * 2.5); // Pop in smoothly
-      const cW = isVertical ? 900 : 920;
-      const cH = isVertical ? 680 : 560;
+      // 3D Animated Voucher Coupon Card in Center Frame
+      const popProg = Math.min(1, t * 2.5);
+      const cW = isVertical ? 920 : 940;
+      const cH = isVertical ? 720 : 580;
       const cX = (W - cW) / 2;
       const cY = (H - cH) / 2 - 20;
 
@@ -1157,10 +1667,10 @@
       ctx.scale(popProg, popProg);
       ctx.translate(-W/2, -H/2);
 
-      // Coupon Outer Border & Glowing Shadow
+      // Coupon Shadow & Dark Card
       ctx.shadowColor = 'rgba(245, 158, 11, 0.5)';
       ctx.shadowBlur = 40;
-      ctx.fillStyle = '#1c1917';
+      ctx.fillStyle = '#18181b';
       ctx.beginPath();
       ctx.roundRect(cX, cY, cW, cH, 36);
       ctx.fill();
@@ -1178,37 +1688,37 @@
       // Top Coupon Label
       ctx.fillStyle = '#dc2626';
       ctx.beginPath();
-      ctx.roundRect(cX + cW/2 - 180, cY - 24, 360, 48, 24);
+      ctx.roundRect(cX + cW/2 - 200, cY - 26, 400, 52, 26);
       ctx.fill();
       ctx.fillStyle = '#ffffff';
-      ctx.font = '900 16px "Plus Jakarta Sans"';
+      ctx.font = '900 17px "Plus Jakarta Sans"';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      ctx.fillText('🔥 PROMO TERBATAS HARI INI', cX + cW/2, cY);
+      ctx.fillText('🔥 KLAIM DISKON SPESIAL HARI INI', cX + cW/2, cY);
 
       // Headline inside coupon
       ctx.fillStyle = '#ffffff';
-      ctx.font = '900 38px "Plus Jakarta Sans"';
-      ctx.fillText('KLAIM DISKON SPESIAL JFT A2', W/2, cY + 90);
+      ctx.font = '900 40px "Plus Jakarta Sans"';
+      ctx.fillText('VOUCHER PROMO JFT-BASIC A2', W/2, cY + 95);
 
       // Bright Yellow Pop-up: DISKON 50%
-      const discountY = cY + 180;
+      const discountY = cY + 190;
       ctx.fillStyle = '#fef08a';
       ctx.shadowColor = 'rgba(250, 204, 21, 0.8)';
-      ctx.shadowBlur = 25;
-      ctx.font = '900 78px "Plus Jakarta Sans"';
+      ctx.shadowBlur = 30;
+      ctx.font = '900 82px "Plus Jakarta Sans"';
       ctx.fillText('DISKON 50%', W/2, discountY);
       ctx.shadowBlur = 0;
 
       ctx.fillStyle = '#fde047';
       ctx.font = '800 24px "Plus Jakarta Sans"';
-      ctx.fillText('(Maks. Potongan Rp30.000 Semua Paket)', W/2, discountY + 60);
+      ctx.fillText('(Maks. Potongan Rp30.000 Semua Paket)', W/2, discountY + 65);
 
       // Big Coupon Code Box: "KONDANG50"
-      const codeBoxY = discountY + 120;
+      const codeBoxY = discountY + 130;
       ctx.fillStyle = '#090d16';
       ctx.beginPath();
-      ctx.roundRect(W/2 - 340, codeBoxY, 680, 110, 24);
+      ctx.roundRect(W/2 - 360, codeBoxY, 720, 115, 24);
       ctx.fill();
       ctx.strokeStyle = '#f59e0b';
       ctx.lineWidth = 4;
@@ -1218,68 +1728,84 @@
 
       ctx.fillStyle = '#94a3b8';
       ctx.font = '800 16px "Plus Jakarta Sans"';
-      ctx.fillText('GUNAKAN KODE VOUCHER SAAT CHECKOUT:', W/2, codeBoxY + 34);
+      ctx.fillText('KODE VOUCHER KLAIM SAAT CHECKOUT:', W/2, codeBoxY + 36);
 
       ctx.fillStyle = '#fbbf24';
-      ctx.font = '900 52px monospace';
-      ctx.fillText('KONDANG50', W/2, codeBoxY + 78);
+      ctx.font = '900 54px "JetBrains Mono", monospace';
+      ctx.fillText('KONDANG50', W/2, codeBoxY + 82);
 
       // Footer notice inside coupon
       ctx.fillStyle = '#a8a29e';
       ctx.font = '700 16px "Plus Jakarta Sans"';
-      ctx.fillText('✓ Akses Langsung Aktif Otomatis  •  ✓ Berlaku untuk Semua Bank Soal', W/2, cY + cH - 50);
+      ctx.fillText('✓ Akses Langsung Aktif Otomatis  •  ✓ 5 Bank Soal CBT Lengkap', W/2, cY + cH - 50);
 
       ctx.restore();
 
       // Bottom Urgency Banner
-      const botBannerY = isVertical ? H/2 + 380 : H/2 + 300;
+      const botBannerY = isVertical ? H/2 + 400 : H/2 + 310;
       ctx.fillStyle = 'rgba(220, 38, 38, 0.25)';
       ctx.beginPath();
-      ctx.roundRect(W/2 - 360, botBannerY, 720, 64, 20);
+      ctx.roundRect(W/2 - 380, botBannerY, 760, 68, 20);
       ctx.fill();
       ctx.strokeStyle = '#ef4444';
       ctx.lineWidth = 2;
       ctx.stroke();
 
       ctx.fillStyle = '#ffffff';
-      ctx.font = '900 20px "Plus Jakarta Sans"';
+      ctx.font = '900 21px "Plus Jakarta Sans"';
       ctx.textAlign = 'center';
-      ctx.fillText('⚡ Kuota Promo Terbatas: Sisa 12 Slot Hari Ini!', W/2, botBannerY + 34);
+      ctx.fillText('⚡ Kuota Promo Terbatas: Sisa 12 Slot Hari Ini!', W/2, botBannerY + 36);
     }
 
     // =========================================================================
     // SCENE 4: CALL TO ACTION (00:22 - 00:30)
-    // Urgency: "Coba Mini Tryout Gratis" + Cursor Click + Arrows Down
+    // EXACT REAL KONDANGSENSEI LANDING PAGE & "COBA MINI TRYOUT GRATIS" CTA
     // =========================================================================
     function drawScene4CTA(t, W, H) {
-      // Dynamic crimson/dark gradient background
-      const pulse = Math.sin(t * 6) * 0.15 + 0.85;
-      const bgGrad = ctx.createRadialGradient(W/2, H/2 - 100, 60, W/2, H/2, W);
-      bgGrad.addColorStop(0, '#7f1d1d');
-      bgGrad.addColorStop(0.6, '#18080a');
-      bgGrad.addColorStop(1, '#080203');
-      ctx.fillStyle = bgGrad;
+      // Clean KondangSensei landing page background
+      ctx.fillStyle = '#f8fafc';
       ctx.fillRect(0, 0, W, H);
 
-      // Main Hook on CTA
-      ctx.fillStyle = '#fca5a5';
-      ctx.font = '900 24px "Plus Jakarta Sans"';
+      // Soft ambient rose glow
+      const glow = ctx.createRadialGradient(W/2, H/2 - 100, 80, W/2, H/2, 600);
+      glow.addColorStop(0, 'rgba(254, 205, 211, 0.6)');
+      glow.addColorStop(1, 'transparent');
+      ctx.fillStyle = glow;
+      ctx.fillRect(0, 0, W, H);
+
+      // Hero Badge (Exact KondangSensei Landing Page)
+      const badgeY = isVertical ? H/2 - 400 : H/2 - 280;
+      ctx.fillStyle = '#fee2e2';
+      ctx.beginPath();
+      ctx.roundRect(W/2 - 260, badgeY, 520, 52, 26);
+      ctx.fill();
+      ctx.strokeStyle = '#fca5a5';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      ctx.fillStyle = '#b91c1c';
+      ctx.font = '900 17px "Plus Jakarta Sans"';
       ctx.textAlign = 'center';
-      ctx.fillText('JANGAN SAMPAI KETINGGALAN!', W/2, isVertical ? H/2 - 340 : H/2 - 240);
+      ctx.fillText('🇯🇵 SISTEM SIMULASI CBT JFT-BASIC A2 RESMI', W/2, badgeY + 28);
 
-      ctx.fillStyle = '#ffffff';
-      ctx.font = '900 58px "Plus Jakarta Sans"';
-      ctx.fillText('Mulai Latihan Sekarang', W/2, isVertical ? H/2 - 270 : H/2 - 180);
+      // Hero Headline
+      ctx.fillStyle = '#0f172a';
+      ctx.font = '900 56px "Plus Jakarta Sans"';
+      ctx.fillText('Sistem Simulasi CBT JFT A2', W/2, badgeY + 110);
 
-      ctx.fillStyle = '#cbd5e1';
+      ctx.fillStyle = '#dc2626';
+      ctx.font = '900 68px "Plus Jakarta Sans"';
+      ctx.fillText('99% Mirip Ujian Asli', W/2, badgeY + 185);
+
+      ctx.fillStyle = '#64748b';
       ctx.font = '700 22px "Plus Jakarta Sans"';
-      ctx.fillText('Buktikan kemampuanmu & amankan passing grade JFT A2', W/2, isVertical ? H/2 - 200 : H/2 - 130);
+      ctx.fillText('Buktikan kemampuanmu & amankan passing grade JFT A2!', W/2, badgeY + 245);
 
-      // Giant Glowing Red CTA Button: "Coba Mini Tryout Gratis"
-      const btnW = isVertical ? 820 : 860;
-      const btnH = 130;
+      // GIANT GLOWING RED CTA BUTTON: "Coba Mini Tryout Gratis"
+      const btnW = isVertical ? 860 : 880;
+      const btnH = 135;
       const btnX = (W - btnW) / 2;
-      const btnY = isVertical ? H/2 - 80 : H/2 - 50;
+      const btnY = isVertical ? H/2 - 40 : H/2 - 20;
 
       const btnScale = 1.0 + Math.sin(t * 6) * 0.03;
       ctx.save();
@@ -1287,13 +1813,13 @@
       ctx.scale(btnScale, btnScale);
       ctx.translate(-W/2, -(btnY + btnH/2));
 
-      // Button Shadow & Gradient
-      ctx.shadowColor = '#dc2626';
+      // Button Shadow & Red Gradient
+      ctx.shadowColor = 'rgba(220, 38, 38, 0.5)';
       ctx.shadowBlur = 45;
       const btnGrad = ctx.createLinearGradient(btnX, btnY, btnX + btnW, btnY + btnH);
       btnGrad.addColorStop(0, '#dc2626');
-      btnGrad.addColorStop(0.5, '#ea580c');
-      btnGrad.addColorStop(1, '#dc2626');
+      btnGrad.addColorStop(0.5, '#e11d48');
+      btnGrad.addColorStop(1, '#b91c1c');
       ctx.fillStyle = btnGrad;
       ctx.beginPath();
       ctx.roundRect(btnX, btnY, btnW, btnH, 32);
@@ -1304,159 +1830,266 @@
       ctx.lineWidth = 4;
       ctx.stroke();
 
-      // Play Icon & Button Text
+      // Button Text & Icon
       ctx.fillStyle = '#ffffff';
-      ctx.font = '900 38px "Plus Jakarta Sans"';
+      ctx.font = '900 40px "Plus Jakarta Sans"';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      ctx.fillText('▶  Coba Mini Tryout Gratis', W/2, btnY + btnH/2);
+      ctx.fillText('⚡ Coba Mini Tryout Gratis', W/2, btnY + btnH/2);
       ctx.restore();
 
-      // Click ripple on button
+      // Ripple effect around button
       const ripple = (t % 1.2) / 1.2;
-      ctx.strokeStyle = `rgba(255, 255, 255, ${1 - ripple})`;
+      ctx.strokeStyle = `rgba(220, 38, 38, ${1 - ripple})`;
       ctx.lineWidth = 4;
       ctx.beginPath();
-      ctx.arc(W/2 + 180, btnY + btnH/2, ripple * 80, 0, Math.PI * 2);
+      ctx.arc(W/2 + 200, btnY + btnH/2, ripple * 90, 0, Math.PI * 2);
       ctx.stroke();
 
-      // Animated Finger / Pointer Cursor
+      // Animated Finger Pointer Cursor Clicking Button
       const handY = btnY + btnH/2 + Math.sin(t * 8) * 8;
       ctx.save();
-      ctx.translate(W/2 + 180, handY);
-      ctx.fillStyle = '#ffffff';
-      ctx.strokeStyle = '#000000';
+      ctx.translate(W/2 + 200, handY);
+      ctx.fillStyle = '#0f172a';
+      ctx.strokeStyle = '#ffffff';
       ctx.lineWidth = 3;
       ctx.beginPath();
-      ctx.arc(0, 0, 16, 0, Math.PI*2);
+      ctx.moveTo(0, 0);
+      ctx.lineTo(0, 28);
+      ctx.lineTo(8, 22);
+      ctx.lineTo(18, 32);
+      ctx.lineTo(24, 26);
+      ctx.lineTo(12, 17);
+      ctx.lineTo(22, 17);
+      ctx.closePath();
       ctx.fill();
       ctx.stroke();
       ctx.restore();
 
-      // Animated Bouncing Arrow Down & Text: "KLIK LINK DI BAWAH"
-      const bounceY = (isVertical ? H/2 + 180 : H/2 + 150) + Math.sin(t * 8) * 16;
-      ctx.fillStyle = '#fde047';
-      ctx.shadowColor = '#eab308';
-      ctx.shadowBlur = 20;
-
-      ctx.font = '900 34px "Plus Jakarta Sans"';
-      ctx.textAlign = 'center';
-      ctx.fillText('⬇  KLIK LINK DI BAWAH INI  ⬇', W/2, bounceY);
-      ctx.shadowBlur = 0;
-
-      ctx.fillStyle = '#ffffff';
-      ctx.font = '800 20px "Plus Jakarta Sans"';
-      ctx.fillText('Klaim Kupon Diskon 50% Sebelum Kuota Habis!', W/2, bounceY + 48);
-
-      // Website URL pill
-      const urlY = isVertical ? H - 160 : H - 100;
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
+      // Bouncing Yellow Arrows: "KLIK LINK DI BAWAH INI"
+      const bounceY = (isVertical ? H/2 + 200 : H/2 + 160) + Math.sin(t * 8) * 14;
+      ctx.fillStyle = '#b45309';
       ctx.beginPath();
-      ctx.roundRect(W/2 - 250, urlY, 500, 56, 28);
+      ctx.roundRect(W/2 - 280, bounceY - 30, 560, 60, 30);
       ctx.fill();
-      ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+      ctx.strokeStyle = '#f59e0b';
       ctx.lineWidth = 2;
       ctx.stroke();
 
+      ctx.fillStyle = '#fef08a';
+      ctx.font = '900 24px "Plus Jakarta Sans"';
+      ctx.textAlign = 'center';
+      ctx.fillText('⬇  KLIK TOMBOL DI BAWAH SEKARANG  ⬇', W/2, bounceY + 3);
+
+      ctx.fillStyle = '#64748b';
+      ctx.font = '800 20px "Plus Jakarta Sans"';
+      ctx.fillText('Klaim Kupon Diskon 50% Sebelum Kuota Habis!', W/2, bounceY + 65);
+
+      // Website URL pill (kondangsensei.my.id)
+      const urlY = isVertical ? H - 150 : H - 90;
       ctx.fillStyle = '#ffffff';
-      ctx.font = '900 22px "Plus Jakarta Sans"';
-      ctx.fillText('🌐  kondangsensei.my.id', W/2, urlY + 28);
+      ctx.shadowColor = 'rgba(0, 0, 0, 0.08)';
+      ctx.shadowBlur = 15;
+      ctx.beginPath();
+      ctx.roundRect(W/2 - 260, urlY, 520, 60, 30);
+      ctx.fill();
+      ctx.shadowBlur = 0;
+      ctx.strokeStyle = '#e2e8f0';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      ctx.fillStyle = '#0f172a';
+      ctx.font = '900 24px "Plus Jakarta Sans"';
+      ctx.fillText('🌐  kondangsensei.my.id', W/2, urlY + 32);
     }
 
     // =========================================================================
-    // SUBTITLES / CAPTION OVERLAY (KARAOKE BOTTOM OVERLAY)
+    // SUBTITLES / CAPTION OVERLAY (VIRAL SHORT-FORM HIGH-VISIBILITY STYLE)
     // =========================================================================
     function drawSubtitles(t, W, H) {
-      let activeText = '';
+      let line1 = '';
+      let line2 = '';
+      let highlightWord = '';
+
       if (t < 5.0) {
-        activeText = "Uang tes JFT A2 itu 550 ribu! Jangan sampai hangus cuma gara-gara kaget sama sistem komputer Prometric!";
+        line1 = 'Uang tes JFT A2 itu 550 RIBU!';
+        line2 = 'Jangan sampai HANGUS cuma gara-gara kaget sistem PROMETRIC!';
+        highlightWord = '550 RIBU';
       } else if (t < 13.0) {
-        activeText = "Biar nggak panik pas audio Choukai diputar, simulasi dulu di KondangSensei! Tampilannya 99% mirip ujian asli.";
+        line1 = 'Biar nggak panik pas audio Choukai diputar, simulasi dulu di KONDANGSENSEI!';
+        line2 = 'Tampilannya 99% MIRIP UJIAN ASLI, lengkap timer & audio autentik.';
+        highlightWord = '99% MIRIP UJIAN ASLI';
       } else if (t < 22.0) {
-        activeText = "Khusus hari ini, masukkan kode voucher KONDANG50 dan dapatkan diskon 50% untuk semua paket latihan!";
+        line1 = 'Khusus hari ini, masukkan kode voucher: KONDANG50';
+        line2 = 'Dapatkan DISKON 50% untuk semua paket latihan!';
+        highlightWord = 'DISKON 50%';
       } else {
-        activeText = "Coba Mini Tryout Gratisnya sekarang dan klaim diskonnya sebelum kuota habis! Klik tombol di bawah sekarang!";
+        line1 = 'Coba MINI TRYOUT GRATIS-nya sekarang juga!';
+        line2 = 'Klaim diskonnya sebelum kuota habis! KLIK LINK DI BAWAH!';
+        highlightWord = 'MINI TRYOUT GRATIS';
       }
 
       ctx.save();
-      const subY = isVertical ? H - 260 : H - 120;
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+      const subY = isVertical ? H - 240 : H - 110;
+      const subW = Math.min(W - 80, 960);
+      const subH = 82;
+
+      // Dark solid background with glowing border
+      ctx.fillStyle = 'rgba(15, 23, 42, 0.94)';
+      ctx.shadowColor = 'rgba(0, 0, 0, 0.6)';
+      ctx.shadowBlur = 20;
       ctx.beginPath();
-      ctx.roundRect(W/2 - 440, subY, 880, 76, 20);
+      ctx.roundRect((W - subW) / 2, subY, subW, subH, 22);
       ctx.fill();
-      ctx.strokeStyle = 'rgba(255, 255, 255, 0.25)';
-      ctx.lineWidth = 2;
+      ctx.shadowBlur = 0;
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+      ctx.lineWidth = 2.5;
       ctx.stroke();
 
-      ctx.fillStyle = '#fde047';
-      ctx.font = '900 20px "Plus Jakarta Sans"';
+      // Line 1
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      ctx.fillText(activeText, W/2, subY + 38);
+      ctx.fillStyle = '#ffffff';
+      ctx.font = '800 21px "Plus Jakarta Sans"';
+      ctx.fillText(line1, W / 2, subY + 26);
+
+      // Line 2 with vivid yellow highlight
+      ctx.fillStyle = '#fde047';
+      ctx.font = '900 23px "Plus Jakarta Sans"';
+      ctx.fillText(line2, W / 2, subY + 56);
+
       ctx.restore();
     }
 
     // =========================================================================
-    // VIDEO EXPORT MODULE (MediaRecorder API -> .webm / .mp4)
+    // VIDEO EXPORT MODULE (MediaRecorder API -> Auto Download + Direct Link)
     // =========================================================================
+    function toggleExport() {
+      if (isRecording) {
+        stopExport();
+      } else {
+        startExport();
+      }
+    }
+
     function startExport() {
       if (isRecording) return;
       initAudio();
-      
-      const stream = canvas.captureStream(30); // 30 fps
+
+      const canvasStream = canvas.captureStream(30);
+      let streamToRecord = canvasStream;
+
+      if (audioDestNode && audioDestNode.stream && audioDestNode.stream.getAudioTracks().length > 0) {
+        streamToRecord = new MediaStream([
+          ...canvasStream.getVideoTracks(),
+          ...audioDestNode.stream.getAudioTracks()
+        ]);
+      }
+
       recordedChunks = [];
-      
-      // Select supported mimeType
-      let mimeType = 'video/webm;codecs=vp9';
-      if (!MediaRecorder.isTypeSupported(mimeType)) {
-        mimeType = 'video/webm';
+
+      // Detect best supported MIME type
+      const candidateTypes = [
+        'video/webm;codecs=vp9,opus',
+        'video/webm;codecs=vp8,opus',
+        'video/webm',
+        'video/mp4;codecs=avc1',
+        'video/mp4'
+      ];
+
+      let selectedMime = '';
+      for (const type of candidateTypes) {
+        if (typeof MediaRecorder !== 'undefined' && MediaRecorder.isTypeSupported(type)) {
+          selectedMime = type;
+          break;
+        }
       }
 
       try {
-        mediaRecorder = new MediaRecorder(stream, { mimeType });
+        const options = selectedMime ? { mimeType: selectedMime } : {};
+        mediaRecorder = new MediaRecorder(streamToRecord, options);
       } catch (e) {
-        alert('Browser Anda tidak mendukung perekaman langsung canvas: ' + e.message);
+        alert('Browser Anda tidak mendukung perekaman langsung: ' + e.message);
         return;
       }
 
       mediaRecorder.ondataavailable = (e) => {
-        if (e.data.size > 0) recordedChunks.push(e.data);
+        if (e.data && e.data.size > 0) {
+          recordedChunks.push(e.data);
+        }
+      };
+
+      mediaRecorder.onerror = (err) => {
+        console.error('MediaRecorder error:', err);
+        stopExport();
       };
 
       mediaRecorder.onstop = () => {
-        const blob = new Blob(recordedChunks, { type: 'video/webm' });
-        const url = URL.createObjectURL(blob);
+        isRecording = false;
+        recordBtn.classList.remove('recording');
+        recordLabel.textContent = '🎥 Rekam & Ekspor Video (.webm / .mp4)';
+
+        if (recordedChunks.length === 0) {
+          alert('Rekaman kosong. Pastikan video diputar saat merekam.');
+          return;
+        }
+
+        const mime = selectedMime || 'video/webm';
+        const ext = mime.includes('mp4') ? 'mp4' : 'webm';
+        const blob = new Blob(recordedChunks, { type: mime });
+        const videoUrl = URL.createObjectURL(blob);
+        const filename = `kondangsensei-ads-30s-${isVertical ? 'vertical-9x16' : 'square-1x1'}.${ext}`;
+
+        // Auto trigger download
         const a = document.createElement('a');
         a.style.display = 'none';
-        a.href = url;
-        a.download = `kondangsensei-ads-30s-${isVertical ? 'vertical-9x16' : 'square-1x1'}.webm`;
+        a.href = videoUrl;
+        a.download = filename;
         document.body.appendChild(a);
         a.click();
         setTimeout(() => {
           document.body.removeChild(a);
-          window.URL.revokeObjectURL(url);
-        }, 100);
+        }, 150);
 
-        document.getElementById('recordLabel').textContent = '✅ Video Berhasil Disimpan!';
+        // Show permanent clickable direct download card
+        downloadCard.style.display = 'flex';
+        directDownloadBtn.href = videoUrl;
+        directDownloadBtn.download = filename;
+        directDownloadBtn.textContent = `⬇ Unduh File Video (.${ext})`;
+
+        recordLabel.textContent = '✅ Video Berhasil Disimpan!';
         setTimeout(() => {
-          document.getElementById('recordLabel').textContent = '🎥 Rekam & Ekspor Video (.webm / .mp4)';
-        }, 3000);
+          recordLabel.textContent = '🎥 Rekam & Ekspor Video (.webm / .mp4)';
+        }, 4000);
       };
 
       isRecording = true;
-      document.getElementById('recordLabel').textContent = '🔴 Sedang Merekam 30 Detik...';
+      downloadCard.style.display = 'none';
+      recordBtn.classList.add('recording');
+      recordLabel.textContent = '🔴 Merekam: 0.0s / 30.0s (0%) • Klik untuk Selesai';
 
-      // Reset to start and play
-      resetVideo();
-      mediaRecorder.start();
-      togglePlay();
+      // Reset to beginning and start recording
+      currentTime = 0;
+      seekSlider.value = 0;
+      updateTimeDisplay();
+      drawScene(0);
+
+      mediaRecorder.start(250); // Buffer chunks every 250ms
+      if (!isPlaying) {
+        togglePlay();
+      }
     }
 
     function stopExport() {
       if (mediaRecorder && mediaRecorder.state !== 'inactive') {
-        mediaRecorder.stop();
+        try {
+          mediaRecorder.stop();
+        } catch (e) {
+          console.warn('Stop recorder error:', e);
+        }
       }
       isRecording = false;
+      recordBtn.classList.remove('recording');
     }
 
     // Initial render
