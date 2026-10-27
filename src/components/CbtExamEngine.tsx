@@ -251,15 +251,13 @@ export const CbtExamEngine: React.FC<CbtExamEngineProps> = ({
   const currentPkgId = questions[0]?.packageId || 1;
   const initialSaved = readStoredExamSession(user?.id, currentPkgId);
 
-  const initialTimeLeft = (() => {
+  const [timeLeft, setTimeLeft] = useState(() => {
     if (initialSaved && typeof initialSaved.timeLeft === 'number' && initialSaved.lastSavedAt) {
       const elapsed = Math.floor((Date.now() - initialSaved.lastSavedAt) / 1000);
       return Math.max(1, initialSaved.timeLeft - Math.max(0, elapsed));
     }
     return TOTAL_TIME;
-  })();
-
-  const [timeLeft, setTimeLeft] = useState(initialTimeLeft);
+  });
   const [currentIndex, setCurrentIndex] = useState(() => {
     if (initialSaved && typeof initialSaved.currentIndex === 'number') {
       return Math.max(0, Math.min(Math.max(0, questions.length - 1), initialSaved.currentIndex));

@@ -240,7 +240,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                       <span>Fitur Real-Time Score + Laporan Kelemahan:</span>
                     </div>
                     <p className="text-[11px] text-stone-500 italic">
-                      "Begitu tes selesai, kamu langsung tahu skor total (skala 10-250) dan analisis bagian mana yang paling sering salah (misal: Kelemahan utama di Chōkai Audio)!"
+                      &ldquo;Begitu tes selesai, kamu langsung tahu skor total (skala 10-250) dan analisis bagian mana yang paling sering salah (misal: Kelemahan utama di Chōkai Audio)!&rdquo;
                     </p>
                   </div>
                 </div>
@@ -560,7 +560,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 ))}
               </div>
               <p className="text-xs sm:text-sm text-stone-700 leading-relaxed italic">
-                "Simulasi Chōkai di KondangSensei sangat membantu! Di ujian aslinya audio benar-benar tidak bisa dipause, persis seperti di simulasi ini. Skor saya 218 dan berhasil lolos sekali tes!"
+                &ldquo;Simulasi Chōkai di KondangSensei sangat membantu! Di ujian aslinya audio benar-benar tidak bisa dipause, persis seperti di simulasi ini. Skor saya 218 dan berhasil lolos sekali tes!&rdquo;
               </p>
               <div className="pt-2 border-t border-stone-100 flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-rose-100 text-rose-700 font-bold flex items-center justify-center text-sm">
@@ -580,7 +580,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 ))}
               </div>
               <p className="text-xs sm:text-sm text-stone-700 leading-relaxed italic">
-                "Awalnya saya coba Mini Tryout gratis dan skor saya cuma 170 karena kelemahan di Dokkai. Setelah ambil paket 1 minggu dan latihan semua pembahasannya, saya lolos dengan skor 205!"
+                &ldquo;Awalnya saya coba Mini Tryout gratis dan skor saya cuma 170 karena kelemahan di Dokkai. Setelah ambil paket 1 minggu dan latihan semua pembahasannya, saya lolos dengan skor 205!&rdquo;
               </p>
               <div className="pt-2 border-t border-stone-100 flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-amber-100 text-amber-700 font-bold flex items-center justify-center text-sm">
@@ -600,7 +600,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 ))}
               </div>
               <p className="text-xs sm:text-sm text-stone-700 leading-relaxed italic">
-                "Rapor evaluasinya sangat mirip dengan aslinya. Saya print rapornya untuk bukti kemajuan belajar ke LPK saya. Sangat recommended buat yang mau ujian CBT!"
+                &ldquo;Rapor evaluasinya sangat mirip dengan aslinya. Saya print rapornya untuk bukti kemajuan belajar ke LPK saya. Sangat recommended buat yang mau ujian CBT!&rdquo;
               </p>
               <div className="pt-2 border-t border-stone-100 flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-sky-100 text-sky-700 font-bold flex items-center justify-center text-sm">

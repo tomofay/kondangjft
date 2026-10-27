@@ -264,7 +264,7 @@ export const MiniTryoutExperience: React.FC<MiniTryoutExperienceProps> = ({
   };
 
   // Calculate Diagnostic Score & Weakness
-  const finishMiniExam = () => {
+  function finishMiniExam() {
     let s1Correct = 0;
     let s2Correct = 0;
     let s3Correct = 0;

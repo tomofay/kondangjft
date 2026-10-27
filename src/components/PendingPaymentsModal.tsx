@@ -35,7 +35,7 @@ export const PendingPaymentsModal: React.FC<PendingPaymentsModalProps> = ({
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [checkingInvoice, setCheckingInvoice] = useState<string | null>(null);
   const [statusMessage, setStatusMessage] = useState<{ [invoice: string]: string }>({});
-  const [nowTime, setNowTime] = useState<number>(Date.now());
+  const [nowTime, setNowTime] = useState<number>(() => Date.now());
   const [guideModalTx, setGuideModalTx] = useState<Transaction | null>(null);
   const [simulatingId, setSimulatingId] = useState<string | null>(null);
 
@@ -167,7 +167,7 @@ export const PendingPaymentsModal: React.FC<PendingPaymentsModalProps> = ({
 
     if (isNaN(expiryTimestamp)) {
       const created = new Date(tx.createdAt).getTime();
-      expiryTimestamp = !isNaN(created) ? created + 60 * 60 * 1000 : Date.now();
+      expiryTimestamp = !isNaN(created) ? created + 60 * 60 * 1000 : nowTime;
     }
 
     const diffMs = expiryTimestamp - nowTime;

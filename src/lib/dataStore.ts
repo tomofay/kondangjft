@@ -642,7 +642,7 @@ export function parsePdfTextToQuestions(
       const qNum = seq[i].num;
       const start = seq[i].index + seq[i].length;
       const end = i + 1 < seq.length ? seq[i + 1].index : text.length;
-      let block = text.substring(start, end).trim();
+      const block = text.substring(start, end).trim();
 
       let section: Question['section'] = 'S1';
       let sectionTitle = 'Seksi 1 - 文字と語彙 (Huruf & Kosakata)';

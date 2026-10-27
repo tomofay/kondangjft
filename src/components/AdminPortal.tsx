@@ -303,9 +303,9 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
   const activeDraftIdForImageRef = useRef<string | null>(null);
 
   // 1-second dynamic ticker to keep time and relative status ("Baru saja", "x dtk lalu") live
-  const [, setTick] = useState(0);
+  const [currentTime, setCurrentTime] = useState(() => Date.now());
   useEffect(() => {
-    const timer = setInterval(() => setTick((t) => t + 1), 1000);
+    const timer = setInterval(() => setCurrentTime(Date.now()), 1000);
     return () => clearInterval(timer);
   }, []);
 
@@ -1062,7 +1062,7 @@ B：いえ、だいじょうぶですよ。
 
           {/* Realtime Live Monitoring Banner */}
           {(() => {
-            const now = Date.now();
+            const now = currentTime;
             const parseLastActive = (val?: string | null) => {
               if (!val) return 0;
               const num = Number(val);
