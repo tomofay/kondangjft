@@ -59,8 +59,8 @@ export const Navbar: React.FC<NavbarProps> = ({
           </div>
           <div>
             <div className="flex items-center gap-1 sm:gap-1.5 font-black text-sm sm:text-lg tracking-tight text-stone-900 leading-none">
-              <span>Kondang<span className="text-transparent bg-clip-text bg-gradient-to-r from-rose-600 via-amber-600 to-sky-600">Sensei</span></span>
-              <span className="hidden xs:inline-block text-[9px] sm:text-[10px] font-black px-1.5 sm:px-2 py-0.5 rounded-full bg-gradient-to-r from-rose-50 via-amber-50 to-sky-50 text-stone-800 border border-stone-200 uppercase tracking-wider">
+              <span>Kondang<span className="text-red-600">Sensei</span></span>
+              <span className="hidden xs:inline-block text-[9px] sm:text-[10px] font-black px-1.5 sm:px-2 py-0.5 rounded-full bg-rose-50 text-red-700 border border-rose-200 uppercase tracking-wider">
                 KondangSensei CBT
               </span>
             </div>
@@ -77,11 +77,11 @@ export const Navbar: React.FC<NavbarProps> = ({
               onClick={() => onChangeView(activeView === 'admin' ? 'dashboard' : 'admin')}
               className={`px-3.5 py-1.5 rounded-xl transition flex items-center gap-1.5 text-xs font-semibold ${
                 activeView === 'admin'
-                  ? 'bg-gradient-to-r from-violet-600 to-indigo-600 text-white font-black shadow-xs'
+                  ? 'bg-gradient-to-r from-red-600 via-rose-600 to-red-700 text-white font-black shadow-xs'
                   : 'bg-stone-100 hover:bg-stone-200 text-stone-700 border border-stone-200/90'
               }`}
             >
-              <ShieldCheck className={`w-3.5 h-3.5 ${activeView === 'admin' ? 'text-amber-300' : 'text-indigo-600'}`} />
+              <ShieldCheck className={`w-3.5 h-3.5 ${activeView === 'admin' ? 'text-amber-300' : 'text-red-600'}`} />
               {activeView === 'admin' ? 'Kembali ke Beranda' : 'Portal Admin'}
             </button>
           </div>
@@ -110,7 +110,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           {user.role === 'user' && (
             <button
               onClick={onOpenBuyCredits}
-              className="px-2.5 sm:px-3 py-1.5 bg-gradient-to-r from-amber-500 via-orange-500 to-rose-600 hover:from-amber-600 hover:to-rose-700 text-white font-bold rounded-xl shadow-xs shadow-orange-500/20 flex items-center gap-1 sm:gap-1.5 transition text-[11px] sm:text-xs cursor-pointer"
+              className="px-2.5 sm:px-3 py-1.5 bg-gradient-to-r from-red-600 via-rose-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-bold rounded-xl shadow-xs shadow-red-500/20 flex items-center gap-1 sm:gap-1.5 transition text-[11px] sm:text-xs cursor-pointer"
             >
               <Zap className="w-3.5 h-3.5 text-amber-200 fill-amber-200 shrink-0" />
               <span className="hidden sm:inline">
@@ -196,7 +196,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 }}
                 className="p-2.5 rounded-xl transition flex items-center justify-center gap-2 border bg-stone-50 border-stone-200 text-stone-700 hover:bg-stone-100 cursor-pointer"
               >
-                <GraduationCap className="w-4 h-4 text-indigo-600" />
+                <GraduationCap className="w-4 h-4 text-red-600" />
                 Edit Profil & Sertifikat
               </button>
             )}
@@ -226,7 +226,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 }}
                 className={`p-2.5 rounded-xl transition flex items-center justify-center gap-2 cursor-pointer ${
                   activeView === 'admin'
-                    ? 'bg-gradient-to-r from-violet-600 to-indigo-600 text-white font-bold'
+                    ? 'bg-gradient-to-r from-red-600 via-rose-600 to-red-700 text-white font-bold'
                     : 'text-stone-600 hover:text-stone-900 bg-stone-50 hover:bg-stone-100'
                 }`}
               >

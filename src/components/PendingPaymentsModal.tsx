@@ -313,12 +313,12 @@ export const PendingPaymentsModal: React.FC<PendingPaymentsModalProps> = ({
                         </div>
                       ) : paymentCode ? (
                         <div className="flex items-center gap-2.5 flex-wrap">
-                          <span className="text-xl sm:text-3xl font-black text-indigo-950 font-mono tracking-wider break-all">
+                          <span className="text-xl sm:text-3xl font-black text-stone-900 font-mono tracking-wider break-all">
                             {paymentCode}
                           </span>
                           <button
                             onClick={() => handleCopy(paymentCode, tx.id)}
-                            className="p-1.5 text-stone-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg border border-stone-200 transition cursor-pointer shadow-2xs"
+                            className="p-1.5 text-stone-500 hover:text-red-600 hover:bg-rose-50 rounded-lg border border-stone-200 transition cursor-pointer shadow-2xs"
                             title="Salin Nomor"
                           >
                             <Copy className="w-4 h-4" />

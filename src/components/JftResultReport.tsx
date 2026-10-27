@@ -331,7 +331,7 @@ export const JftResultReport: React.FC<JftResultReportProps> = ({
         <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
           <button
             onClick={onOpenReview}
-            className="flex-1 sm:flex-initial py-2.5 px-3.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 transition shadow-xs cursor-pointer"
+            className="flex-1 sm:flex-initial py-2.5 px-3.5 bg-gradient-to-r from-red-600 via-rose-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 transition shadow-xs cursor-pointer"
           >
             <BookOpen className="w-4 h-4" />
             <span>Pembahasan</span>
@@ -421,7 +421,7 @@ export const JftResultReport: React.FC<JftResultReportProps> = ({
             >
               {/* Header */}
               <div className="flex items-center justify-between border-b border-stone-200 pb-4">
-                <div className="px-3.5 py-1.5 rounded-xl bg-indigo-50 border border-indigo-200 text-indigo-700 text-xs font-black uppercase tracking-wider">
+                <div className="px-3.5 py-1.5 rounded-xl bg-rose-50 border border-rose-200 text-red-700 text-xs font-black uppercase tracking-wider">
                   SIMULATION REPORT • LAPORAN EVALUASI
                 </div>
                 <KondangInstitutionReportLogo className="h-10" />

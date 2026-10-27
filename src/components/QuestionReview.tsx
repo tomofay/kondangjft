@@ -106,7 +106,7 @@ export const QuestionReview: React.FC<QuestionReviewProps> = ({
       <div className="bg-white p-4 sm:p-5 rounded-3xl shadow-xs border border-stone-200 space-y-3">
         <div className="flex flex-wrap items-center justify-between gap-3 text-xs">
           <div className="flex items-center gap-1.5 text-stone-600 font-bold">
-            <Filter className="w-4 h-4 text-indigo-600" /> Filter Status:
+            <Filter className="w-4 h-4 text-red-600" /> Filter Status:
           </div>
 
           <div className="flex flex-wrap gap-2">
@@ -114,7 +114,7 @@ export const QuestionReview: React.FC<QuestionReviewProps> = ({
               onClick={() => setFilter('ALL')}
               className={`py-1.5 px-3 rounded-xl font-bold transition cursor-pointer ${
                 filter === 'ALL'
-                  ? 'bg-indigo-600 text-white shadow-xs'
+                  ? 'bg-red-600 text-white shadow-xs'
                   : 'bg-stone-100 text-stone-700 hover:bg-stone-200'
               }`}
             >
@@ -149,7 +149,7 @@ export const QuestionReview: React.FC<QuestionReviewProps> = ({
         <div className="flex gap-2 pt-2 overflow-x-auto text-xs border-t border-stone-100">
           {(['ALL', 'S1', 'S2', 'S3', 'S4'] as const).map((sec) => {
             const activeStyles: Record<string, string> = {
-              ALL: 'bg-indigo-600 text-white shadow-xs',
+              ALL: 'bg-red-600 text-white shadow-xs',
               S1: 'bg-rose-500 text-white shadow-xs',
               S2: 'bg-amber-500 text-white shadow-xs',
               S3: 'bg-sky-500 text-white shadow-xs',

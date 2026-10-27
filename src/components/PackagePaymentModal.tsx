@@ -510,9 +510,9 @@ export const PackagePaymentModal: React.FC<PackagePaymentModalProps> = ({
                     let dailyPriceText = '';
                     let badgeStyle = 'bg-stone-100 text-stone-700 border-stone-200';
                     let pkgTheme = {
-                      selectedBorder: 'border-indigo-600 bg-gradient-to-r from-indigo-50/90 via-white to-sky-50/40 ring-indigo-500/20',
-                      radio: 'border-indigo-600 bg-indigo-600',
-                      priceText: 'text-indigo-600'
+                      selectedBorder: 'border-red-600 bg-gradient-to-r from-rose-50/90 via-white to-amber-50/30 ring-red-500/20',
+                      radio: 'border-red-600 bg-red-600',
+                      priceText: 'text-red-600'
                     };
 
                     if (pkg.id === 'pkg_7d') {
@@ -770,7 +770,7 @@ export const PackagePaymentModal: React.FC<PackagePaymentModalProps> = ({
                     <button
                       type="button"
                       onClick={onOpenTerms}
-                      className="text-indigo-600 hover:text-indigo-800 underline font-bold cursor-pointer"
+                      className="text-red-600 hover:text-red-800 underline font-bold cursor-pointer"
                     >
                       Baca Ketentuan Layanan
                     </button>

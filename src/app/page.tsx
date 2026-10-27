@@ -1056,7 +1056,7 @@ export default function HomePage() {
 
   // MAIN APPLICATION SHELL
   return (
-    <div className="min-h-screen bg-[#f8fafc] text-stone-900 flex flex-col font-sans">
+    <div className="min-h-screen bg-[#f8fafc] text-stone-900 flex flex-col font-sans selection:bg-rose-100 selection:text-rose-900">
       {/* Top Navbar */}
       <Navbar
         user={currentUser}
@@ -1070,7 +1070,10 @@ export default function HomePage() {
       />
 
       {/* Main Container */}
-      <main className="flex-1 p-3 sm:p-5 md:p-8">
+      <main className="flex-1 p-3 sm:p-5 md:p-8 relative">
+        {view === 'dashboard' && (
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-96 bg-gradient-to-br from-rose-200/25 via-amber-100/15 to-transparent blur-3xl pointer-events-none -z-10" />
+        )}
         {/* VIEW: CBT EXAM SIMULATOR */}
         {view === 'exam' && (
           <CbtExamEngine
@@ -1159,13 +1162,13 @@ export default function HomePage() {
                     JFT-Basic A2 Simulator
                   </span>
                   <span className="text-xs text-stone-400">•</span>
-                  <span className="text-[11px] sm:text-xs font-japanese font-bold text-transparent bg-clip-text bg-gradient-to-r from-rose-600 via-amber-600 to-sky-600">
+                  <span className="text-[11px] sm:text-xs font-japanese font-bold text-transparent bg-clip-text bg-gradient-to-r from-red-600 via-rose-600 to-amber-600">
                     KondangSensei Edition
                   </span>
                 </div>
                 <h1 className="text-xl sm:text-3xl font-black text-stone-900 tracking-tight flex items-baseline gap-1.5 sm:gap-2">
                   <span>Halo, {currentUser.name}</span>
-                  <span className="text-lg sm:text-2xl font-japanese text-rose-600 font-bold">さん</span>
+                  <span className="text-lg sm:text-2xl font-japanese text-red-600 font-bold">さん</span>
                 </h1>
                 <p className="text-xs sm:text-sm text-stone-500 font-medium">
                   Siap menaklukkan ujian JFT-Basic A2 hari ini? Ayo mulai latihan! • 今日も合格を目指して頑張りましょう！
@@ -1175,7 +1178,7 @@ export default function HomePage() {
               <div className="flex flex-wrap items-center gap-2.5 w-full sm:w-auto">
                 <button
                   onClick={() => handleStartExam()}
-                  className="w-full sm:w-auto justify-center py-3 px-5 sm:px-6 bg-gradient-to-r from-amber-500 via-rose-500 to-indigo-600 hover:from-amber-600 hover:to-indigo-700 text-white font-black text-xs sm:text-sm rounded-xl sm:rounded-2xl shadow-md shadow-rose-500/20 transition flex items-center gap-2 transform hover:-translate-y-0.5 cursor-pointer"
+                  className="w-full sm:w-auto justify-center py-3 px-5 sm:px-6 bg-gradient-to-r from-red-600 via-rose-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-black text-xs sm:text-sm rounded-xl sm:rounded-2xl shadow-md shadow-red-500/20 transition flex items-center gap-2 transform hover:-translate-y-0.5 cursor-pointer"
                 >
                   <Play className="w-4 h-4 fill-white" />
                   <span>Mulai Simulasi Sekarang</span>
@@ -1184,10 +1187,10 @@ export default function HomePage() {
             </div>
 
             {/* Quick Diagnostic Mini Tryout Banner */}
-            <div className="p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-gradient-to-r from-red-600 via-rose-600 to-indigo-700 text-white shadow-lg shadow-red-500/15 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-gradient-to-r from-red-600 via-rose-600 to-red-700 text-white shadow-lg shadow-red-500/20 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <div className="space-y-1">
                 <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-white/20 text-white text-[10px] font-black uppercase tracking-wider backdrop-blur-xs">
-                  <Sparkles className="w-3 h-3 text-amber-300" />
+                  <Sparkles className="w-3.5 h-3.5 text-amber-300" />
                   <span>Diagnostik Cepat Real-Time</span>
                 </div>
                 <h3 className="text-base sm:text-lg font-black tracking-tight">
@@ -1208,18 +1211,18 @@ export default function HomePage() {
             </div>
 
             {/* Row 1: Masa Berlaku Langganan */}
-            <div className="bg-gradient-to-br from-amber-50/70 via-white to-orange-50/30 border border-amber-200/90 rounded-2xl sm:rounded-3xl p-5 sm:p-6 shadow-xs flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+            <div className="bg-white border border-stone-200/90 rounded-2xl sm:rounded-3xl p-5 sm:p-6 shadow-xs flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
-                  <span className="text-[11px] font-black uppercase text-amber-800 tracking-wider">
+                  <span className="text-[11px] font-black uppercase text-stone-500 tracking-wider">
                     Masa Berlaku Langganan
                   </span>
-                  <span className="px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-300 text-[10px] font-bold">
+                  <span className="px-2.5 py-0.5 rounded-full bg-rose-50 text-red-700 border border-rose-200 text-[10px] font-bold">
                     {currentUser.role === 'admin' ? 'Unlimited (Admin)' : 'Unlimited Tryout'}
                   </span>
                 </div>
                 <div className="flex items-baseline gap-2 flex-wrap">
-                  <span className="text-3xl sm:text-4xl font-black text-amber-600 tracking-tight">
+                  <span className="text-3xl sm:text-4xl font-black text-red-600 tracking-tight">
                     {getRemainingDays(currentUser)}
                   </span>
                   <span className="text-lg sm:text-xl font-black text-stone-800">
@@ -1230,7 +1233,7 @@ export default function HomePage() {
                   </span>
                 </div>
                 <div className="text-xs font-semibold text-stone-500 flex items-center gap-1.5">
-                  <Calendar className="w-3.5 h-3.5 text-amber-600" />
+                  <Calendar className="w-3.5 h-3.5 text-red-600" />
                   <span>
                     Berlaku s.d.{' '}
                     {currentUser.subscriptionExpiresAt
@@ -1247,7 +1250,7 @@ export default function HomePage() {
               <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-auto">
                 <button
                   onClick={() => setPaymentModalOpen(true)}
-                  className="w-full sm:w-auto justify-center py-2.5 px-5 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white font-extrabold text-xs rounded-xl shadow-xs transition flex items-center gap-1.5 cursor-pointer"
+                  className="w-full sm:w-auto justify-center py-2.5 px-5 bg-gradient-to-r from-red-600 via-rose-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-extrabold text-xs rounded-xl shadow-xs shadow-red-500/20 transition flex items-center gap-1.5 cursor-pointer"
                 >
                   <Zap className="w-3.5 h-3.5 text-amber-200 fill-amber-200" />
                   Perpanjang Paket
@@ -1255,15 +1258,15 @@ export default function HomePage() {
               </div>
             </div>
 
-            {/* Row 2: Quick Stats Row (4 Distinct Section Colors) */}
+            {/* Row 2: Quick Stats Row */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-              {/* Stat 1: Sky Blue */}
-              <div className="bg-gradient-to-br from-sky-50/40 to-white border border-sky-100 rounded-2xl p-4 sm:p-5 shadow-xs space-y-1">
-                <span className="text-[11px] font-bold text-sky-700 uppercase tracking-wide flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-sky-500"></span>
+              {/* Stat 1 */}
+              <div className="bg-white border border-stone-200/90 rounded-2xl p-4 sm:p-5 shadow-xs space-y-1">
+                <span className="text-[11px] font-bold text-stone-500 uppercase tracking-wide flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-red-500"></span>
                   Rata-rata Skor
                 </span>
-                <div className="text-2xl sm:text-3xl font-black text-sky-600">
+                <div className="text-2xl sm:text-3xl font-black text-red-600">
                   {dashboardStats.avgPercent}%
                 </div>
                 <div className="text-[11px] text-stone-400 font-medium">
@@ -1271,13 +1274,13 @@ export default function HomePage() {
                 </div>
               </div>
 
-              {/* Stat 2: Royal Violet */}
-              <div className="bg-gradient-to-br from-violet-50/40 to-white border border-violet-100 rounded-2xl p-4 sm:p-5 shadow-xs space-y-1">
-                <span className="text-[11px] font-bold text-violet-700 uppercase tracking-wide flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-violet-500"></span>
+              {/* Stat 2 */}
+              <div className="bg-white border border-stone-200/90 rounded-2xl p-4 sm:p-5 shadow-xs space-y-1">
+                <span className="text-[11px] font-bold text-stone-500 uppercase tracking-wide flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-amber-500"></span>
                   Simulasi Dikerjakan
                 </span>
-                <div className="text-2xl sm:text-3xl font-black text-violet-600">
+                <div className="text-2xl sm:text-3xl font-black text-stone-900">
                   {dashboardStats.testsCount}
                 </div>
                 <div className="text-[11px] text-stone-400 font-medium">
@@ -1285,9 +1288,9 @@ export default function HomePage() {
                 </div>
               </div>
 
-              {/* Stat 3: Mint Emerald */}
-              <div className="bg-gradient-to-br from-emerald-50/40 to-white border border-emerald-100 rounded-2xl p-4 sm:p-5 shadow-xs space-y-1">
-                <span className="text-[11px] font-bold text-emerald-700 uppercase tracking-wide flex items-center gap-1.5">
+              {/* Stat 3 */}
+              <div className="bg-white border border-stone-200/90 rounded-2xl p-4 sm:p-5 shadow-xs space-y-1">
+                <span className="text-[11px] font-bold text-stone-500 uppercase tracking-wide flex items-center gap-1.5">
                   <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
                   Tingkat Akurasi
                 </span>
@@ -1299,13 +1302,13 @@ export default function HomePage() {
                 </div>
               </div>
 
-              {/* Stat 4: Golden Amber */}
-              <div className="bg-gradient-to-br from-amber-50/40 to-white border border-amber-100 rounded-2xl p-4 sm:p-5 shadow-xs space-y-1">
-                <span className="text-[11px] font-bold text-amber-700 uppercase tracking-wide flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-amber-500"></span>
+              {/* Stat 4 */}
+              <div className="bg-white border border-stone-200/90 rounded-2xl p-4 sm:p-5 shadow-xs space-y-1">
+                <span className="text-[11px] font-bold text-stone-500 uppercase tracking-wide flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-red-600"></span>
                   Nilai Tertinggi
                 </span>
-                <div className="text-2xl sm:text-3xl font-black text-amber-600">
+                <div className="text-2xl sm:text-3xl font-black text-red-700">
                   {dashboardStats.maxScore > 0 ? `${dashboardStats.maxScore}` : '-'}
                   <span className="text-sm font-bold text-stone-400 ml-1">/ 250</span>
                 </div>
@@ -1321,7 +1324,7 @@ export default function HomePage() {
               <div className="lg:col-span-2 bg-white border border-stone-200/90 rounded-2xl sm:rounded-3xl p-5 sm:p-6 shadow-xs space-y-5">
                 <div className="flex items-center justify-between border-b border-stone-100 pb-3">
                   <div className="flex items-center gap-2">
-                    <Target className="w-5 h-5 text-indigo-600" />
+                    <Target className="w-5 h-5 text-red-600" />
                     <h2 className="text-base font-black text-stone-900">
                       Area yang Perlu Ditingkatkan (Analisis 4 Seksi JFT)
                     </h2>
@@ -1410,7 +1413,7 @@ export default function HomePage() {
                 </div>
 
                 {/* Recommendation Box */}
-                <div className="p-3.5 rounded-2xl bg-gradient-to-r from-amber-50/60 via-stone-50 to-sky-50/60 border border-stone-200 flex flex-col sm:flex-row items-start sm:items-center justify-between text-xs text-stone-700 gap-3">
+                <div className="p-3.5 rounded-2xl bg-gradient-to-r from-rose-50/50 via-stone-50 to-amber-50/30 border border-stone-200/80 flex flex-col sm:flex-row items-start sm:items-center justify-between text-xs text-stone-700 gap-3">
                   <span className="flex items-center gap-1.5 flex-wrap">
                     {examResults.length === 0 ? (
                       <>
@@ -1441,7 +1444,7 @@ export default function HomePage() {
                   </span>
                   <button
                     onClick={() => handleStartExam()}
-                    className="text-indigo-600 hover:text-indigo-800 font-black whitespace-nowrap flex items-center gap-1 cursor-pointer shrink-0 self-end sm:self-auto"
+                    className="text-red-600 hover:text-red-800 font-black whitespace-nowrap flex items-center gap-1 cursor-pointer shrink-0 self-end sm:self-auto"
                   >
                     Drill Soal <ArrowRight className="w-3.5 h-3.5" />
                   </button>
@@ -1451,8 +1454,8 @@ export default function HomePage() {
               {/* Right 1 Col: Streak & Passing Grade Standards */}
               <div className="bg-white border border-stone-200/90 rounded-2xl sm:rounded-3xl p-5 sm:p-6 shadow-xs flex flex-col justify-between space-y-5">
                 <div className="space-y-3">
-                  <div className="flex items-center gap-2 text-amber-600 font-black text-xs uppercase tracking-wider">
-                    <Flame className="w-4 h-4 fill-amber-500 text-amber-500" />
+                  <div className="flex items-center gap-2 text-red-600 font-black text-xs uppercase tracking-wider">
+                    <Flame className="w-4 h-4 fill-red-500 text-red-500" />
                     <span>Aktivitas & Passing Grade</span>
                   </div>
 
@@ -1503,7 +1506,7 @@ export default function HomePage() {
               <div className="flex flex-wrap items-center justify-between border-b border-stone-100 pb-4 gap-2">
                 <div>
                   <h2 className="text-lg font-black text-stone-900 flex items-center gap-2">
-                    <Layers className="w-5 h-5 text-indigo-600" />
+                    <Layers className="w-5 h-5 text-red-600" />
                     Pilihan Paket Bank Soal Simulasi JFT-Basic ({examSets.length} Paket Tersedia)
                   </h2>
                   <p className="text-xs text-stone-500">
@@ -1513,9 +1516,9 @@ export default function HomePage() {
 
                 <button
                   onClick={() => setPaymentModalOpen(true)}
-                  className="py-2 px-3.5 bg-amber-50 hover:bg-amber-100 text-amber-800 font-bold text-xs rounded-xl border border-amber-200 transition flex items-center gap-1.5 cursor-pointer"
+                  className="py-2 px-3.5 bg-rose-50 hover:bg-rose-100 text-red-700 font-bold text-xs rounded-xl border border-rose-200 transition flex items-center gap-1.5 cursor-pointer"
                 >
-                  <Zap className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
+                  <Zap className="w-3.5 h-3.5 text-red-500 fill-red-500" />
                   Beli Paket Tambahan
                 </button>
               </div>
@@ -1525,8 +1528,22 @@ export default function HomePage() {
                   const setQuestionCount = questions.filter((q) => (q.packageId || 1) === set.id).length;
                   const isSelected = selectedPackageId === set.id;
 
-                  // Distinct colorful theme per package
+                  // Distinct colorful theme per package matching landing page aesthetic
                   const themes = [
+                    {
+                      bg: 'from-rose-50/80 to-white',
+                      border: 'border-rose-300',
+                      badgeBg: 'bg-rose-100 text-red-800 border-rose-300',
+                      btn: 'bg-gradient-to-r from-red-600 via-rose-600 to-red-700 hover:from-red-700 hover:to-red-800 shadow-red-500/20',
+                      ring: 'ring-rose-500/30'
+                    },
+                    {
+                      bg: 'from-amber-50/80 to-white',
+                      border: 'border-amber-300',
+                      badgeBg: 'bg-amber-100 text-amber-800 border-amber-300',
+                      btn: 'bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 shadow-amber-500/20',
+                      ring: 'ring-amber-500/30'
+                    },
                     {
                       bg: 'from-emerald-50/80 to-white',
                       border: 'border-emerald-300',
@@ -1542,25 +1559,11 @@ export default function HomePage() {
                       ring: 'ring-sky-500/30'
                     },
                     {
-                      bg: 'from-amber-50/80 to-white',
-                      border: 'border-amber-300',
-                      badgeBg: 'bg-amber-100 text-amber-800 border-amber-300',
-                      btn: 'bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 shadow-amber-500/20',
-                      ring: 'ring-amber-500/30'
-                    },
-                    {
-                      bg: 'from-violet-50/80 to-white',
-                      border: 'border-violet-300',
-                      badgeBg: 'bg-violet-100 text-violet-800 border-violet-300',
-                      btn: 'bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 shadow-violet-500/20',
-                      ring: 'ring-violet-500/30'
-                    },
-                    {
-                      bg: 'from-rose-50/80 to-white',
-                      border: 'border-rose-300',
-                      badgeBg: 'bg-rose-100 text-rose-800 border-rose-300',
-                      btn: 'bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-700 hover:to-red-700 shadow-rose-500/20',
-                      ring: 'ring-rose-500/30'
+                      bg: 'from-stone-50/80 to-white',
+                      border: 'border-stone-300',
+                      badgeBg: 'bg-stone-100 text-stone-800 border-stone-300',
+                      btn: 'bg-gradient-to-r from-stone-800 to-stone-900 hover:from-stone-900 hover:to-black shadow-stone-500/20',
+                      ring: 'ring-stone-500/30'
                     }
                   ];
                   const theme = themes[setIdx % themes.length];
@@ -1609,7 +1612,7 @@ export default function HomePage() {
             <div className="bg-white border border-stone-200/90 rounded-2xl sm:rounded-3xl p-5 sm:p-7 shadow-xs space-y-4">
               <div className="flex items-center justify-between border-b border-stone-100 pb-4">
                 <div className="flex items-center gap-2">
-                  <History className="w-5 h-5 text-indigo-600" />
+                  <History className="w-5 h-5 text-red-600" />
                   <h2 className="text-lg font-black text-stone-900">
                     Riwayat Tes Terakhir
                   </h2>
@@ -1643,7 +1646,7 @@ export default function HomePage() {
                           const totalScore = res.totalScore;
                           const percentage = Math.round((totalScore / 250) * 100);
                           return (
-                            <tr key={res.id} className="hover:bg-indigo-50/30 transition">
+                            <tr key={res.id} className="hover:bg-rose-50/20 transition">
                               <td className="py-3 px-3 font-mono font-bold text-stone-400">{idx + 1}</td>
                               <td className="py-3 px-3 font-bold text-stone-900">
                                 Paket #{res.packageId || 1}
@@ -1684,7 +1687,7 @@ export default function HomePage() {
                                       setCurrentResult(res);
                                       setView('review');
                                     }}
-                                    className="py-1.5 px-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-lg shadow-2xs transition flex items-center gap-1 cursor-pointer"
+                                    className="py-1.5 px-2.5 bg-gradient-to-r from-red-600 via-rose-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-bold rounded-lg shadow-2xs transition flex items-center gap-1 cursor-pointer"
                                   >
                                     <BookOpen className="w-3 h-3" />
                                     <span>Pembahasan</span>
@@ -1774,8 +1777,8 @@ export default function HomePage() {
             {/* Header Logos & CBT Tag */}
             <div className="flex items-center justify-between border-b border-stone-100 pb-3">
               <div className="flex items-center gap-2">
-                <span className="w-2.5 h-2.5 rounded-full bg-indigo-600 animate-pulse"></span>
-                <span className="text-[10px] sm:text-xs font-black uppercase text-indigo-700 tracking-wider">
+                <span className="w-2.5 h-2.5 rounded-full bg-red-600 animate-pulse"></span>
+                <span className="text-[10px] sm:text-xs font-black uppercase text-red-700 tracking-wider">
                   SIMULASI CBT ENGINE
                 </span>
               </div>
@@ -1793,7 +1796,7 @@ export default function HomePage() {
               <h2 className="text-xl font-black text-stone-900 font-japanese">
                 国際交流基金日本語基礎テスト (JFT-Basic)
               </h2>
-              <div className="text-xs font-bold text-indigo-900 font-japanese">
+              <div className="text-xs font-bold text-red-700 font-japanese">
                 受験前確認 • Konfirmasi Memulai Ujian CBT
               </div>
               <p className="text-[11px] text-stone-500">
@@ -1817,7 +1820,7 @@ export default function HomePage() {
                   <span className="text-[10px] font-bold text-stone-400 uppercase">
                     受験番号 (Reg No)
                   </span>
-                  <span className="font-mono font-bold text-indigo-900 text-xs bg-indigo-50 px-2 py-0.5 rounded-md border border-indigo-200">
+                  <span className="font-mono font-bold text-red-700 text-xs bg-rose-50 px-2 py-0.5 rounded-md border border-rose-200">
                     {currentUser.registrationNumber || 'JFT-2026-88912'}
                   </span>
                 </div>
@@ -1891,7 +1894,7 @@ export default function HomePage() {
                 type="checkbox"
                 checked={preExamAgreement}
                 onChange={(e) => setPreExamAgreement(e.target.checked)}
-                className="mt-0.5 w-4 h-4 text-indigo-600 rounded border-stone-300 focus:ring-indigo-500"
+                className="mt-0.5 w-4 h-4 text-red-600 rounded border-stone-300 focus:ring-red-500"
               />
               <span className="text-[11px] leading-relaxed">
                 Saya menyatakan data diri saya telah benar dan saya telah membaca serta memahami seluruh tata tertib ujian di atas. Saya siap memulai ujian CBT JFT-Basic.
@@ -1911,7 +1914,7 @@ export default function HomePage() {
                 type="button"
                 disabled={!preExamAgreement}
                 onClick={handleConfirmStartExam}
-                className="flex-1 py-3 px-4 bg-gradient-to-r from-indigo-600 via-rose-600 to-amber-500 hover:from-indigo-700 hover:to-amber-600 disabled:opacity-50 disabled:cursor-not-allowed text-white font-black text-xs rounded-xl shadow-md transition flex items-center justify-center gap-2 cursor-pointer order-1 sm:order-2"
+                className="flex-1 py-3 px-4 bg-gradient-to-r from-red-600 via-rose-600 to-red-700 hover:from-red-700 hover:to-red-800 disabled:opacity-50 disabled:cursor-not-allowed text-white font-black text-xs rounded-xl shadow-md shadow-red-500/20 transition flex items-center justify-center gap-2 cursor-pointer order-1 sm:order-2"
               >
                 <Play className="w-3.5 h-3.5 fill-white" />
                 <span>Mulai Ujian Sekarang (試験を開始する)</span>
