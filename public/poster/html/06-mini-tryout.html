@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-  <title>RABU - CHOUKAI • LISTENING & AUDIO CBT</title>
+  <title>JFT-BASIC A2 • CBT SIMULATOR</title>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800;900&family=Noto+Sans+JP:wght@500;700;900&display=swap');
     
@@ -15,9 +15,9 @@
     body {
       width: 1080px;
       height: 1080px;
-      background: linear-gradient(135deg, #f0f9ff 0%, #ffffff 50%, #fff1f2 100%);
+      background: linear-gradient(135deg, #1c1917 0%, #0c0a09 100%);
       font-family: 'Plus Jakarta Sans', sans-serif;
-      color: #1c1917;
+      color: #ffffff;
       padding: 56px 64px;
       display: flex;
       flex-direction: column;
@@ -34,7 +34,7 @@
       width: 450px;
       height: 450px;
       border-radius: 50%;
-      background: radial-gradient(circle, rgba(220, 38, 38, 0.12) 0%, transparent 70%);
+      background: radial-gradient(circle, rgba(220, 38, 38, 0.25) 0%, transparent 70%);
       pointer-events: none;
     }
 
@@ -45,7 +45,7 @@
       width: 400px;
       height: 400px;
       border-radius: 50%;
-      background: radial-gradient(circle, rgba(245, 158, 11, 0.08) 0%, transparent 70%);
+      background: radial-gradient(circle, rgba(245, 158, 11, 0.18) 0%, transparent 70%);
       pointer-events: none;
     }
 
@@ -82,7 +82,7 @@
       font-size: 28px;
       font-weight: 900;
       letter-spacing: -0.5px;
-      color: #1c1917;
+      color: #ffffff;
       line-height: 1;
     }
 
@@ -93,35 +93,35 @@
     .brand-subtitle {
       font-size: 13px;
       font-weight: 800;
-      color: #57534e;
+      color: #a8a29e;
       letter-spacing: 1.5px;
       text-transform: uppercase;
       margin-top: 5px;
     }
 
-    .day-pill {
+    .category-pill {
       display: flex;
       align-items: center;
-      gap: 12px;
-      background: #e0f2fe;
-      color: #0369a1;
+      gap: 10px;
+      background: #dc2626;
+      color: #ffffff;
       padding: 10px 22px;
       border-radius: 9999px;
-      border: 2px solid #fecaca;
+      border: 2px solid transparent;
       box-shadow: 0 2px 8px rgba(0,0,0,0.04);
     }
 
-    .day-pill .dot {
+    .category-pill .dot {
       width: 10px;
       height: 10px;
       border-radius: 50%;
       background: #dc2626;
     }
 
-    .day-pill .text {
-      font-size: 15px;
+    .category-pill .text {
+      font-size: 14px;
       font-weight: 900;
-      letter-spacing: 1px;
+      letter-spacing: 0.8px;
       text-transform: uppercase;
     }
 
@@ -129,11 +129,11 @@
     .content {
       position: relative;
       z-index: 10;
-      margin: 12px 0;
+      margin: 10px 0;
     }
 
     .headline-wrap {
-      margin-bottom: 24px;
+      margin-bottom: 22px;
     }
 
     .tag-badge {
@@ -156,27 +156,27 @@
       font-weight: 900;
       line-height: 1.25;
       letter-spacing: -0.8px;
-      color: #1c1917;
+      color: #ffffff;
       margin-bottom: 8px;
     }
 
     .main-subhead {
       font-size: 18px;
       font-weight: 600;
-      color: #57534e;
+      color: #a8a29e;
     }
 
     /* Question Container Card */
     .question-card {
-      background: #ffffff;
-      border: 2px solid #e7e5e4;
+      background: rgba(255, 255, 255, 0.05);
+      border: 2px solid rgba(255, 255, 255, 0.12);
       border-radius: 28px;
       padding: 30px;
       box-shadow: 0 12px 32px rgba(0,0,0,0.06);
       backdrop-filter: blur(8px);
     }
 
-    /* Options Grid (If applicable) */
+    /* Options Grid: Clean, Neutral, Unhighlighted */
     .options-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -188,17 +188,16 @@
       display: flex;
       align-items: center;
       gap: 16px;
-      background: #ffffff;
-      border: 3px solid #e7e5e4;
+      background: rgba(255,255,255,0.08);
+      border: 3px solid rgba(255,255,255,0.18);
       border-radius: 20px;
-      padding: 14px 18px;
-      transition: all 0.2s ease;
+      padding: 16px 20px;
       box-shadow: 0 2px 6px rgba(0,0,0,0.03);
     }
 
     .option-letter {
-      width: 44px;
-      height: 44px;
+      width: 46px;
+      height: 46px;
       border-radius: 12px;
       background: #f5f5f4;
       color: #1c1917;
@@ -219,28 +218,26 @@
     .option-kanji {
       font-family: 'Noto Sans JP', sans-serif;
       font-weight: 900;
-      color: #1c1917;
-      line-height: 1.15;
+      color: #ffffff;
+      line-height: 1.2;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
     }
 
     .option-furigana {
-      font-size: 13px;
-      color: #57534e;
+      font-size: 14px;
+      color: #a8a29e;
       font-weight: 700;
       margin-top: 2px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
+      font-family: 'Noto Sans JP', sans-serif;
     }
 
     /* Interactive CTA Banner */
     .interaction-bar {
-      margin-top: 20px;
-      background: #fef2f2;
-      border: 2px solid #fecaca;
+      margin-top: 22px;
+      background: rgba(255,255,255,0.08);
+      border: 2px solid rgba(255,255,255,0.15);
       border-radius: 18px;
       padding: 14px 22px;
       display: flex;
@@ -254,15 +251,18 @@
       gap: 10px;
       font-size: 17px;
       font-weight: 800;
-      color: #b91c1c;
+      color: #fca5a5;
     }
 
     .interaction-badge {
+      display: flex;
+      align-items: center;
+      gap: 8px;
       background: #dc2626;
       color: white;
       font-weight: 900;
-      font-size: 14px;
-      padding: 6px 16px;
+      font-size: 13px;
+      padding: 8px 18px;
       border-radius: 10px;
       letter-spacing: 0.5px;
     }
@@ -275,7 +275,7 @@
       position: relative;
       z-index: 10;
       padding-top: 18px;
-      border-top: 2px solid #e7e5e4;
+      border-top: 2px solid rgba(255,255,255,0.12);
     }
 
     .footer-left {
@@ -294,19 +294,19 @@
     .footer-desc {
       font-size: 14px;
       font-weight: 700;
-      color: #57534e;
+      color: #a8a29e;
     }
 
     .footer-right {
       display: flex;
       align-items: center;
-      gap: 10px;
-      background: #f5f5f4;
+      gap: 8px;
+      background: rgba(255,255,255,0.1);
       padding: 8px 18px;
       border-radius: 12px;
       font-size: 14px;
       font-weight: 800;
-      color: #1c1917;
+      color: #ffffff;
     }
   </style>
 </head>
@@ -314,7 +314,7 @@
   <div class="glow-1"></div>
   <div class="glow-2"></div>
 
-  <!-- Header -->
+  <!-- Header (NO DAYS, PURE JFT CATEGORY) -->
   <div class="header">
     <div class="brand">
       <div class="logo-badge">
@@ -326,91 +326,61 @@
       </div>
     </div>
 
-    <div class="day-pill">
+    <div class="category-pill">
       <div class="dot"></div>
-      <div class="text">RABU • 聴解テスト</div>
+      <div class="text">JFT-BASIC A2 • CBT SIMULATOR</div>
     </div>
   </div>
 
   <!-- Content -->
   <div class="content">
     <div class="headline-wrap">
-      <div class="tag-badge">⚡ JEBAKAN WAKTU PROMETRIC</div>
-      <h1 class="main-headline">Kenapa Banyak Peserta GAGAL di Sesi Choukai JFT A2?</h1>
-      <p class="main-subhead">Audio ujian resmi cuma diputar 2x dan ada jebakan urutan kata waktu!</p>
+      <div class="tag-badge"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg> <span>MINI TRYOUT CBT 100% GRATIS</span></div>
+      <h1 class="main-headline">Seberapa Siap Kamu LULUS Ujian JFT-Basic A2 Sekali Tes?</h1>
+      <p class="main-subhead">Biaya ujian resmi Rp550.000. Jangan buang biaya & waktu belajar karena panik di depan layar komputer CBT!</p>
     </div>
 
     <!-- Question Box -->
     <div class="question-card">
       
-      <div style="display: flex; align-items: center; justify-content: space-between; background: #0f172a; color: white; border-radius: 18px; padding: 16px 24px; margin-bottom: 20px;">
-        <div style="display: flex; align-items: center; gap: 14px;">
-          <div style="width: 44px; height: 44px; border-radius: 50%; background: #dc2626; display: flex; align-items: center; justify-content: center; font-size: 20px;">🔊</div>
-          <div>
-            <div style="font-size: 14px; color: #94a3b8; font-weight: 700; text-transform: uppercase;">Audio CBT Simulasi Prometric</div>
-            <div style="font-size: 20px; font-weight: 900; color: #38bdf8;">Track #3 • Putaran Ke-1 dari 2</div>
-          </div>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px;">
+        <div style="background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.15); border-radius: 18px; padding: 22px;">
+          <div style="margin-bottom: 10px;"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></svg></div>
+          <div style="font-size: 22px; font-weight: 900; color: white;">12 Soal Pilihan Resmi</div>
+          <div style="font-size: 15px; color: #a8a29e; margin-top: 4px;">4 Seksi Lengkap: Moji-Goi, Kaiwa, Choukai, Dokkai</div>
         </div>
-        <div style="background: #dc2626; color: white; padding: 6px 14px; border-radius: 10px; font-size: 14px; font-weight: 900; letter-spacing: 1px;">
-          ⏱ 60 MENIT CBT
+        <div style="background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.15); border-radius: 18px; padding: 22px;">
+          <div style="margin-bottom: 10px;"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg></div>
+          <div style="font-size: 22px; font-weight: 900; color: #38bdf8;">Audio Chōkai Asli</div>
+          <div style="font-size: 15px; color: #a8a29e; margin-top: 4px;">Standar CBT Prometric (Maks 2x putar otomatis)</div>
+        </div>
+        <div style="background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.15); border-radius: 18px; padding: 22px;">
+          <div style="margin-bottom: 10px;"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#fbbf24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+          <div style="font-size: 22px; font-weight: 900; color: #fbbf24;">Timer 15 Menit</div>
+          <div style="font-size: 15px; color: #a8a29e; margin-top: 4px;">Simulasi tekanan waktu nyata persis ruang ujian</div>
+        </div>
+        <div style="background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.15); border-radius: 18px; padding: 22px;">
+          <div style="margin-bottom: 10px;"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#4ade80" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"/></svg></div>
+          <div style="font-size: 22px; font-weight: 900; color: #4ade80;">Skor Instan Real-Time</div>
+          <div style="font-size: 15px; color: #a8a29e; margin-top: 4px;">Skala 10 - 250 poin + Analisis kelemahan per seksi</div>
         </div>
       </div>
-      <div style="background: #f8fafc; border: 2px solid #cbd5e1; border-radius: 18px; padding: 22px; font-size: 22px; line-height: 1.5; color: #1e293b;">
-        <div style="color: #64748b; font-size: 16px; font-weight: 800; text-transform: uppercase; margin-bottom: 8px;">Transkrip Audio Pembicara:</div>
-        <div style="font-style: italic; color: #0f172a; font-weight: 700;">
-          "Hari ini hujan, jadi rapat yang tadinya jam 2 diundur jadi besok jam 10 di lantai 2."
-        </div>
-        <div style="margin-top: 14px; padding-top: 12px; border-top: 1px dashed #cbd5e1; font-weight: 900; color: #dc2626; font-size: 24px;">
-          Pertanyaan: Rapat dilaksanakan kapan dan jam berapa?
-        </div>
+      <div style="background: linear-gradient(90deg, rgba(220,38,38,0.2) 0%, rgba(245,158,11,0.2) 100%); border: 2px solid #dc2626; border-radius: 18px; padding: 18px 24px; text-align: center; color: white;">
+        <span style="font-size: 22px; font-weight: 900; color: #fca5a5;">TANTANGAN SIMULASI:</span>
+        <span style="font-size: 20px; font-weight: 700; margin-left: 8px;">Uji kesiapanmu hari ini sebelum mendaftar ujian resmi!</span>
       </div>
     
 
       
-      <div class="options-grid">
-        
-          <div class="option-btn">
-            <div class="option-letter">A</div>
-            <div class="option-text-wrap">
-              <div class="option-kanji" style="font-size: 23px;">Hari ini jam 14:00</div>
-              <div class="option-furigana">Jebakan kata pertama • Salah</div>
-            </div>
-          </div>
-        
-          <div class="option-btn">
-            <div class="option-letter">B</div>
-            <div class="option-text-wrap">
-              <div class="option-kanji" style="font-size: 23px;">Besok jam 10:00</div>
-              <div class="option-furigana">Jadwal revisi terbaru • Benar</div>
-            </div>
-          </div>
-        
-          <div class="option-btn">
-            <div class="option-letter">C</div>
-            <div class="option-text-wrap">
-              <div class="option-kanji" style="font-size: 23px;">Besok jam 14:00</div>
-              <div class="option-furigana">Kombinasi salah • Salah</div>
-            </div>
-          </div>
-        
-          <div class="option-btn">
-            <div class="option-letter">D</div>
-            <div class="option-text-wrap">
-              <div class="option-kanji" style="font-size: 23px;">Hari ini jam 10:00</div>
-              <div class="option-furigana">Kombinasi salah • Salah</div>
-            </div>
-          </div>
-        
-      </div>
-      
 
       <div class="interaction-bar">
         <div class="interaction-left">
-          <span>💬</span>
-          <span>Awas terkecoh! Tulis jawabanmu di komentar!</span>
+          <span><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span>
+          <span>Klik tautan di komentar paling atas untuk mulai tes gratis!</span>
         </div>
         <div class="interaction-badge">
-          KUNCI JAWABAN DI KOMENTAR ↓
+          <span>KUNCI JAWABAN DI KOLOM KOMENTAR</span>
+          <span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></span>
         </div>
       </div>
     </div>
@@ -420,12 +390,12 @@
   <div class="footer">
     <div class="footer-left">
       <div class="footer-url">kondangsensei.my.id</div>
-      <div style="color: #57534e;">•</div>
+      <div style="color: #a8a29e;">•</div>
       <div class="footer-desc">Simulasi CBT JFT-Basic A2 99% Mirip Ujian Asli Prometric</div>
     </div>
     <div class="footer-right">
       <span>Coba Mini Tryout 100% Gratis</span>
-      <span>→</span>
+      <span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></span>
     </div>
   </div>
 </body>

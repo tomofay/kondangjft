@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-  <title>SABTU - KAITSU / GRAFIK • JADWAL & PENGUMUMAN CBT</title>
+  <title>JFT-BASIC A2 • マナー・挨拶表現</title>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800;900&family=Noto+Sans+JP:wght@500;700;900&display=swap');
     
@@ -15,7 +15,7 @@
     body {
       width: 1080px;
       height: 1080px;
-      background: linear-gradient(135deg, #fffbeb 0%, #ffffff 50%, #fff1f2 100%);
+      background: linear-gradient(135deg, #faf5ff 0%, #ffffff 50%, #fff1f2 100%);
       font-family: 'Plus Jakarta Sans', sans-serif;
       color: #1c1917;
       padding: 56px 64px;
@@ -99,29 +99,29 @@
       margin-top: 5px;
     }
 
-    .day-pill {
+    .category-pill {
       display: flex;
       align-items: center;
-      gap: 12px;
-      background: #fef3c7;
-      color: #92400e;
+      gap: 10px;
+      background: #f3e8ff;
+      color: #6b21a8;
       padding: 10px 22px;
       border-radius: 9999px;
       border: 2px solid #fecaca;
       box-shadow: 0 2px 8px rgba(0,0,0,0.04);
     }
 
-    .day-pill .dot {
+    .category-pill .dot {
       width: 10px;
       height: 10px;
       border-radius: 50%;
       background: #dc2626;
     }
 
-    .day-pill .text {
-      font-size: 15px;
+    .category-pill .text {
+      font-size: 14px;
       font-weight: 900;
-      letter-spacing: 1px;
+      letter-spacing: 0.8px;
       text-transform: uppercase;
     }
 
@@ -129,11 +129,11 @@
     .content {
       position: relative;
       z-index: 10;
-      margin: 12px 0;
+      margin: 10px 0;
     }
 
     .headline-wrap {
-      margin-bottom: 24px;
+      margin-bottom: 22px;
     }
 
     .tag-badge {
@@ -176,7 +176,7 @@
       backdrop-filter: blur(8px);
     }
 
-    /* Options Grid (If applicable) */
+    /* Options Grid: Clean, Neutral, Unhighlighted */
     .options-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -191,14 +191,13 @@
       background: #ffffff;
       border: 3px solid #e7e5e4;
       border-radius: 20px;
-      padding: 14px 18px;
-      transition: all 0.2s ease;
+      padding: 16px 20px;
       box-shadow: 0 2px 6px rgba(0,0,0,0.03);
     }
 
     .option-letter {
-      width: 44px;
-      height: 44px;
+      width: 46px;
+      height: 46px;
       border-radius: 12px;
       background: #f5f5f4;
       color: #1c1917;
@@ -220,25 +219,23 @@
       font-family: 'Noto Sans JP', sans-serif;
       font-weight: 900;
       color: #1c1917;
-      line-height: 1.15;
+      line-height: 1.2;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
     }
 
     .option-furigana {
-      font-size: 13px;
+      font-size: 14px;
       color: #57534e;
       font-weight: 700;
       margin-top: 2px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
+      font-family: 'Noto Sans JP', sans-serif;
     }
 
     /* Interactive CTA Banner */
     .interaction-bar {
-      margin-top: 20px;
+      margin-top: 22px;
       background: #fef2f2;
       border: 2px solid #fecaca;
       border-radius: 18px;
@@ -258,11 +255,14 @@
     }
 
     .interaction-badge {
+      display: flex;
+      align-items: center;
+      gap: 8px;
       background: #dc2626;
       color: white;
       font-weight: 900;
-      font-size: 14px;
-      padding: 6px 16px;
+      font-size: 13px;
+      padding: 8px 18px;
       border-radius: 10px;
       letter-spacing: 0.5px;
     }
@@ -300,7 +300,7 @@
     .footer-right {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 8px;
       background: #f5f5f4;
       padding: 8px 18px;
       border-radius: 12px;
@@ -314,7 +314,7 @@
   <div class="glow-1"></div>
   <div class="glow-2"></div>
 
-  <!-- Header -->
+  <!-- Header (NO DAYS, PURE JFT CATEGORY) -->
   <div class="header">
     <div class="brand">
       <div class="logo-badge">
@@ -326,57 +326,28 @@
       </div>
     </div>
 
-    <div class="day-pill">
+    <div class="category-pill">
       <div class="dot"></div>
-      <div class="text">SABTU • 情報検索・図表問題</div>
+      <div class="text">JFT-BASIC A2 • マナー・挨拶表現</div>
     </div>
   </div>
 
   <!-- Content -->
   <div class="content">
     <div class="headline-wrap">
-      <div class="tag-badge">⚡ SIMULASI TABEL & JADWAL BUS</div>
-      <h1 class="main-headline">Soal Model Jadwal Bus CBT JFT-Basic A2!</h1>
-      <p class="main-subhead">Di ujian CBT resmi, kamu harus cepat memindai tabel rute dalam durasi waktu ketat.</p>
+      <div class="tag-badge"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg> <span>ETIKA BERTAMU DI JEPANG</span></div>
+      <h1 class="main-headline">Etika & Ungkapan Bahasa Jepang dalam Situasi Nyata!</h1>
+      <p class="main-subhead">Soal JFT A2 menguji kemampuan komunikasi praktis di kehidupan sehari-hari.</p>
     </div>
 
     <!-- Question Box -->
     <div class="question-card">
       
-      <div style="background: #ffffff; border: 2px solid #e5e7eb; border-radius: 18px; padding: 18px; font-size: 19px; color: #1f2937;">
-        <div style="display: flex; gap: 12px; margin-bottom: 12px; font-weight: 800; color: #dc2626;">
-          <span>📍 Kondisi: Hari ini hari <strong style="text-decoration: underline;">RABU</strong>, pukul 09:50.</span>
-          <span>🎯 Tujuan: Stasiun ➔ Rumah Sakit</span>
-        </div>
-        <table style="width: 100%; border-collapse: collapse; font-size: 17px; text-align: left;">
-          <thead>
-            <tr style="background: #f3f4f6; color: #374151;">
-              <th style="padding: 10px; border: 1px solid #d1d5db;">Jalur Bus</th>
-              <th style="padding: 10px; border: 1px solid #d1d5db;">Waktu Berangkat</th>
-              <th style="padding: 10px; border: 1px solid #d1d5db;">Keterangan Rute</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td style="padding: 8px 10px; border: 1px solid #d1d5db; font-weight: bold;">Jalur A</td>
-              <td style="padding: 8px 10px; border: 1px solid #d1d5db;">10:00</td>
-              <td style="padding: 8px 10px; border: 1px solid #d1d5db; color: #dc2626;">Tidak berhenti di Rumah Sakit</td>
-            </tr>
-            <tr style="background: #fef2f2; font-weight: bold;">
-              <td style="padding: 8px 10px; border: 1px solid #d1d5db; color: #dc2626;">Jalur B</td>
-              <td style="padding: 8px 10px; border: 1px solid #d1d5db; color: #dc2626;">10:15</td>
-              <td style="padding: 8px 10px; border: 1px solid #d1d5db; color: #16a34a;">Langsung menuju Rumah Sakit</td>
-            </tr>
-            <tr>
-              <td style="padding: 8px 10px; border: 1px solid #d1d5db; font-weight: bold;">Jalur C</td>
-              <td style="padding: 8px 10px; border: 1px solid #d1d5db;">10:05</td>
-              <td style="padding: 8px 10px; border: 1px solid #d1d5db; color: #6b7280;">Lewat RS (Khusus Hari Minggu)</td>
-            </tr>
-          </tbody>
-        </table>
+      <div style="font-size: 18px; font-weight: 700; color: #78716c; margin-bottom: 12px; letter-spacing: 0.5px;">
+        状況に 最も 合う 表現を 一つ 選んでください。
       </div>
-      <div style="margin-top: 14px; font-size: 23px; font-weight: 900; color: #111827;">
-        Pertanyaan: Bus mana yang WAJIB kamu naiki?
+      <div style="background: #faf5ff; border: 2px solid #d8b4fe; border-radius: 20px; padding: 26px; font-family: 'Noto Sans JP', sans-serif; font-size: 28px; font-weight: 800; color: #3b0764; line-height: 1.6;">
+        人の 家を 訪問して、お茶を 出された とき、飲む 前に 何と 言いますか。
       </div>
     
 
@@ -386,32 +357,32 @@
           <div class="option-btn">
             <div class="option-letter">A</div>
             <div class="option-text-wrap">
-              <div class="option-kanji" style="font-size: 34px;">Jalur A</div>
-              <div class="option-furigana">Jam 10:00 • Tidak lewat RS</div>
+              <div class="option-kanji" style="font-size: 34px;">いただきます</div>
+              
             </div>
           </div>
         
           <div class="option-btn">
             <div class="option-letter">B</div>
             <div class="option-text-wrap">
-              <div class="option-kanji" style="font-size: 34px;">Jalur B</div>
-              <div class="option-furigana">Jam 10:15 • Tepat & Langsung</div>
+              <div class="option-kanji" style="font-size: 26px;">ごちそうさまでした</div>
+              
             </div>
           </div>
         
           <div class="option-btn">
             <div class="option-letter">C</div>
             <div class="option-text-wrap">
-              <div class="option-kanji" style="font-size: 34px;">Jalur C</div>
-              <div class="option-furigana">Jam 10:05 • Hanya Minggu</div>
+              <div class="option-kanji" style="font-size: 34px;">お邪魔します</div>
+              
             </div>
           </div>
         
           <div class="option-btn">
             <div class="option-letter">D</div>
             <div class="option-text-wrap">
-              <div class="option-kanji" style="font-size: 23px;">Semua jalur bisa</div>
-              <div class="option-furigana">Bebas • Salah</div>
+              <div class="option-kanji" style="font-size: 34px;">失礼します</div>
+              
             </div>
           </div>
         
@@ -420,11 +391,12 @@
 
       <div class="interaction-bar">
         <div class="interaction-left">
-          <span>💬</span>
-          <span>Jalur mana yang kamu pilih? Tulis di komentar!</span>
+          <span><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span>
+          <span>Tulis pilihanmu (A / B / C / D) di kolom komentar!</span>
         </div>
         <div class="interaction-badge">
-          KUNCI JAWABAN DI KOMENTAR ↓
+          <span>KUNCI JAWABAN DI KOLOM KOMENTAR</span>
+          <span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></span>
         </div>
       </div>
     </div>
@@ -439,7 +411,7 @@
     </div>
     <div class="footer-right">
       <span>Coba Mini Tryout 100% Gratis</span>
-      <span>→</span>
+      <span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></span>
     </div>
   </div>
 </body>
