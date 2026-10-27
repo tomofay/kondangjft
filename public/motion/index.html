@@ -665,7 +665,7 @@
       </div>
       <h1 class="hero-title">Generator Video Iklan <span>KondangSensei</span></h1>
       <p class="hero-subtitle">
-        Motion Video Sinematik Menampilkan Simulasi Ujian CBT, Rapor Skor Diagnostik, Bank Soal Tokutei Ginou, & Promo Voucher KONDANG50.
+        Motion Video Sinematik Menampilkan Simulasi Ujian CBT, Rapor Skor Diagnostik A2.2, Bank Soal & Paket Tokutei Ginou, serta Promo Voucher KONDANG50.
       </p>
     </div>
 
@@ -817,7 +817,7 @@
     const totalDurationLabel = document.getElementById('totalDurationLabel');
 
     let currentTime = 0;
-    let DURATION = 60.0; // Default 60s
+    let DURATION = 60.0;
     let isPlaying = false;
     let animFrameId = null;
     let lastTimestamp = 0;
@@ -828,7 +828,6 @@
     let enableSfx = true;
     let enableSubtitles = true;
     let isRecording = false;
-    let recordStartTime = 0;
     let mediaRecorder = null;
     let recordedChunks = [];
 
@@ -853,7 +852,6 @@
       }
     }
 
-    // Procedural Sound FX
     function playSfx(type) {
       if (!enableSfx) return;
       initAudio();
@@ -921,14 +919,13 @@
     }
 
     // =========================================================================
-    // NATURAL INDONESIAN VOICEOVER ENGINE (Web Speech API Neural Natural)
+    // NATURAL INDONESIAN VOICEOVER ENGINE
     // =========================================================================
     let idVoice = null;
     function pickBestIndonesianVoice() {
       if (!('speechSynthesis' in window)) return;
       const voices = window.speechSynthesis.getVoices();
       
-      // Look for natural Indonesian voice (Edge / Chrome Natural Neural)
       const natural = voices.find(v => (v.lang.startsWith('id') || v.lang === 'id_ID') && (v.name.includes('Natural') || v.name.includes('Online')));
       if (natural) { idVoice = natural; return; }
 
@@ -944,7 +941,6 @@
       pickBestIndonesianVoice();
     }
 
-    // Voiceover Script Timestamps (60s and 30s)
     const voiceover60s = [
       {
         start: 0.1,
@@ -954,22 +950,22 @@
       {
         start: 8.2,
         end: 19.8,
-        text: "Biar kamu nggak panik dan grogi pas audio Choukai diputar, simulasi dulu di KondangSensei! Tampilannya sembilan puluh sembilan persen mirip ujian asli, lengkap dengan timer dan audio resmi."
+        text: "Biar kamu nggak panik dan grogi pas audio Choukai diputar, simulasi dulu di KondangSensei! Tampilannya persis ujian asli, lengkap dengan audio autentik dan timer Prometric!"
       },
       {
         start: 20.2,
         end: 31.8,
-        text: "Kerennya lagi, begitu selesai ujian langsung keluar rapor skor diagnostik dan pembahasan detail tiap soal! Jadi kamu tahu persis di mana letak kesalahan dan materi yang harus diperbaiki."
+        text: "Selesai tes, langsung terbit sertifikat evaluasi resmi dengan skor detail per seksi sampai skala A2.2! Jadi kamu tahu pasti kesiapanmu sebelum ujian nyata."
       },
       {
         start: 32.2,
         end: 43.8,
-        text: "Bank soalnya terupdate sesuai standar kerja Jepang Tokutei Ginou. Paket latihannya juga hemat banget, mulai dari tiga puluh lima ribu rupiah dan aksesnya langsung aktif otomatis!"
+        text: "Pilihan paketnya super hemat! Mulai tiga puluh lima ribu untuk Paket SKS, atau rekomendasi terbaik Paket Ideal lima puluh sembilan ribu untuk persiapan dua minggu penuh!"
       },
       {
         start: 44.2,
         end: 51.8,
-        text: "Khusus hari ini, pakai kode voucher KONDANG50 saat checkout, dan klaim diskon lima puluh persen untuk semua paket latihan kamu!"
+        text: "Khusus hari ini, pakai kode voucher KONDANG50 saat checkout, dan klaim diskon tambahan lima puluh persen untuk semua paket latihan kamu!"
       },
       {
         start: 52.2,
@@ -987,7 +983,7 @@
       {
         start: 5.2,
         end: 12.8,
-        text: "Biar nggak panik pas audio Choukai diputar, simulasi dulu di KondangSensei! Tampilannya sembilan puluh sembilan persen mirip ujian asli."
+        text: "Biar nggak panik pas audio Choukai diputar, simulasi dulu di KondangSensei! Tampilannya persis ujian asli, lengkap dengan timer dan audio resmi."
       },
       {
         start: 13.2,
@@ -1015,8 +1011,8 @@
             const ut = new SpeechSynthesisUtterance(line.text);
             ut.lang = 'id-ID';
             if (idVoice) ut.voice = idVoice;
-            ut.rate = 1.0; // Kecepatan ngomong santai, artikulasi jelas
-            ut.pitch = 1.05; // Nada ramah, natural dan tidak kaku
+            ut.rate = 1.0;
+            ut.pitch = 1.05;
             window.speechSynthesis.speak(ut);
           } catch (e) {
             console.warn('Voice error:', e);
@@ -1167,7 +1163,6 @@
       timeDisplay.textContent = 
         `${String(min).padStart(2,'0')}:${String(sec).padStart(2,'0')}.${String(ms).padStart(2,'0')} / ${String(durMin).padStart(2,'0')}:${String(durSec).padStart(2,'0')}.00`;
 
-      // Update Marker Highlights & Scene Text
       if (DURATION === 60.0) {
         for (let i = 1; i <= 6; i++) {
           const el = document.getElementById(`m${i}`);
@@ -1180,27 +1175,26 @@
           scriptText.innerHTML = '<strong>[00-08s HOOK]:</strong> "Uang tes JFT A2 itu lima ratus lima puluh ribu rupiah! Jangan sampai hangus sia-sia ya, cuma gara-gara kamu kaget sama sistem komputer Prometric pas hari H!"';
         } else if (currentTime < 20) {
           document.getElementById('m2')?.classList.add('active');
-          sceneText.textContent = 'SCENE 2: SIMULASI UJIAN CBT (00:08 - 00:20)';
-          scriptText.innerHTML = '<strong>[08-20s CBT]:</strong> "Biar kamu nggak panik dan grogi pas audio Choukai diputar, simulasi dulu di KondangSensei! Tampilannya sembilan puluh sembilan persen mirip ujian asli, lengkap dengan timer dan audio resmi."';
+          sceneText.textContent = 'SCENE 2: UJIAN CBT KONDANGSENSEI (08-20s)';
+          scriptText.innerHTML = '<strong>[08-20s UJIAN]:</strong> "Biar kamu nggak panik dan grogi pas audio Choukai diputar, simulasi dulu di KondangSensei! Tampilannya persis ujian asli, lengkap dengan audio autentik dan timer Prometric!"';
         } else if (currentTime < 32) {
           document.getElementById('m3')?.classList.add('active');
-          sceneText.textContent = 'SCENE 3: RAPOR HASIL & EVALUASI (00:20 - 00:32)';
-          scriptText.innerHTML = '<strong>[20-32s RAPOR]:</strong> "Kerennya lagi, begitu selesai ujian langsung keluar rapor skor diagnostik dan pembahasan detail tiap soal! Jadi kamu tahu persis di mana letak kesalahan dan materi yang harus diperbaiki."';
+          sceneText.textContent = 'SCENE 3: RAPOR EVALUASI ASLI (20-32s)';
+          scriptText.innerHTML = '<strong>[20-32s RAPOR]:</strong> "Selesai tes, langsung terbit sertifikat evaluasi resmi dengan skor detail per seksi sampai skala A2.2! Jadi kamu tahu pasti kesiapanmu sebelum ujian nyata."';
         } else if (currentTime < 44) {
           document.getElementById('m4')?.classList.add('active');
-          sceneText.textContent = 'SCENE 4: BANK SOAL & PAKET (00:32 - 00:44)';
-          scriptText.innerHTML = '<strong>[32-44s PAKET]:</strong> "Bank soalnya terupdate sesuai standar kerja Jepang Tokutei Ginou. Paket latihannya juga hemat banget, mulai dari tiga puluh lima ribu rupiah dan aksesnya langsung aktif otomatis!"';
+          sceneText.textContent = 'SCENE 4: INVESTASI PAKET RESMI (32-44s)';
+          scriptText.innerHTML = '<strong>[32-44s PAKET]:</strong> "Pilihan paketnya super hemat! Mulai tiga puluh lima ribu untuk Paket SKS, atau rekomendasi terbaik Paket Ideal lima puluh sembilan ribu untuk persiapan dua minggu penuh!"';
         } else if (currentTime < 52) {
           document.getElementById('m5')?.classList.add('active');
-          sceneText.textContent = 'SCENE 5: PROMO VOUCHER (00:44 - 00:52)';
-          scriptText.innerHTML = '<strong>[44-52s VOUCHER]:</strong> "Khusus hari ini, pakai kode voucher KONDANG50 saat checkout, dan klaim diskon lima puluh persen untuk semua paket latihan kamu!"';
+          sceneText.textContent = 'SCENE 5: VOUCHER KONDANG50 (44-52s)';
+          scriptText.innerHTML = '<strong>[44-52s VOUCHER]:</strong> "Khusus hari ini, masukkan kode voucher KONDANG50 saat checkout dan klaim diskon tambahan lima puluh persen!"';
         } else {
           document.getElementById('m6')?.classList.add('active');
-          sceneText.textContent = 'SCENE 6: TRYOUT GRATIS (00:52 - 01:00)';
-          scriptText.innerHTML = '<strong>[52-60s CTA]:</strong> "Yuk, langsung coba Mini Tryout Gratisnya sekarang dan amankan kuota diskonmu sebelum kehabisan! Klik link di bawah ini sekarang juga ya!"';
+          sceneText.textContent = 'SCENE 6: TRYOUT GRATIS (52-60s)';
+          scriptText.innerHTML = '<strong>[52-60s CTA]:</strong> "Yuk coba Mini Tryout Gratisnya sekarang dan amankan kuota diskonmu sebelum kehabisan! Klik link di bawah ini sekarang juga ya!"';
         }
       } else {
-        // 30s Mode
         for (let i = 1; i <= 4; i++) {
           const el = document.getElementById(`m${i}`);
           if (el) el.classList.remove('active');
@@ -1209,24 +1203,19 @@
         if (currentTime < 5) {
           document.getElementById('m1')?.classList.add('active');
           sceneText.textContent = 'SCENE 1: HOOK (00:00 - 00:05)';
-          scriptText.innerHTML = '<strong>[00-05s HOOK]:</strong> "Uang tes JFT A2 itu lima ratus lima puluh ribu rupiah! Jangan sampai hangus cuma gara-gara kaget sama sistem komputer Prometric!"';
         } else if (currentTime < 13) {
           document.getElementById('m2')?.classList.add('active');
           sceneText.textContent = 'SCENE 2: UJIAN CBT (00:05 - 00:13)';
-          scriptText.innerHTML = '<strong>[05-13s BODY]:</strong> "Biar nggak panik pas audio Choukai diputar, simulasi dulu di KondangSensei! Tampilannya sembilan puluh sembilan persen mirip ujian asli, lengkap dengan timer dan audio autentik."';
         } else if (currentTime < 22) {
           document.getElementById('m3')?.classList.add('active');
           sceneText.textContent = 'SCENE 3: VOUCHER (00:13 - 00:22)';
-          scriptText.innerHTML = '<strong>[13-22s VOUCHER]:</strong> "Khusus hari ini, masukkan kode voucher KONDANG50 dan dapatkan diskon lima puluh persen untuk semua paket latihan!"';
         } else {
           document.getElementById('m4')?.classList.add('active');
           sceneText.textContent = 'SCENE 4: CTA (00:22 - 00:30)';
-          scriptText.innerHTML = '<strong>[22-30s CTA]:</strong> "Coba Mini Tryout Gratisnya sekarang dan klaim diskonnya sebelum kuota habis! Klik tombol di bawah ini sekarang juga!"';
         }
       }
     }
 
-    // Main 60fps Loop
     let lastSecondInt = -1;
     function renderLoop(timestamp) {
       if (!isPlaying) return;
@@ -1244,7 +1233,6 @@
       seekSlider.value = currentTime;
       updateTimeDisplay();
 
-      // Trigger Voiceover & Sound Effects
       triggerVoiceForTime(currentTime);
 
       const currentSecInt = Math.floor(currentTime);
@@ -1254,7 +1242,6 @@
         else if (currentSecInt % 3 === 0) playSfx('tick');
       }
 
-      // Live recording status bar update
       if (isRecording) {
         const pct = Math.min(100, Math.floor((currentTime / DURATION) * 100));
         progressText.textContent = `🔴 Sedang Merekam: ${currentTime.toFixed(1)}s / ${DURATION.toFixed(0)}s (${pct}%)`;
@@ -1269,10 +1256,9 @@
     }
 
     // =========================================================================
-    // CANVAS RENDERING ENGINE (6 SCENES FOR 60s / 4 SCENES FOR 30s)
+    // CANVAS RENDERING ENGINE
     // =========================================================================
 
-    // Vector Logo Drawing
     function drawVectorLogo(cx, cy, size) {
       ctx.save();
       ctx.translate(cx, cy);
@@ -1312,16 +1298,15 @@
         } else if (t < 20.0) {
           drawScene2Exam(t - 8.0, W, H);
         } else if (t < 32.0) {
-          drawScene3ScoreReview(t - 20.0, W, H);
+          drawScene3ScoreReport(t - 20.0, W, H);
         } else if (t < 44.0) {
-          drawScene4Packages(t - 32.0, W, H);
+          drawScene4Pricing(t - 32.0, W, H);
         } else if (t < 52.0) {
           drawScene5Offer(t - 44.0, W, H);
         } else {
           drawScene6CTA(t - 52.0, W, H);
         }
       } else {
-        // 30s Mode
         if (t < 5.0) {
           drawScene1Hook(t, W, H);
         } else if (t < 13.0) {
@@ -1333,12 +1318,10 @@
         }
       }
 
-      // Subtitles Overlay (High Visibility Viral Style)
       if (enableSubtitles) {
         drawSubtitles(t, W, H);
       }
 
-      // Top Brand Pill
       drawTopBrand(t, W, H);
 
       ctx.restore();
@@ -1397,7 +1380,6 @@
       ctx.scale(zoom, zoom);
       ctx.translate(-W/2, -H/2);
 
-      // Grid lines
       ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
       ctx.lineWidth = 2;
       for (let y = 100; y < H; y += 75) {
@@ -1407,7 +1389,6 @@
         ctx.stroke();
       }
 
-      // Countdown Timer Card
       const timerVal = Math.max(0, 59 - Math.floor(t * 10));
       const timerSec = Math.max(0, 59 - Math.floor((t * 22) % 60));
       
@@ -1429,7 +1410,6 @@
       ctx.font = '900 52px "JetBrains Mono", monospace';
       ctx.fillText(`00:${String(timerVal).padStart(2,'0')}:${String(timerSec).padStart(2,'0')}`, W/2, cardY + 92);
 
-      // Bold Hook Text
       const shake = t < 3.5 ? (Math.random() - 0.5) * 8 : 0;
       ctx.save();
       ctx.translate(W/2 + shake, H/2 + (isVertical ? 45 : 20));
@@ -1449,7 +1429,6 @@
 
       ctx.restore();
 
-      // Subtitle Warning banner
       const bannerY = isVertical ? H/2 + 230 : H/2 + 160;
       ctx.fillStyle = 'rgba(239, 68, 68, 0.25)';
       ctx.beginPath();
@@ -1469,346 +1448,298 @@
     }
 
     // =========================================================================
-    // SCENE 2: UJIAN CBT KONDANGSENSEI (Exact CbtExamEngine.tsx)
+    // SCENE 2: UJIAN CBT KONDANGSENSEI (PERSIS GAMBAR 3 REFERENSI USER)
     // =========================================================================
     function drawScene2Exam(t, W, H) {
-      ctx.fillStyle = '#f1f5f9';
+      ctx.fillStyle = '#f8fafc';
       ctx.fillRect(0, 0, W, H);
 
-      const glow = ctx.createRadialGradient(W/2, 250, 40, W/2, 250, 600);
-      glow.addColorStop(0, 'rgba(254, 205, 211, 0.45)');
-      glow.addColorStop(1, 'transparent');
-      ctx.fillStyle = glow;
-      ctx.fillRect(0, 0, W, H);
-
-      // Floating Badge
-      const badgeY = isVertical ? 160 : 115;
-      ctx.fillStyle = '#dc2626';
-      ctx.shadowColor = 'rgba(220, 38, 38, 0.4)';
-      ctx.shadowBlur = 18;
-      ctx.beginPath();
-      ctx.roundRect(W/2 - 270, badgeY, 540, 56, 28);
-      ctx.fill();
-      ctx.shadowBlur = 0;
-
-      ctx.fillStyle = '#ffffff';
-      ctx.font = '900 20px "Plus Jakarta Sans"';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText('✨ SIMULASI 99% MIRIP UJIAN ASLI CBT', W/2, badgeY + 28);
-
-      // Desktop Window
       const winW = isVertical ? 980 : 1000;
-      const winH = isVertical ? 1220 : 740;
+      const winH = isVertical ? 1240 : 760;
       const winX = (W - winW) / 2;
-      const winY = isVertical ? 240 : 185;
+      const winY = isVertical ? 240 : 170;
 
+      // Outer Card Frame
       ctx.fillStyle = '#ffffff';
-      ctx.shadowColor = 'rgba(15, 23, 42, 0.14)';
-      ctx.shadowBlur = 35;
+      ctx.shadowColor = 'rgba(15, 23, 42, 0.08)';
+      ctx.shadowBlur = 25;
       ctx.beginPath();
-      ctx.roundRect(winX, winY, winW, winH, 24);
+      ctx.roundRect(winX, winY, winW, winH, 28);
       ctx.fill();
       ctx.shadowBlur = 0;
-      ctx.strokeStyle = '#cbd5e1';
-      ctx.lineWidth = 3;
+      ctx.strokeStyle = '#e2e8f0';
+      ctx.lineWidth = 2;
       ctx.stroke();
 
-      // Browser Header
-      ctx.fillStyle = '#e2e8f0';
+      // Top Header Bar (From User Image 3)
+      const headH = 56;
+      ctx.textAlign = 'left';
+      ctx.fillStyle = '#64748b';
+      ctx.font = '700 14px "Plus Jakarta Sans"';
+      ctx.fillText('Simulasi CBT JFT-Basic A2', winX + 32, winY + 34);
+
+      // Timer Badge [⏱ (0) / ⏱ 58:24]
+      const timerPillW = 90;
+      const timerPillX = winX + winW - 380;
+      ctx.fillStyle = '#fffbeb';
       ctx.beginPath();
-      ctx.roundRect(winX, winY, winW, 46, [24, 24, 0, 0]);
+      ctx.roundRect(timerPillX, winY + 12, timerPillW, 34, 17);
+      ctx.fill();
+      ctx.strokeStyle = '#f59e0b';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+
+      ctx.fillStyle = '#d97706';
+      ctx.font = '900 13px "Plus Jakarta Sans"';
+      ctx.textAlign = 'center';
+      ctx.fillText('⏱ 58:24', timerPillX + timerPillW/2, winY + 34);
+
+      // User Profile Pill: "Super Admin Kond..."
+      const userPillX = timerPillX + timerPillW + 12;
+      ctx.fillStyle = '#f1f5f9';
+      ctx.beginPath();
+      ctx.roundRect(userPillX, winY + 12, 170, 34, 17);
       ctx.fill();
 
-      ['#ef4444', '#f59e0b', '#22c55e'].forEach((c, i) => {
-        ctx.fillStyle = c;
-        ctx.beginPath();
-        ctx.arc(winX + 28 + i * 18, winY + 23, 6, 0, Math.PI * 2);
-        ctx.fill();
-      });
+      ctx.fillStyle = '#334155';
+      ctx.font = '800 12px "Plus Jakarta Sans"';
+      ctx.textAlign = 'left';
+      ctx.fillText('👤 Super Admin Kond...', userPillX + 14, winY + 34);
 
+      // Keluar button [-> Keluar]
+      ctx.fillStyle = '#64748b';
+      ctx.font = '800 13px "Plus Jakarta Sans"';
+      ctx.textAlign = 'right';
+      ctx.fillText('⇥ Keluar', winX + winW - 32, winY + 34);
+
+      // Blue Alert Banner (From User Image 3)
+      const alertY = winY + 68;
+      const alertW = winW - 64;
+      ctx.fillStyle = '#f0f9ff';
+      ctx.beginPath();
+      ctx.roundRect(winX + 32, alertY, alertW, 64, 18);
+      ctx.fill();
+      ctx.strokeStyle = '#bae6fd';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+
+      ctx.textAlign = 'left';
+      ctx.fillStyle = '#0284c7';
+      ctx.font = '900 13px "Plus Jakarta Sans"';
+      ctx.fillText('🔊 Aturan Chōkai (聴解): Audio diputar maks. 2 kali tanpa bisa digeser.', winX + 50, alertY + 28);
+      ctx.fillStyle = '#0369a1';
+      ctx.font = '700 12px "Plus Jakarta Sans"';
+      ctx.fillText('Anda hanya dapat menekan Berikutnya (tidak dapat kembali atau melompat soal).', winX + 50, alertY + 48);
+
+      ctx.textAlign = 'right';
+      ctx.fillStyle = '#0284c7';
+      ctx.font = '900 13px "JetBrains Mono"';
+      ctx.fillText('1/25 Terjawab', winX + winW - 54, alertY + 38);
+
+      // Inner Question Container Card (From User Image 3)
+      const qInnerY = alertY + 84;
+      const qInnerW = alertW;
+      const qInnerH = isVertical ? 860 : 490;
       ctx.fillStyle = '#ffffff';
       ctx.beginPath();
-      ctx.roundRect(winX + 110, winY + 8, winW - 220, 30, 15);
+      ctx.roundRect(winX + 32, qInnerY, qInnerW, qInnerH, 24);
       ctx.fill();
-      ctx.strokeStyle = '#cbd5e1';
+      ctx.strokeStyle = '#e2e8f0';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+
+      // Choukai Audio Player Component (From User Image 3)
+      const audioBoxY = qInnerY + 24;
+      const audioBoxW = qInnerW - 48;
+      ctx.fillStyle = '#f8fafc';
+      ctx.beginPath();
+      ctx.roundRect(winX + 56, audioBoxY, audioBoxW, 140, 20);
+      ctx.fill();
+      ctx.strokeStyle = '#e2e8f0';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+
+      // Header row inside Audio Box
+      ctx.textAlign = 'left';
+      ctx.fillStyle = '#0284c7';
+      ctx.font = '900 14px "Plus Jakarta Sans"';
+      ctx.fillText('🔊 Pemutar Audio Chōkai (聴解 Audio)', winX + 76, audioBoxY + 32);
+
+      // Yellow pill badge: "Diputar: 1 / 2 kali"
+      const yellowBadgeW = 140;
+      const yellowBadgeX = winX + 56 + audioBoxW - yellowBadgeW - 20;
+      ctx.fillStyle = '#fef3c7';
+      ctx.beginPath();
+      ctx.roundRect(yellowBadgeX, audioBoxY + 14, yellowBadgeW, 30, 15);
+      ctx.fill();
+      ctx.strokeStyle = '#fcd34d';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+
+      ctx.fillStyle = '#92400e';
+      ctx.font = '900 12px "Plus Jakarta Sans"';
+      ctx.textAlign = 'center';
+      ctx.fillText('Diputar: 1 / 2 kali', yellowBadgeX + yellowBadgeW/2, audioBoxY + 33);
+
+      // Middle row: Sky Blue Play Button + Scrubber Bar
+      const playBtnW = 200;
+      ctx.fillStyle = '#38bdf8';
+      ctx.beginPath();
+      ctx.roundRect(winX + 76, audioBoxY + 56, playBtnW, 40, 14);
+      ctx.fill();
+
+      ctx.fillStyle = '#ffffff';
+      ctx.font = '900 13px "Plus Jakarta Sans"';
+      ctx.textAlign = 'center';
+      ctx.fillText('🔊 Sedang Memutar Audio...', winX + 76 + playBtnW/2, audioBoxY + 80);
+
+      // Scrubber Track
+      const trackX = winX + 76 + playBtnW + 16;
+      const trackW = audioBoxW - playBtnW - 130;
+      ctx.fillStyle = '#e0f2fe';
+      ctx.beginPath();
+      ctx.roundRect(trackX, audioBoxY + 72, trackW, 8, 4);
+      ctx.fill();
+
+      // Scrubber fill animated
+      const fillProgress = Math.min(1, (t % 6) / 6);
+      ctx.fillStyle = '#0284c7';
+      ctx.beginPath();
+      ctx.roundRect(trackX, audioBoxY + 72, trackW * fillProgress, 8, 4);
+      ctx.fill();
+
+      // Scrubber Times
+      ctx.fillStyle = '#0369a1';
+      ctx.font = '800 11px "JetBrains Mono"';
+      ctx.textAlign = 'left';
+      ctx.fillText(`00:0${Math.floor(fillProgress * 9)}`, trackX, audioBoxY + 62);
+      ctx.textAlign = 'right';
+      ctx.fillText('00:14', trackX + trackW, audioBoxY + 62);
+
+      // Bottom Rule inside Audio Box
+      const ruleBoxY = audioBoxY + 104;
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath();
+      ctx.roundRect(winX + 76, ruleBoxY, audioBoxW - 40, 26, 13);
+      ctx.fill();
+      ctx.strokeStyle = '#e2e8f0';
       ctx.lineWidth = 1;
       ctx.stroke();
 
-      ctx.font = '800 12px "Plus Jakarta Sans"';
-      ctx.fillStyle = '#475569';
-      ctx.textAlign = 'center';
-      ctx.fillText('🔒 kondangsensei.my.id/exam/simulasi-cbt-jft-a2', winX + winW/2, winY + 23);
+      ctx.fillStyle = '#64748b';
+      ctx.font = '700 11px "Plus Jakarta Sans"';
+      ctx.textAlign = 'left';
+      ctx.fillText('Aturan CBT Chōkai: Audio tidak dapat digeser/dijeda dan hanya dapat diputar maks. 2 kali.', winX + 90, ruleBoxY + 17);
 
-      // CBT Header Bar
-      const cbtHeaderY = winY + 46;
-      ctx.fillStyle = '#ffffff';
+      // Japanese Question Text (Exact From Image 3)
+      const qTextY = audioBoxY + 170;
+      ctx.fillStyle = '#0f172a';
+      ctx.font = '900 18px "Noto Sans JP", sans-serif';
+      ctx.textAlign = 'left';
+      ctx.fillText('【音声を聞いて答えてください】', winX + 56, qTextY);
+
+      ctx.font = '900 21px "Noto Sans JP", sans-serif';
+      ctx.fillText('男の人と女の人が話しています。 男の人は 何時に 待ち合わせ しますか。', winX + 56, qTextY + 36);
+
+      // 4 Choice Cards (From User Image 3: A. 10:00, B. 10:30, C. 11:00, D. 11:30)
+      const choices = [
+        { label: 'A.', text: '10:00' },
+        { label: 'B.', text: '10:30' },
+        { label: 'C.', text: '11:00' },
+        { label: 'D.', text: '11:30' }
+      ];
+
+      const isOptBSelected = t > 3.5;
+      const choicesStartY = qTextY + 68;
+
+      choices.forEach((c, idx) => {
+        const cY = choicesStartY + idx * (isVertical ? 74 : 58);
+        const isB = idx === 1 && isOptBSelected;
+
+        ctx.fillStyle = isB ? '#eff6ff' : '#ffffff';
+        ctx.beginPath();
+        ctx.roundRect(winX + 56, cY, audioBoxW, 60, 16);
+        ctx.fill();
+        ctx.strokeStyle = isB ? '#2563eb' : '#e2e8f0';
+        ctx.lineWidth = isB ? 2.5 : 1.5;
+        ctx.stroke();
+
+        // Label Pill [A.]
+        ctx.fillStyle = isB ? '#dbeafe' : '#f1f5f9';
+        ctx.beginPath();
+        ctx.roundRect(winX + 74, cY + 12, 36, 36, 10);
+        ctx.fill();
+
+        ctx.fillStyle = isB ? '#1d4ed8' : '#475569';
+        ctx.font = '900 14px "Plus Jakarta Sans"';
+        ctx.textAlign = 'center';
+        ctx.fillText(c.label, winX + 92, cY + 34);
+
+        // Option Text: 10:00 / 10:30
+        ctx.textAlign = 'left';
+        ctx.fillStyle = isB ? '#1e3a8a' : '#0f172a';
+        ctx.font = '900 18px "JetBrains Mono"';
+        ctx.fillText(c.text, winX + 128, cY + 35);
+      });
+
+      // Bottom Navigation Bar (From User Image 3)
+      const bNavY = winY + winH - 68;
+
+      // [🔒 Tidak Bisa Kembali] (gray disabled)
+      ctx.fillStyle = '#f1f5f9';
       ctx.beginPath();
-      ctx.roundRect(winX, cbtHeaderY, winW, 68, 0);
+      ctx.roundRect(winX + 32, bNavY, 160, 44, 14);
       ctx.fill();
       ctx.strokeStyle = '#e2e8f0';
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.moveTo(winX, cbtHeaderY + 68);
-      ctx.lineTo(winX + winW, cbtHeaderY + 68);
+      ctx.lineWidth = 1;
       ctx.stroke();
 
-      // Navigasi button
-      ctx.fillStyle = '#eef2ff';
-      ctx.beginPath();
-      ctx.roundRect(winX + 20, cbtHeaderY + 14, 115, 40, 12);
-      ctx.fill();
-      ctx.strokeStyle = '#c7d2fe';
-      ctx.lineWidth = 1.5;
-      ctx.stroke();
-
-      ctx.fillStyle = '#4338ca';
-      ctx.font = '900 13px "Plus Jakarta Sans"';
+      ctx.fillStyle = '#94a3b8';
+      ctx.font = '800 13px "Plus Jakarta Sans"';
       ctx.textAlign = 'center';
-      ctx.fillText('👁 Navigasi', winX + 77, cbtHeaderY + 34);
+      ctx.fillText('🔒 Tidak Bisa Kembali', winX + 112, bNavY + 26);
 
-      // Section Pill
-      ctx.fillStyle = '#eef2ff';
+      // [Berikutnya >] (Vibrant Blue Button)
+      ctx.fillStyle = '#2563eb';
       ctx.beginPath();
-      ctx.roundRect(winX + 145, cbtHeaderY + 16, 44, 36, 10);
-      ctx.fill();
-      ctx.strokeStyle = '#c7d2fe';
-      ctx.lineWidth = 1.5;
-      ctx.stroke();
-
-      ctx.fillStyle = '#4338ca';
-      ctx.font = '900 15px "JetBrains Mono"';
-      ctx.fillText('S3', winX + 167, cbtHeaderY + 34);
-
-      // Title
-      ctx.textAlign = 'left';
-      ctx.fillStyle = '#0f172a';
-      ctx.font = '900 18px "Plus Jakarta Sans"';
-      ctx.fillText('Soal #15', winX + 200, cbtHeaderY + 34);
-      ctx.fillStyle = '#64748b';
-      ctx.font = '700 15px "Plus Jakarta Sans"';
-      ctx.fillText('— Chōkai (聴解 Audio)', winX + 280, cbtHeaderY + 34);
-
-      // Countdown Timer Badge
-      const timerX = winX + winW - 270;
-      ctx.fillStyle = '#f0f9ff';
-      ctx.beginPath();
-      ctx.roundRect(timerX, cbtHeaderY + 14, 130, 40, 12);
-      ctx.fill();
-      ctx.strokeStyle = '#bae6fd';
-      ctx.lineWidth = 1.5;
-      ctx.stroke();
-
-      ctx.fillStyle = '#0369a1';
-      ctx.font = '900 14px "JetBrains Mono"';
-      ctx.textAlign = 'center';
-      ctx.fillText('⏱ 58:24', timerX + 65, cbtHeaderY + 34);
-
-      // Selesai S3 Button
-      ctx.fillStyle = '#ea580c';
-      ctx.beginPath();
-      ctx.roundRect(winX + winW - 130, cbtHeaderY + 14, 110, 40, 12);
-      ctx.fill();
-
-      ctx.fillStyle = '#ffffff';
-      ctx.font = '900 12px "Plus Jakarta Sans"';
-      ctx.fillText('Selesai S3 →', winX + winW - 75, cbtHeaderY + 34);
-
-      const mainContentX = winX + 20;
-      const mainContentW = winW - 40;
-
-      // Choukai Audio Player Component
-      const audioY = cbtHeaderY + 84;
-      const audioH = 145;
-
-      const audioGrad = ctx.createLinearGradient(mainContentX, audioY, mainContentX + mainContentW, audioY);
-      audioGrad.addColorStop(0, '#f0f9ff');
-      audioGrad.addColorStop(1, '#eef2ff');
-      ctx.fillStyle = audioGrad;
-      ctx.beginPath();
-      ctx.roundRect(mainContentX, audioY, mainContentW, audioH, 20);
-      ctx.fill();
-      ctx.strokeStyle = '#bae6fd';
-      ctx.lineWidth = 2;
-      ctx.stroke();
-
-      ctx.textAlign = 'left';
-      ctx.fillStyle = '#0369a1';
-      ctx.font = '900 15px "Plus Jakarta Sans"';
-      ctx.fillText('🔊 Pemutar Audio Chōkai (聴解 Audio)', mainContentX + 24, audioY + 32);
-
-      // Counter Badge: "Diputar: 1 / 2 kali"
-      ctx.fillStyle = '#dcfce7';
-      ctx.beginPath();
-      ctx.roundRect(mainContentX + mainContentW - 180, audioY + 16, 156, 30, 15);
-      ctx.fill();
-      ctx.strokeStyle = '#86efac';
-      ctx.lineWidth = 1.5;
-      ctx.stroke();
-
-      ctx.fillStyle = '#166534';
-      ctx.font = '900 12px "Plus Jakarta Sans"';
-      ctx.textAlign = 'center';
-      ctx.fillText('Diputar: 1 / 2 kali', mainContentX + mainContentW - 102, audioY + 31);
-
-      // Audio Play button
-      const isAudioPlaying = t > 1.8;
-      ctx.fillStyle = '#0284c7';
-      ctx.beginPath();
-      ctx.roundRect(mainContentX + 24, audioY + 62, 160, 48, 14);
+      ctx.roundRect(winX + 204, bNavY, 140, 44, 14);
       ctx.fill();
 
       ctx.fillStyle = '#ffffff';
       ctx.font = '900 14px "Plus Jakarta Sans"';
-      ctx.textAlign = 'center';
-      ctx.fillText(isAudioPlaying ? '🔊 Memutar...' : '▶ Putar Audio', mainContentX + 104, audioY + 87);
+      ctx.fillText('Berikutnya >', winX + 274, bNavY + 26);
 
-      // Waveform equalizer bars
-      for (let b = 0; b < 22; b++) {
-        const barH = isAudioPlaying ? Math.sin(t * 10 + b * 0.9) * 14 + 18 : 6;
-        ctx.fillStyle = isAudioPlaying ? '#0284c7' : '#94a3b8';
-        ctx.beginPath();
-        ctx.roundRect(mainContentX + 200 + b * 16, audioY + 86 - barH/2, 9, barH, 4);
-        ctx.fill();
-      }
-
-      ctx.textAlign = 'right';
-      ctx.fillStyle = '#0369a1';
-      ctx.font = '900 15px "JetBrains Mono"';
-      ctx.fillText('⏱ 00:48 / 01:25', mainContentX + mainContentW - 30, audioY + 88);
-
-      // Question Card
-      const qCardY = audioY + audioH + 16;
-      const qCardH = isVertical ? 460 : 320;
+      // Right buttons: ⚑ Tandai Ragu & Hapus Jawaban
       ctx.fillStyle = '#ffffff';
       ctx.beginPath();
-      ctx.roundRect(mainContentX, qCardY, mainContentW, qCardH, 20);
+      ctx.roundRect(winX + winW - 250, bNavY, 120, 44, 14);
       ctx.fill();
-      ctx.strokeStyle = '#e2e8f0';
-      ctx.lineWidth = 2;
+      ctx.strokeStyle = '#f59e0b';
+      ctx.lineWidth = 1;
       ctx.stroke();
 
-      ctx.textAlign = 'left';
-      ctx.fillStyle = '#0f172a';
-      ctx.font = '900 22px "Noto Sans JP", sans-serif';
-      ctx.fillText('第 15 問：２人は 何時に どこで 会いますか。', mainContentX + 28, qCardY + 44);
+      ctx.fillStyle = '#d97706';
+      ctx.font = '800 12px "Plus Jakarta Sans"';
+      ctx.fillText('⚑ Tandai Ragu', winX + winW - 190, bNavY + 26);
 
       ctx.fillStyle = '#64748b';
-      ctx.font = '700 15px "Noto Sans JP", sans-serif';
-      ctx.fillText('一番 いい ものを １つ 選んで ください。', mainContentX + 28, qCardY + 74);
+      ctx.font = '700 12px "Plus Jakarta Sans"';
+      ctx.fillText('Hapus Jawaban', winX + winW - 65, bNavY + 26);
 
-      const options = [
-        'A. 明日の 午前 10時に 事務所の前で 会います。',
-        'B. 明日の 午後 2時に 駅の改札口で 会います。',
-        'C. 来週の 月曜日に カフェで 会います。',
-        'D. 今日の 夕方 5時に 工場のロビーで 会います。'
-      ];
-
-      const isOptSelected = t > 4.5;
-
-      options.forEach((optText, oi) => {
-        const optY = qCardY + 104 + oi * 80;
-        if (oi < (isVertical ? 4 : 2)) {
-          const isSelected = oi === 0 && isOptSelected;
-
-          ctx.fillStyle = isSelected ? '#fff1f2' : '#ffffff';
-          ctx.beginPath();
-          ctx.roundRect(mainContentX + 28, optY, mainContentW - 56, 66, 14);
-          ctx.fill();
-          ctx.strokeStyle = isSelected ? '#dc2626' : '#cbd5e1';
-          ctx.lineWidth = isSelected ? 3 : 2;
-          ctx.stroke();
-
-          ctx.beginPath();
-          ctx.arc(mainContentX + 60, optY + 33, 13, 0, Math.PI * 2);
-          ctx.fillStyle = isSelected ? '#dc2626' : '#ffffff';
-          ctx.fill();
-          ctx.strokeStyle = isSelected ? '#dc2626' : '#94a3b8';
-          ctx.lineWidth = 2;
-          ctx.stroke();
-
-          if (isSelected) {
-            ctx.fillStyle = '#ffffff';
-            ctx.beginPath();
-            ctx.arc(mainContentX + 60, optY + 33, 5, 0, Math.PI * 2);
-            ctx.fill();
-          }
-
-          ctx.font = isSelected ? '900 17px "Noto Sans JP"' : '700 17px "Noto Sans JP"';
-          ctx.fillStyle = isSelected ? '#b91c1c' : '#1e293b';
-          ctx.fillText(optText, mainContentX + 90, optY + 39);
-        }
-      });
-
-      // Navigator Palette in Vertical mode
-      if (isVertical) {
-        const palY = qCardY + qCardH + 16;
-        ctx.fillStyle = '#f8fafc';
-        ctx.beginPath();
-        ctx.roundRect(mainContentX, palY, mainContentW, 145, 16);
-        ctx.fill();
-        ctx.strokeStyle = '#e2e8f0';
-        ctx.lineWidth = 2;
-        ctx.stroke();
-
-        ctx.fillStyle = '#334155';
-        ctx.font = '900 14px "Plus Jakarta Sans"';
-        ctx.textAlign = 'left';
-        ctx.fillText('Navigasi Soal • 14 / 20 Terjawab (Seksi S3 Chōkai)', mainContentX + 20, palY + 28);
-
-        for (let n = 1; n <= 16; n++) {
-          const pillX = mainContentX + 20 + ((n - 1) % 8) * 110;
-          const pillY = palY + 45 + Math.floor((n - 1) / 8) * 44;
-
-          if (n < 15) {
-            ctx.fillStyle = '#22c55e';
-            ctx.beginPath();
-            ctx.roundRect(pillX, pillY, 100, 36, 10);
-            ctx.fill();
-            ctx.fillStyle = '#ffffff';
-            ctx.font = '900 14px "JetBrains Mono"';
-          } else if (n === 15) {
-            ctx.fillStyle = '#dc2626';
-            ctx.beginPath();
-            ctx.roundRect(pillX, pillY, 100, 36, 10);
-            ctx.fill();
-            ctx.strokeStyle = '#fca5a5';
-            ctx.lineWidth = 3;
-            ctx.stroke();
-            ctx.fillStyle = '#ffffff';
-            ctx.font = '900 15px "JetBrains Mono"';
-          } else {
-            ctx.fillStyle = '#e2e8f0';
-            ctx.beginPath();
-            ctx.roundRect(pillX, pillY, 100, 36, 10);
-            ctx.fill();
-            ctx.fillStyle = '#64748b';
-            ctx.font = '700 14px "JetBrains Mono"';
-          }
-
-          ctx.textAlign = 'center';
-          ctx.fillText(`No. ${n}`, pillX + 50, pillY + 23);
-        }
-      }
-
-      // Cursor movement & click
-      let cursorX = mainContentX + 250;
-      let cursorY = audioY + 140;
+      // Animated Mouse Cursor gliding to Option B (10:30) and clicking
+      let cursorX = winX + 200;
+      let cursorY = choicesStartY + 74;
 
       if (t < 2.0) {
         const prog = Math.min(1, t / 2.0);
-        cursorX = (mainContentX + 400) + (mainContentX + 104 - (mainContentX + 400)) * prog;
-        cursorY = (audioY + 180) + (audioY + 87 - (audioY + 180)) * prog;
-      } else if (t < 4.8) {
-        const prog = Math.min(1, (t - 2.0) / 2.8);
-        cursorX = (mainContentX + 104) + (mainContentX + 180 - (mainContentX + 104)) * prog;
-        cursorY = (audioY + 87) + (qCardY + 137 - (audioY + 87)) * prog;
+        cursorX = (winX + 76 + playBtnW/2) + (winX + 220 - (winX + 76 + playBtnW/2)) * prog;
+        cursorY = (audioBoxY + 80) + (choicesStartY + 74 + 30 - (audioBoxY + 80)) * prog;
       } else {
-        cursorX = mainContentX + 180;
-        cursorY = qCardY + 137;
+        cursorX = winX + 220;
+        cursorY = choicesStartY + 74 + 30;
 
-        const ripple = (t - 4.8) % 1.5;
-        ctx.strokeStyle = `rgba(220, 38, 38, ${Math.max(0, 1 - ripple)})`;
+        const ripple = (t - 2.0) % 1.5;
+        ctx.strokeStyle = `rgba(37, 99, 235, ${Math.max(0, 1 - ripple)})`;
         ctx.lineWidth = 3;
         ctx.beginPath();
         ctx.arc(cursorX, cursorY, ripple * 45, 0, Math.PI * 2);
@@ -1835,294 +1766,510 @@
     }
 
     // =========================================================================
-    // SCENE 3: RAPOR SKOR DIAGNOSTIK & PEMBAHASAN (QuestionReview.tsx)
+    // SCENE 3: RAPOR SKOR EVALUASI ASLI (PERSIS GAMBAR 1 REFERENSI USER)
     // =========================================================================
-    function drawScene3ScoreReview(t, W, H) {
-      ctx.fillStyle = '#f8fafc';
+    function drawScene3ScoreReport(t, W, H) {
+      ctx.fillStyle = '#e2e8f0';
       ctx.fillRect(0, 0, W, H);
 
-      const glow = ctx.createRadialGradient(W/2, 300, 40, W/2, 300, 600);
-      glow.addColorStop(0, 'rgba(167, 243, 208, 0.45)');
-      glow.addColorStop(1, 'transparent');
-      ctx.fillStyle = glow;
-      ctx.fillRect(0, 0, W, H);
-
-      // Section Top Badge
-      const topBadgeY = isVertical ? 160 : 120;
-      ctx.fillStyle = '#ecfdf5';
-      ctx.beginPath();
-      ctx.roundRect(W/2 - 270, topBadgeY, 540, 52, 26);
-      ctx.fill();
-      ctx.strokeStyle = '#a7f3d0';
-      ctx.lineWidth = 2;
-      ctx.stroke();
-
-      ctx.fillStyle = '#047857';
-      ctx.font = '900 18px "Plus Jakarta Sans"';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText('📊 RAPOR SKOR DIAGNOSTIK & PEMBAHASAN LENGKAP', W/2, topBadgeY + 26);
-
-      // Main Score Report Card
-      const cardW = isVertical ? 960 : 980;
-      const cardH = isVertical ? 1160 : 700;
-      const cardX = (W - cardW) / 2;
-      const cardY = isVertical ? 240 : 190;
+      // Authentic Simulation Report Sheet (White Paper document from Image 1)
+      const sheetW = isVertical ? 980 : 1000;
+      const sheetH = isVertical ? 1420 : 800;
+      const sheetX = (W - sheetW) / 2;
+      const sheetY = isVertical ? 160 : 120;
 
       ctx.fillStyle = '#ffffff';
-      ctx.shadowColor = 'rgba(15, 23, 42, 0.12)';
-      ctx.shadowBlur = 30;
+      ctx.shadowColor = 'rgba(15, 23, 42, 0.15)';
+      ctx.shadowBlur = 35;
       ctx.beginPath();
-      ctx.roundRect(cardX, cardY, cardW, cardH, 24);
+      ctx.roundRect(sheetX, sheetY, sheetW, sheetH, 28);
       ctx.fill();
       ctx.shadowBlur = 0;
-      ctx.strokeStyle = '#e2e8f0';
-      ctx.lineWidth = 3;
-      ctx.stroke();
-
-      // Card Header
-      ctx.fillStyle = '#f8fafc';
-      ctx.beginPath();
-      ctx.roundRect(cardX, cardY, cardW, 80, [24, 24, 0, 0]);
-      ctx.fill();
-      ctx.strokeStyle = '#e2e8f0';
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.moveTo(cardX, cardY + 80);
-      ctx.lineTo(cardX + cardW, cardY + 80);
-      ctx.stroke();
-
-      ctx.textAlign = 'left';
-      ctx.fillStyle = '#0f172a';
-      ctx.font = '900 22px "Plus Jakarta Sans"';
-      ctx.fillText('Laporan Hasil Evaluasi CBT JFT A2', cardX + 32, cardY + 45);
-
-      ctx.textAlign = 'right';
-      ctx.fillStyle = '#16a34a';
-      ctx.font = '900 16px "Plus Jakarta Sans"';
-      ctx.fillText('✓ LULUS PASSING GRADE (200+)', cardX + cardW - 32, cardY + 45);
-
-      // Giant Score Circle & Pass Status
-      const scoreBoxY = cardY + 110;
-      ctx.fillStyle = '#ecfdf5';
-      ctx.beginPath();
-      ctx.roundRect(cardX + 32, scoreBoxY, cardW - 64, 180, 20);
-      ctx.fill();
-      ctx.strokeStyle = '#6ee7b7';
+      ctx.strokeStyle = '#cbd5e1';
       ctx.lineWidth = 2;
       ctx.stroke();
 
-      ctx.textAlign = 'left';
-      ctx.fillStyle = '#065f46';
-      ctx.font = '900 16px "Plus Jakarta Sans"';
-      ctx.fillText('TOTAL SKOR AKHIR SIMULASI:', cardX + 64, scoreBoxY + 50);
-
-      // Big Score Number
-      ctx.fillStyle = '#059669';
-      ctx.font = '900 78px "JetBrains Mono"';
-      ctx.fillText('225', cardX + 64, scoreBoxY + 130);
-
-      ctx.fillStyle = '#64748b';
-      ctx.font = '700 28px "JetBrains Mono"';
-      ctx.fillText(' / 250', cardX + 225, scoreBoxY + 130);
-
-      // Passing Badge on Right
-      ctx.textAlign = 'center';
-      ctx.fillStyle = '#10b981';
-      ctx.beginPath();
-      ctx.roundRect(cardX + cardW - 270, scoreBoxY + 40, 200, 100, 20);
-      ctx.fill();
-
+      // Top Header Pill: "SIMULATION REPORT • LAPORAN EVALUASI" (Red outlined capsule)
+      const topPillW = 320;
       ctx.fillStyle = '#ffffff';
-      ctx.font = '900 22px "Plus Jakarta Sans"';
-      ctx.fillText('🎉 LULUS', cardX + cardW - 170, scoreBoxY + 80);
-      ctx.font = '800 13px "Plus Jakarta Sans"';
-      ctx.fillText('Passing Grade: 200', cardX + cardW - 170, scoreBoxY + 110);
-
-      // 4 Section Performance Bars
-      const secBoxY = scoreBoxY + 210;
-      ctx.textAlign = 'left';
-      ctx.fillStyle = '#0f172a';
-      ctx.font = '900 20px "Plus Jakarta Sans"';
-      ctx.fillText('Analisis Per Seksi Ujian:', cardX + 32, secBoxY + 20);
-
-      const sectionsData = [
-        { name: 'S1: 文字・語彙 (Kanji & Kosakata)', score: '55 / 60', pct: 92, color: '#10b981' },
-        { name: 'S2: 会話・表現 (Percakapan & Tata Bahasa)', score: '50 / 60', pct: 83, color: '#10b981' },
-        { name: 'S3: 聴解 (Chōkai Audio Asli)', score: '60 / 60 (Sempurna)', pct: 100, color: '#0284c7' },
-        { name: 'S4: 読解 (Dokkai Bacaan Dokumen Kerja)', score: '60 / 70', pct: 86, color: '#6366f1' }
-      ];
-
-      sectionsData.forEach((sec, idx) => {
-        const barY = secBoxY + 50 + idx * 78;
-        ctx.fillStyle = '#334155';
-        ctx.font = '800 15px "Plus Jakarta Sans"';
-        ctx.fillText(sec.name, cardX + 32, barY);
-
-        ctx.textAlign = 'right';
-        ctx.fillStyle = '#0f172a';
-        ctx.font = '900 15px "JetBrains Mono"';
-        ctx.fillText(sec.score, cardX + cardW - 32, barY);
-
-        // Progress bar track
-        ctx.fillStyle = '#e2e8f0';
-        ctx.beginPath();
-        ctx.roundRect(cardX + 32, barY + 10, cardW - 64, 14, 7);
-        ctx.fill();
-
-        // Progress fill
-        const fillW = ((cardW - 64) * sec.pct) / 100;
-        ctx.fillStyle = sec.color;
-        ctx.beginPath();
-        ctx.roundRect(cardX + 32, barY + 10, fillW, 14, 7);
-        ctx.fill();
-        ctx.textAlign = 'left';
-      });
-
-      // Question Review Preview Card (QuestionReview.tsx)
-      const reviewBoxY = secBoxY + 370;
-      ctx.fillStyle = '#f8fafc';
       ctx.beginPath();
-      ctx.roundRect(cardX + 32, reviewBoxY, cardW - 64, isVertical ? 220 : 130, 20);
-      ctx.fill();
-      ctx.strokeStyle = '#e2e8f0';
-      ctx.lineWidth = 2;
-      ctx.stroke();
-
-      ctx.fillStyle = '#0f172a';
-      ctx.font = '900 17px "Plus Jakarta Sans"';
-      ctx.fillText('📖 Pembahasan Soal & Kunci Jawaban Lengkap:', cardX + 54, reviewBoxY + 36);
-
-      ctx.fillStyle = '#16a34a';
-      ctx.font = '800 15px "Plus Jakarta Sans"';
-      ctx.fillText('✓ Soal #15 (Chōkai): Jawaban Anda BENAR [Opsi A]', cardX + 54, reviewBoxY + 70);
-
-      ctx.fillStyle = '#475569';
-      ctx.font = '700 14px "Noto Sans JP", sans-serif';
-      ctx.fillText('Penjelasan: Percakapan menyebutkan jam 10 pagi di depan kantor (午前10時に 事務所の前).', cardX + 54, reviewBoxY + 105);
-
-      if (isVertical) {
-        ctx.fillStyle = '#dc2626';
-        ctx.font = '800 14px "Plus Jakarta Sans"';
-        ctx.fillText('💡 Jebakan Soal: Opsi B mengecoh waktu menjadi jam 2 siang (午後2時).', cardX + 54, reviewBoxY + 145);
-      }
-    }
-
-    // =========================================================================
-    // SCENE 4: BANK SOAL TOKUTEI GINOU & PAKET SIMULASI
-    // =========================================================================
-    function drawScene4Packages(t, W, H) {
-      ctx.fillStyle = '#f8fafc';
-      ctx.fillRect(0, 0, W, H);
-
-      const glow = ctx.createRadialGradient(W/2, 250, 40, W/2, 250, 600);
-      glow.addColorStop(0, 'rgba(254, 205, 211, 0.5)');
-      glow.addColorStop(1, 'transparent');
-      ctx.fillStyle = glow;
-      ctx.fillRect(0, 0, W, H);
-
-      // Section Top Badge
-      const topBadgeY = isVertical ? 160 : 120;
-      ctx.fillStyle = '#fee2e2';
-      ctx.beginPath();
-      ctx.roundRect(W/2 - 270, topBadgeY, 540, 52, 26);
+      ctx.roundRect(sheetX + 44, sheetY + 36, topPillW, 36, 18);
       ctx.fill();
       ctx.strokeStyle = '#fca5a5';
       ctx.lineWidth = 2;
       ctx.stroke();
 
-      ctx.fillStyle = '#b91c1c';
-      ctx.font = '900 18px "Plus Jakarta Sans"';
+      ctx.fillStyle = '#dc2626';
+      ctx.font = '900 12px "Plus Jakarta Sans"';
       ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText('🇯🇵 BANK SOAL TOKUTEI GINOU & PAKET SIMULASI', W/2, topBadgeY + 26);
+      ctx.fillText('SIMULATION REPORT • LAPORAN EVALUASI', sheetX + 44 + topPillW/2, sheetY + 58);
 
-      // Title & Subtitle
+      // Right Top: "KONDANG SENSEI INDONESIA / Lembaga Pelatihan & Persiapan Kerja Jepang"
+      ctx.textAlign = 'right';
       ctx.fillStyle = '#0f172a';
-      ctx.font = '900 36px "Plus Jakarta Sans"';
-      ctx.fillText('Pilihan Paket Latihan Terjangkau', W/2, topBadgeY + 95);
+      ctx.font = '900 15px "Plus Jakarta Sans"';
+      ctx.fillText('KONDANG SENSEI INDONESIA', sheetX + sheetW - 44, sheetY + 48);
+      ctx.fillStyle = '#64748b';
+      ctx.font = '700 11px "Plus Jakarta Sans"';
+      ctx.fillText('Lembaga Pelatihan & Persiapan Kerja Jepang', sheetX + sheetW - 44, sheetY + 66);
+
+      // Main Report Titles (From Image 1)
+      const titleY = sheetY + 115;
+      ctx.textAlign = 'center';
+      ctx.fillStyle = '#0f172a';
+      ctx.font = '900 28px "Noto Sans JP", sans-serif';
+      ctx.fillText('KondangSensei CBT 日本語能力判定結果通知書', sheetX + sheetW/2, titleY);
+
+      ctx.fillStyle = '#334155';
+      ctx.font = '800 16px "Plus Jakarta Sans"';
+      ctx.fillText('KondangSensei CBT Japanese Assessment Test — Simulation Result Report', sheetX + sheetW/2, titleY + 32);
 
       ctx.fillStyle = '#64748b';
-      ctx.font = '700 18px "Plus Jakarta Sans"';
-      ctx.fillText('Akses Instan Otomatis Aktif • Tanpa Nunggu Admin', W/2, topBadgeY + 135);
+      ctx.font = '600 11px "Plus Jakarta Sans"';
+      ctx.fillText('* Dokumen ini diterbitkan resmi oleh KondangSensei sebagai lembar evaluasi hasil simulasi mandiri siswa.', sheetX + sheetW/2, titleY + 54);
 
-      // 3 Package Cards Stacked (Vertical) or Side-by-Side
-      const pkgs = [
-        {
-          name: 'Paket SKS / Mepet Ujian',
-          duration: 'Masa Aktif 1 Minggu',
-          price: 'Rp 35.000',
-          popular: false,
-          color: '#64748b'
-        },
-        {
-          name: 'Paket IDEAL (Rekomendasi Utama)',
-          duration: 'Masa Aktif 2 Minggu',
-          price: 'Rp 59.000',
-          popular: true,
-          color: '#dc2626'
-        },
-        {
-          name: 'Paket Penguasaan Penuh',
-          duration: 'Masa Aktif 1 Bulan + Bonus PDF',
-          price: 'Rp 99.000',
-          popular: false,
-          color: '#64748b'
-        }
+      // Candidate Information Section (From Image 1)
+      const infoBoxY = titleY + 80;
+      const photoSize = 170;
+      const photoX = sheetX + 50;
+
+      // Photo Box with Capybara in sunlight
+      ctx.fillStyle = '#fef3c7';
+      ctx.beginPath();
+      ctx.roundRect(photoX, infoBoxY, photoSize, photoSize + 40, 16);
+      ctx.fill();
+      ctx.strokeStyle = '#fde68a';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      // Draw stylized capybara vector
+      ctx.save();
+      ctx.translate(photoX + photoSize/2, infoBoxY + 90);
+      ctx.fillStyle = '#d97706';
+      ctx.beginPath();
+      ctx.ellipse(0, 0, 55, 45, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#92400e';
+      ctx.beginPath();
+      ctx.arc(35, -10, 8, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(-20, -35, 10, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#ffffff';
+      ctx.font = '900 12px "Plus Jakarta Sans"';
+      ctx.textAlign = 'center';
+      ctx.fillText('Peserta CBT', 0, 70);
+      ctx.restore();
+
+      // Right Candidate Details (Key-Value from Image 1)
+      const dataX = photoX + photoSize + 40;
+      const candidateFields = [
+        { ja: '受験番号', en: 'Registration Number', val: 'JFT-2026-17219', bold: true },
+        { ja: '氏名', en: 'Name', val: 'GALIH WISNU BARATHA', bold: true },
+        { ja: '国籍', en: 'Nationality', val: 'INDONESIA', bold: true },
+        { ja: '生年月日', en: 'Date of Birth', val: '2008/10/21 (yyyy/mm/dd)', bold: false },
+        { ja: '性別', en: 'Sex', val: 'Male', bold: false },
+        { ja: '受験地', en: 'Test Location', val: 'CBT Online Simulator', bold: false },
+        { ja: '受験日', en: 'Test Date', val: '2026/10/18 (yyyy/mm/dd)', bold: false }
       ];
 
-      const startY = topBadgeY + 180;
-      pkgs.forEach((p, idx) => {
-        const cardY = startY + idx * (isVertical ? 240 : 180);
-        const cardW = isVertical ? 920 : 940;
-        const cardX = (W - cardW) / 2;
+      candidateFields.forEach((f, idx) => {
+        const rowY = infoBoxY + 18 + idx * 28;
+        ctx.textAlign = 'left';
+        ctx.fillStyle = '#1e293b';
+        ctx.font = '900 13px "Noto Sans JP", sans-serif';
+        ctx.fillText(f.ja, dataX, rowY);
 
-        ctx.fillStyle = p.popular ? '#ffffff' : '#ffffff';
-        ctx.shadowColor = p.popular ? 'rgba(220, 38, 38, 0.25)' : 'rgba(0,0,0,0.06)';
-        ctx.shadowBlur = p.popular ? 25 : 15;
+        ctx.fillStyle = '#64748b';
+        ctx.font = '700 10px "Plus Jakarta Sans"';
+        ctx.fillText(f.en, dataX, rowY + 12);
+
+        ctx.fillStyle = f.bold ? '#0f172a' : '#334155';
+        ctx.font = f.bold ? '900 15px "Plus Jakarta Sans"' : '800 14px "Plus Jakarta Sans"';
+        ctx.fillText(`:  ${f.val}`, dataX + 170, rowY + 5);
+      });
+
+      // SCORE REPORT BOX (Exact Border & Layout from Image 1)
+      const scoreBoxY = infoBoxY + 235;
+      const scoreBoxW = sheetW - 100;
+      const scoreBoxH = isVertical ? 650 : 380;
+      const scoreBoxX = sheetX + 50;
+
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath();
+      ctx.roundRect(scoreBoxX, scoreBoxY, scoreBoxW, scoreBoxH, 16);
+      ctx.fill();
+      ctx.strokeStyle = '#cbd5e1';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+
+      // Top Scores Header
+      ctx.textAlign = 'left';
+      ctx.fillStyle = '#334155';
+      ctx.font = '900 15px "Noto Sans JP", sans-serif';
+      ctx.fillText('総合得点:', scoreBoxX + 32, scoreBoxY + 40);
+      ctx.font = '700 11px "Plus Jakarta Sans"';
+      ctx.fillStyle = '#64748b';
+      ctx.fillText('Total Score', scoreBoxX + 32, scoreBoxY + 56);
+
+      // Huge Score "212"
+      ctx.fillStyle = '#0f172a';
+      ctx.font = '900 68px "JetBrains Mono"';
+      ctx.fillText('212', scoreBoxX + 175, scoreBoxY + 68);
+
+      // Right Scale Note: "得点範囲: 10-250 Range of Scores"
+      ctx.textAlign = 'right';
+      ctx.fillStyle = '#475569';
+      ctx.font = '800 12px "Noto Sans JP", sans-serif';
+      ctx.fillText('得点範囲: 10-250', scoreBoxX + scoreBoxW - 32, scoreBoxY + 38);
+      ctx.font = '700 10px "Plus Jakarta Sans"';
+      ctx.fillText('Range of Scores', scoreBoxX + scoreBoxW - 32, scoreBoxY + 52);
+
+      ctx.font = '800 11px "Noto Sans JP", sans-serif';
+      ctx.fillText('判定基準点 A1: 145, A2.1: 175, A2.2(A2): 200', scoreBoxX + scoreBoxW - 32, scoreBoxY + 76);
+      ctx.font = '700 10px "Plus Jakarta Sans"';
+      ctx.fillText('Passing Score', scoreBoxX + scoreBoxW - 32, scoreBoxY + 90);
+
+      // Assessment Results: "A2.2 (A2到達, reached A2)"
+      ctx.textAlign = 'left';
+      ctx.fillStyle = '#334155';
+      ctx.font = '900 15px "Noto Sans JP", sans-serif';
+      ctx.fillText('判定結果:', scoreBoxX + 32, scoreBoxY + 115);
+      ctx.font = '700 11px "Plus Jakarta Sans"';
+      ctx.fillStyle = '#64748b';
+      ctx.fillText('Assessment Results', scoreBoxX + 32, scoreBoxY + 130);
+
+      ctx.fillStyle = '#0f172a';
+      ctx.font = '900 38px "Plus Jakarta Sans"';
+      ctx.fillText('A2.2', scoreBoxX + 175, scoreBoxY + 125);
+
+      ctx.fillStyle = '#334155';
+      ctx.font = '800 15px "Noto Sans JP", sans-serif';
+      ctx.fillText('(A2到達, reached A2)', scoreBoxX + 270, scoreBoxY + 120);
+
+      // Horizontal Colored Spectrum Bar (From Image 1: 10 to 250 with ticks at 145, 175, 200, 250)
+      const barY = scoreBoxY + 195;
+      const barX = scoreBoxX + 40;
+      const barW = scoreBoxW - 80;
+      const barH = 14;
+
+      // Color Spectrum Gradient
+      const specGrad = ctx.createLinearGradient(barX, barY, barX + barW, barY);
+      specGrad.addColorStop(0, '#f97316');
+      specGrad.addColorStop(0.5, '#eab308');
+      specGrad.addColorStop(0.75, '#84cc16');
+      specGrad.addColorStop(1, '#10b981');
+      ctx.fillStyle = specGrad;
+      ctx.beginPath();
+      ctx.roundRect(barX, barY, barW, barH, 7);
+      ctx.fill();
+
+      // Tick markers at 10, 145, 175, 200, 250
+      const ticks = [
+        { val: 10, label: '10', sub: '' },
+        { val: 145, label: '145', sub: 'A1' },
+        { val: 175, label: '175', sub: 'A2.1' },
+        { val: 200, label: '200', sub: 'A2.2(A2)' },
+        { val: 250, label: '250', sub: '' }
+      ];
+
+      ticks.forEach(tk => {
+        const pct = (tk.val - 10) / (250 - 10);
+        const tx = barX + pct * barW;
+
+        ctx.strokeStyle = '#0f172a';
+        ctx.lineWidth = 2.5;
         ctx.beginPath();
-        ctx.roundRect(cardX, cardY, cardW, isVertical ? 210 : 160, 24);
-        ctx.fill();
-        ctx.shadowBlur = 0;
-        ctx.strokeStyle = p.popular ? '#dc2626' : '#e2e8f0';
-        ctx.lineWidth = p.popular ? 3.5 : 2;
+        ctx.moveTo(tx, barY - 8);
+        ctx.lineTo(tx, barY + barH + 8);
         ctx.stroke();
 
-        // Popular Banner
-        if (p.popular) {
-          ctx.fillStyle = '#dc2626';
-          ctx.beginPath();
-          ctx.roundRect(cardX + cardW - 200, cardY - 14, 180, 34, 12);
-          ctx.fill();
-          ctx.fillStyle = '#ffffff';
-          ctx.font = '900 12px "Plus Jakarta Sans"';
-          ctx.textAlign = 'center';
-          ctx.fillText('🔥 PALING POPULER', cardX + cardW - 110, cardY + 3);
+        ctx.fillStyle = '#0f172a';
+        ctx.font = '800 12px "JetBrains Mono"';
+        ctx.textAlign = 'center';
+        ctx.fillText(tk.label, tx, barY + barH + 24);
+
+        if (tk.sub) {
+          ctx.font = '900 11px "Plus Jakarta Sans"';
+          ctx.fillText(tk.sub, tx, barY + barH + 38);
         }
+      });
+
+      // Target Pin at 212
+      const pinPct = (212 - 10) / (250 - 10);
+      const pinX = barX + pinPct * barW;
+
+      ctx.fillStyle = '#0f172a';
+      ctx.font = '900 16px "JetBrains Mono"';
+      ctx.textAlign = 'center';
+      ctx.fillText('212', pinX, barY - 18);
+
+      // Gold circular pin
+      ctx.fillStyle = '#f59e0b';
+      ctx.beginPath();
+      ctx.arc(pinX, barY + barH/2, 10, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 3;
+      ctx.stroke();
+
+      // Section Percentages (セクション毎の正答率 : Percentage of Correct Answers)
+      const secHeaderY = barY + 95;
+      ctx.textAlign = 'left';
+      ctx.fillStyle = '#0f172a';
+      ctx.font = '900 15px "Noto Sans JP", sans-serif';
+      ctx.fillText('セクション毎の正答率 :', scoreBoxX + 40, secHeaderY);
+
+      ctx.fillStyle = '#64748b';
+      ctx.font = '700 12px "Plus Jakarta Sans"';
+      ctx.fillText('Percentage of Correct Answers for Each Section', scoreBoxX + 225, secHeaderY);
+
+      const secScores = [
+        { ja: '文字と語彙', en: 'Script and Vocabulary', pct: 100 },
+        { ja: '会話と表現', en: 'Conversation and Expression', pct: 92 },
+        { ja: '聴解', en: 'Listening Comprehension', pct: 92 },
+        { ja: '読解', en: 'Reading Comprehension', pct: 54 }
+      ];
+
+      const pTrackW = scoreBoxW * 0.48;
+      const pTrackX = scoreBoxX + scoreBoxW - pTrackW - 40;
+
+      secScores.forEach((ss, idx) => {
+        const sY = secHeaderY + 38 + idx * 56;
 
         ctx.textAlign = 'left';
         ctx.fillStyle = '#0f172a';
-        ctx.font = '900 24px "Plus Jakarta Sans"';
-        ctx.fillText(p.name, cardX + 32, cardY + 45);
+        ctx.font = '900 14px "Noto Sans JP", sans-serif';
+        ctx.fillText(ss.ja, scoreBoxX + 40, sY);
 
         ctx.fillStyle = '#64748b';
-        ctx.font = '700 15px "Plus Jakarta Sans"';
-        ctx.fillText(p.duration, cardX + 32, cardY + 75);
+        ctx.font = '700 10px "Plus Jakarta Sans"';
+        ctx.fillText(ss.en, scoreBoxX + 40, sY + 14);
 
-        // Price
-        ctx.fillStyle = p.popular ? '#dc2626' : '#0f172a';
-        ctx.font = '900 42px "Plus Jakarta Sans"';
-        ctx.fillText(p.price, cardX + 32, cardY + 135);
+        // Gray background track
+        ctx.fillStyle = '#e2e8f0';
+        ctx.beginPath();
+        ctx.roundRect(pTrackX, sY - 4, pTrackW, 14, 7);
+        ctx.fill();
 
-        // Features Checklist
-        ctx.fillStyle = '#334155';
-        ctx.font = '800 14px "Plus Jakarta Sans"';
-        ctx.fillText('✓ 5 Bank Soal Asli JFT A2  •  ✓ Audio Choukai Asli  •  ✓ Rapor Skor Real-Time', cardX + 32, cardY + 180);
+        // Pin at percentage with label above
+        const sPinX = pTrackX + (ss.pct / 100) * pTrackW;
+
+        ctx.fillStyle = '#0f172a';
+        ctx.font = '900 12px "Plus Jakarta Sans"';
+        ctx.textAlign = 'center';
+        ctx.fillText(`${ss.pct}%`, sPinX, sY - 8);
+
+        ctx.fillStyle = '#f59e0b';
+        ctx.beginPath();
+        ctx.arc(sPinX, sY + 3, 7, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+      });
+
+      // Sheet Footer (From Image 1)
+      const footY = sheetY + sheetH - 45;
+      ctx.textAlign = 'center';
+      ctx.fillStyle = '#334155';
+      ctx.font = '900 12px "Plus Jakarta Sans"';
+      ctx.fillText('Diterbitkan oleh Platform Simulasi KondangSensei CBT • Hak Cipta © KondangSensei Indonesia', sheetX + sheetW/2, footY);
+
+      ctx.fillStyle = '#94a3b8';
+      ctx.font = '600 10px "Plus Jakarta Sans"';
+      ctx.fillText('Pemberitahuan: Dokumen ini diterbitkan oleh KondangSensei Indonesia sebagai lembar evaluasi hasil simulasi mandiri siswa.', sheetX + sheetW/2, footY + 18);
+    }
+
+    // =========================================================================
+    // SCENE 4: INVESTASI & PAKET RESMI (PERSIS GAMBAR 2 REFERENSI USER)
+    // =========================================================================
+    function drawScene4Pricing(t, W, H) {
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, W, H);
+
+      const topY = isVertical ? 150 : 110;
+
+      // Top Red Pill: "PILIHAN PAKET SIMULASI RESMI"
+      ctx.fillStyle = '#fee2e2';
+      ctx.beginPath();
+      ctx.roundRect(W/2 - 160, topY, 320, 36, 18);
+      ctx.fill();
+
+      ctx.fillStyle = '#dc2626';
+      ctx.font = '900 12px "Plus Jakarta Sans"';
+      ctx.textAlign = 'center';
+      ctx.fillText('🔥 PILIHAN PAKET SIMULASI RESMI', W/2, topY + 22);
+
+      // Main Heading (From User Image 2)
+      ctx.fillStyle = '#0f172a';
+      ctx.font = '900 34px "Plus Jakarta Sans"';
+      ctx.fillText('Investasi Terbaik untuk Kelulusan Ujian CBT', W/2, topY + 80);
+      ctx.fillText('JFT-Basic A2', W/2, topY + 122);
+
+      ctx.fillStyle = '#64748b';
+      ctx.font = '600 14px "Plus Jakarta Sans"';
+      ctx.fillText('Semua paket memberikan akses tanpa batas (unlimited) ke 250 Soal Simulasi Standar Asli (5 Paket Penuh)', W/2, topY + 158);
+      ctx.fillText('dengan audio Chōkai resmi, analisis kelemahan otomatis, dan lembar hasil evaluasi instan.', W/2, topY + 180);
+
+      // 3 Cards Layout (From User Image 2)
+      const pkgs = [
+        {
+          badge: 'MEPET UJIAN • SKS',
+          badgeBg: '#0f172a',
+          badgeText: '#ffffff',
+          title: 'Paket SKS / Mepet Ujian',
+          desc: 'Akses Tryout JFT-Basic Tanpa Batas (Unlimited) selama 7 Hari. Pilihan tepat untuk drill kilat & maraton latihan mepet tanggal ujian.',
+          price: 'Rp 35.000',
+          hemat: '',
+          note: 'Masa Aktif: 7 Hari Unlimited • Khusus Drill Kilat',
+          highlightItem: '',
+          btnText: 'Pilih Paket Ini',
+          btnBg: '#0f172a',
+          isFeatured: false,
+          borderColor: '#e2e8f0'
+        },
+        {
+          badge: '★ REKOMENDASI UTAMA - PALING IDEAL',
+          badgeBg: '#dc2626',
+          badgeText: '#ffffff',
+          title: 'Paket Ideal / Rekomendasi Utama ✨',
+          desc: 'Akses Tryout JFT-Basic Tanpa Batas (Unlimited) selama 14 Hari. Waktu paling ideal & direkomendasikan untuk evaluasi serta pemantapan 4 seksi.',
+          price: 'Rp 59.000',
+          hemat: 'Hemat 26%',
+          note: 'Masa Aktif: 14 Hari Unlimited • Pilihan Terbanyak Siswa',
+          highlightItem: '✓ Waktu Persiapan Paling Ideal & Terbukti Efektif',
+          btnText: 'Ambil Rekomendasi Utama →',
+          btnBg: '#dc2626',
+          isFeatured: true,
+          borderColor: '#dc2626'
+        },
+        {
+          badge: '🎁 BONUS PDF KOSAKATA VIA WA',
+          badgeBg: '#059669',
+          badgeText: '#ffffff',
+          title: 'Paket Penguasaan Penuh',
+          desc: 'Akses Tryout JFT-Basic Tanpa Batas (Unlimited) selama 30 Hari + Bonus File PDF Kosakata & Pola Kalimat JFT via WA.',
+          price: 'Rp 99.000',
+          hemat: 'Hemat 58%',
+          note: 'Masa Aktif: 30 Hari Unlimited • File PDF Kosakata',
+          highlightItem: '✓ Bonus File PDF Kosakata & Pola Kalimat via WA',
+          btnText: 'Pilih Paket Ini',
+          btnBg: '#059669',
+          isFeatured: false,
+          borderColor: '#10b981'
+        }
+      ];
+
+      const startCardsY = topY + 220;
+
+      pkgs.forEach((p, idx) => {
+        const cW = isVertical ? 920 : 940;
+        const cH = isVertical ? 380 : 160;
+        const cX = (W - cW) / 2;
+        const cY = startCardsY + idx * (isVertical ? 410 : 175);
+
+        ctx.fillStyle = '#ffffff';
+        ctx.shadowColor = p.isFeatured ? 'rgba(220, 38, 38, 0.25)' : 'rgba(0,0,0,0.06)';
+        ctx.shadowBlur = p.isFeatured ? 30 : 12;
+        ctx.beginPath();
+        ctx.roundRect(cX, cY, cW, cH, 24);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+        ctx.strokeStyle = p.borderColor;
+        ctx.lineWidth = p.isFeatured ? 3.5 : 1.5;
+        ctx.stroke();
+
+        // Top Edge Badge (From User Image 2)
+        const bW = p.isFeatured ? 280 : 200;
+        ctx.fillStyle = p.badgeBg;
+        ctx.beginPath();
+        ctx.roundRect(cX + cW/2 - bW/2, cY - 15, bW, 30, 15);
+        ctx.fill();
+
+        ctx.fillStyle = p.badgeText;
+        ctx.font = '900 11px "Plus Jakarta Sans"';
+        ctx.textAlign = 'center';
+        ctx.fillText(p.badge, cX + cW/2, cY + 4);
+
+        // Title & Description
+        ctx.textAlign = 'left';
+        ctx.fillStyle = '#0f172a';
+        ctx.font = '900 22px "Plus Jakarta Sans"';
+        ctx.fillText(p.title, cX + 32, cY + 44);
+
+        ctx.fillStyle = '#64748b';
+        ctx.font = '600 13px "Plus Jakarta Sans"';
+        ctx.fillText(p.desc.substring(0, 85) + '...', cX + 32, cY + 70);
+
+        // Price Section
+        ctx.fillStyle = '#64748b';
+        ctx.font = '700 11px "Plus Jakarta Sans"';
+        ctx.fillText('Investasi:', cX + 32, cY + 104);
+
+        ctx.fillStyle = p.isFeatured ? '#dc2626' : '#0f172a';
+        ctx.font = '900 38px "Plus Jakarta Sans"';
+        ctx.fillText(p.price, cX + 32, cY + 144);
+
+        if (p.hemat) {
+          ctx.fillStyle = p.isFeatured ? '#fee2e2' : '#ecfdf5';
+          ctx.beginPath();
+          ctx.roundRect(cX + 240, cY + 116, 95, 26, 13);
+          ctx.fill();
+
+          ctx.fillStyle = p.isFeatured ? '#dc2626' : '#059669';
+          ctx.font = '900 11px "Plus Jakarta Sans"';
+          ctx.textAlign = 'center';
+          ctx.fillText(p.hemat, cX + 287, cY + 133);
+        }
+
+        ctx.textAlign = 'left';
+        ctx.fillStyle = '#64748b';
+        ctx.font = '700 12px "Plus Jakarta Sans"';
+        ctx.fillText(p.note, cX + 32, cY + 172);
+
+        // Checklist Items (From User Image 2)
+        const checkItems = [
+          '✓ Akses 5 Paket Ujian JFT-Basic A2 (250 Soal)',
+          '✓ Audio Chōkai Standar Ujian Asli',
+          '✓ Lembar Hasil Evaluasi & Sertifikat (PDF)',
+          '✓ Pembahasan Lengkap Tiap Soal'
+        ];
+
+        checkItems.forEach((ci, ciIdx) => {
+          ctx.fillStyle = '#334155';
+          ctx.font = '700 12px "Plus Jakarta Sans"';
+          ctx.fillText(ci, cX + 32, cY + 202 + ciIdx * 24);
+        });
+
+        // Highlight Item Pill
+        if (p.highlightItem) {
+          ctx.fillStyle = p.isFeatured ? '#fff1f2' : '#ecfdf5';
+          ctx.beginPath();
+          ctx.roundRect(cX + 32, cY + 298, cW - 64, 30, 10);
+          ctx.fill();
+
+          ctx.fillStyle = p.isFeatured ? '#b91c1c' : '#047857';
+          ctx.font = '900 12px "Plus Jakarta Sans"';
+          ctx.fillText(p.highlightItem, cX + 44, cY + 318);
+        }
+
+        // Action Button
+        ctx.fillStyle = p.btnBg;
+        ctx.beginPath();
+        ctx.roundRect(cX + 32, cY + 340, cW - 64, 46, 14);
+        ctx.fill();
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = '900 14px "Plus Jakarta Sans"';
+        ctx.textAlign = 'center';
+        ctx.fillText(p.btnText, cX + cW/2, cY + 368);
       });
     }
 
     // =========================================================================
-    // SCENE 5: PROMO VOUCHER (KONDANG50 - Safe Center Frame)
+    // SCENE 5: PROMO VOUCHER (KONDANG50)
     // =========================================================================
     function drawScene5Offer(t, W, H) {
       ctx.fillStyle = '#0b0f19';
@@ -2240,7 +2387,7 @@
     }
 
     // =========================================================================
-    // SCENE 6: CALL TO ACTION (Tryout Gratis & Website)
+    // SCENE 6: CALL TO ACTION (Mini Tryout Gratis)
     // =========================================================================
     function drawScene6CTA(t, W, H) {
       ctx.fillStyle = '#f8fafc';
@@ -2278,7 +2425,6 @@
       ctx.font = '700 22px "Plus Jakarta Sans"';
       ctx.fillText('Buktikan kemampuanmu & amankan passing grade JFT A2!', W/2, badgeY + 245);
 
-      // GIANT GLOWING RED CTA BUTTON
       const btnW = isVertical ? 860 : 880;
       const btnH = 135;
       const btnX = (W - btnW) / 2;
@@ -2375,7 +2521,7 @@
     }
 
     // =========================================================================
-    // SUBTITLES OVERLAY (VIRAL SHORT-FORM HIGH-VISIBILITY STYLE)
+    // SUBTITLES OVERLAY
     // =========================================================================
     function drawSubtitles(t, W, H) {
       let line1 = '';
@@ -2386,17 +2532,17 @@
           line1 = 'Uang tes JFT A2 itu 550 RIBU!';
           line2 = 'Jangan sampai HANGUS cuma gara-gara kaget sistem PROMETRIC!';
         } else if (t < 20.0) {
-          line1 = 'Biar nggak panik pas audio Choukai diputar, simulasi dulu di KONDANGSENSEI!';
-          line2 = 'Tampilannya 99% MIRIP UJIAN ASLI, lengkap timer & audio autentik.';
+          line1 = 'Simulasi dulu di KONDANGSENSEI!';
+          line2 = 'Tampilannya 99% PERSIS UJIAN ASLI, audio autentik & timer Prometric.';
         } else if (t < 32.0) {
-          line1 = 'Begitu selesai, langsung keluar RAPOR SKOR DIAGNOSTIK!';
-          line2 = 'Lengkap dengan EVALUASI & PEMBAHASAN MENDALAM setiap soal.';
+          line1 = 'Selesai tes langsung terbit SERTIFIKAT EVALUASI RESMI!';
+          line2 = 'Skor detail 4 seksi sampai level A2.2 (LULUS PASSING GRADE).';
         } else if (t < 44.0) {
-          line1 = 'Ribuan bank soal terupdate standar kerja TOKUTEI GINOU!';
-          line2 = 'Paket latihan hemat mulai RP 35.000 & akses instan aktif otomatis.';
+          line1 = 'Pilihan paket latihan super hemat!';
+          line2 = 'Mulai Rp 35.000 (Paket SKS) & Paket Ideal Rp 59.000 (Terpopuler).';
         } else if (t < 52.0) {
           line1 = 'Khusus hari ini, masukkan kode voucher: KONDANG50';
-          line2 = 'Dapatkan DISKON 50% untuk semua paket latihan!';
+          line2 = 'Dapatkan DISKON TAMBAHAN 50% untuk semua paket!';
         } else {
           line1 = 'Coba MINI TRYOUT GRATIS-nya sekarang juga!';
           line2 = 'Klaim diskonnya sebelum kuota habis! KLIK LINK DI BAWAH!';
@@ -2407,7 +2553,7 @@
           line2 = 'Jangan sampai HANGUS cuma gara-gara kaget sistem PROMETRIC!';
         } else if (t < 13.0) {
           line1 = 'Simulasi dulu di KONDANGSENSEI!';
-          line2 = 'Tampilannya 99% MIRIP UJIAN ASLI, lengkap timer & audio autentik.';
+          line2 = 'Tampilannya 99% PERSIS UJIAN ASLI, audio autentik & timer Prometric.';
         } else if (t < 22.0) {
           line1 = 'Masukkan kode voucher: KONDANG50';
           line2 = 'Dapatkan DISKON 50% untuk semua paket latihan!';
@@ -2447,17 +2593,15 @@
     }
 
     // =========================================================================
-    // WEBM DURATION PATCHER (Ensures video duration is full 30s/60s, NOT 30ms)
+    // WEBM DURATION PATCHER
     // =========================================================================
     async function fixWebmDuration(blob, durationMs) {
       try {
         const buffer = await blob.arrayBuffer();
         const bytes = new Uint8Array(buffer);
 
-        // Search for Segment Info ID: 0x15, 0x49, 0xA9, 0x66
         for (let i = 0; i < bytes.length - 16; i++) {
           if (bytes[i] === 0x15 && bytes[i+1] === 0x49 && bytes[i+2] === 0xA9 && bytes[i+3] === 0x66) {
-            // Search for Duration tag 0x4489 within Info
             for (let j = i + 4; j < i + 250 && j < bytes.length - 8; j++) {
               if (bytes[j] === 0x44 && bytes[j+1] === 0x89) {
                 const len = bytes[j+2];
@@ -2481,7 +2625,7 @@
     }
 
     // =========================================================================
-    // VIDEO EXPORT MODULE (MediaRecorder API -> Full Duration Auto Download)
+    // VIDEO EXPORT MODULE
     // =========================================================================
     function toggleExport() {
       if (isRecording) {
@@ -2557,12 +2701,10 @@
         const ext = mime.includes('mp4') ? 'mp4' : 'webm';
         let rawBlob = new Blob(recordedChunks, { type: mime });
 
-        // Apply EBML Duration Header Fix
         const finalBlob = await fixWebmDuration(rawBlob, DURATION * 1000);
         const videoUrl = URL.createObjectURL(finalBlob);
         const filename = `kondangsensei-ads-${DURATION.toFixed(0)}s-${isVertical ? 'vertical-9x16' : 'square-1x1'}.${ext}`;
 
-        // Auto trigger download
         const a = document.createElement('a');
         a.style.display = 'none';
         a.href = videoUrl;
@@ -2576,7 +2718,7 @@
         downloadCard.style.display = 'flex';
         directDownloadBtn.href = videoUrl;
         directDownloadBtn.download = filename;
-        directDownloadBtn.textContent = `⬇ Unduh Video (.${ext})`;
+        directDownloadBtn.textContent = `⬇ Unduh Ulang Video (.${ext})`;
 
         recordLabel.textContent = '✅ Video Berhasil Disimpan!';
         setTimeout(() => {
@@ -2585,20 +2727,18 @@
       };
 
       isRecording = true;
-      recordStartTime = performance.now();
       downloadCard.style.display = 'none';
       recordBtn.classList.add('recording');
       recordProgressBox.style.display = 'block';
       recordLabel.textContent = '⏹ Selesai & Simpan Video Sekarang';
 
-      // Reset to start and record continuously
       currentTime = 0;
       seekSlider.value = 0;
       spokenSceneIndices.clear();
       updateTimeDisplay();
       drawScene(0);
 
-      mediaRecorder.start(250); // Buffer chunks every 250ms
+      mediaRecorder.start(250);
       if (!isPlaying) {
         togglePlay();
       }
