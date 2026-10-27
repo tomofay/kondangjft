@@ -734,22 +734,30 @@
         </div>
 
         <!-- Settings Toggles -->
-        <div class="options-grid">
-          <div class="toggle-card active" id="toggleDuration" onclick="toggleDurationMode()">
-            <span>Durasi</span>
-            <strong id="durationModeLabel">60 Detik (Full)</strong>
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+          <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;">
+            <div class="toggle-card active" id="toggleDuration" onclick="toggleDurationMode()">
+              <span>Durasi</span>
+              <strong id="durationModeLabel">60 Detik</strong>
+            </div>
+            <div class="toggle-card active" id="toggleFormat" onclick="toggleExportFormat()" style="border-color: #10b981; background: #f0fdf4;">
+              <span style="color: #047857;">Format Video</span>
+              <strong id="formatLabel" style="color: #065f46;">.MP4 (Meta Ads)</strong>
+            </div>
+            <div class="toggle-card active" id="toggleAspect" onclick="toggleAspectRatio()">
+              <span>Format Rasio</span>
+              <strong id="aspectLabel">9:16 (Reels)</strong>
+            </div>
           </div>
-          <div class="toggle-card active" id="toggleVoiceover" onclick="toggleVoiceover()">
-            <span>Voiceover AI</span>
-            <strong id="voiceLabel">AKTIF (Natural)</strong>
-          </div>
-          <div class="toggle-card active" id="toggleAspect" onclick="toggleAspectRatio()">
-            <span>Format Rasio</span>
-            <strong id="aspectLabel">9:16 (Reels)</strong>
-          </div>
-          <div class="toggle-card active" id="toggleSubtitles" onclick="toggleSubtitles()">
-            <span>Subtitel Teks</span>
-            <strong id="subLabel">TAMPIL</strong>
+          <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px;">
+            <div class="toggle-card active" id="toggleVoiceover" onclick="toggleVoiceover()">
+              <span>Voiceover AI</span>
+              <strong id="voiceLabel">AKTIF (Natural)</strong>
+            </div>
+            <div class="toggle-card active" id="toggleSubtitles" onclick="toggleSubtitles()">
+              <span>Subtitel Teks</span>
+              <strong id="subLabel">TAMPIL</strong>
+            </div>
           </div>
         </div>
 
@@ -771,9 +779,20 @@
         </div>
 
         <!-- Direct Download Card when finished -->
-        <div class="download-card" id="downloadCard">
-          <span>✅ Video Full Durasi Berhasil Disimpan!</span>
-          <a href="#" class="btn-download-link" id="directDownloadBtn" download="kondangsensei-ads-60s.webm">⬇ Unduh Ulang Video</a>
+        <div class="download-card" id="downloadCard" style="display: none; flex-direction: column; gap: 10px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; gap: 12px; flex-wrap: wrap;">
+            <div>
+              <div style="font-weight: 900; font-size: 14px; color: #065f46;" id="downloadStatusTitle">✅ Video Siap Diunduh (.MP4)!</div>
+              <div style="font-size: 11px; color: #047857; font-weight: 600; margin-top: 2px;" id="downloadStatusSub">Format: .MP4 (Kompatibel Windows Media Player, Instagram Reels & Meta Ads)</div>
+            </div>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+              <button class="btn-download-link" id="directDownloadBtn" onclick="downloadCurrentVideo()" style="font-size: 13px; padding: 10px 16px; border: none; cursor: pointer;">⬇ Simpan File Video (.mp4)</button>
+              <a href="#" target="_blank" class="btn-download-link" id="previewVideoBtn" style="font-size: 12px; padding: 10px 12px; background: #047857; text-decoration: none;">▶ Buka di Tab Baru</a>
+            </div>
+          </div>
+          <div style="font-size: 11px; color: #065f46; background: #d1fae5; padding: 6px 12px; border-radius: 8px; line-height: 1.4; width: 100%;">
+            💡 <strong>Info:</strong> Format <strong>.MP4</strong> memiliki ekstensi resmi untuk Windows Media Player, Instagram Reels, Facebook Ads, dan TikTok tanpa perlu convert lagi.
+          </div>
         </div>
 
         <!-- Voiceover Text Live Guide (Natural Indonesian Copywriting) -->
@@ -814,7 +833,16 @@
     const progressBarFill = document.getElementById('progressBarFill');
     const downloadCard = document.getElementById('downloadCard');
     const directDownloadBtn = document.getElementById('directDownloadBtn');
+    const previewVideoBtn = document.getElementById('previewVideoBtn');
     const totalDurationLabel = document.getElementById('totalDurationLabel');
+    const toggleFormatCard = document.getElementById('toggleFormat');
+    const formatLabel = document.getElementById('formatLabel');
+    const downloadStatusTitle = document.getElementById('downloadStatusTitle');
+    const downloadStatusSub = document.getElementById('downloadStatusSub');
+    let selectedExportFormat = 'mp4'; // 'mp4' (default, universal) or 'webm'
+    let currentVideoBlob = null;
+    let currentVideoFilename = '';
+    let currentVideoExt = 'mp4';
 
     let currentTime = 0;
     let DURATION = 60.0;
@@ -1118,6 +1146,26 @@
           <div class="marker-btn" onclick="jumpTo(13)" id="m3"><strong>S3: PROMO</strong><span>13-22s</span></div>
           <div class="marker-btn" onclick="jumpTo(22)" id="m4"><strong>S4: CTA</strong><span>22-30s</span></div>
         `;
+      }
+    }
+
+    function toggleExportFormat() {
+      if (selectedExportFormat === 'mp4') {
+        selectedExportFormat = 'webm';
+        if (formatLabel) formatLabel.textContent = '.WEBM (Web)';
+        if (toggleFormatCard) {
+          toggleFormatCard.style.borderColor = '#94a3b8';
+          toggleFormatCard.style.background = '#f8fafc';
+        }
+        if (formatLabel) formatLabel.style.color = '#0f172a';
+      } else {
+        selectedExportFormat = 'mp4';
+        if (formatLabel) formatLabel.textContent = '.MP4 (Meta Ads)';
+        if (toggleFormatCard) {
+          toggleFormatCard.style.borderColor = '#10b981';
+          toggleFormatCard.style.background = '#f0fdf4';
+        }
+        if (formatLabel) formatLabel.style.color = '#065f46';
       }
     }
 
@@ -2651,13 +2699,23 @@
 
       recordedChunks = [];
 
-      const candidateTypes = [
-        'video/webm;codecs=vp9,opus',
-        'video/webm;codecs=vp8,opus',
-        'video/webm',
-        'video/mp4;codecs=avc1',
-        'video/mp4'
-      ];
+      let candidateTypes = [];
+      if (selectedExportFormat === 'mp4') {
+        candidateTypes = [
+          'video/mp4;codecs=avc1',
+          'video/mp4',
+          'video/webm;codecs=vp9,opus',
+          'video/webm'
+        ];
+      } else {
+        candidateTypes = [
+          'video/webm;codecs=vp9,opus',
+          'video/webm;codecs=vp8,opus',
+          'video/webm',
+          'video/mp4;codecs=avc1',
+          'video/mp4'
+        ];
+      }
 
       let selectedMime = '';
       for (const type of candidateTypes) {
@@ -2668,7 +2726,7 @@
       }
 
       try {
-        const options = selectedMime ? { mimeType: selectedMime } : {};
+        const options = selectedMime ? { mimeType: selectedMime, videoBitsPerSecond: 2500000 } : {};
         mediaRecorder = new MediaRecorder(streamToRecord, options);
       } catch (e) {
         alert('Browser Anda tidak mendukung perekaman langsung: ' + e.message);
@@ -2697,34 +2755,90 @@
           return;
         }
 
-        const mime = selectedMime || 'video/webm';
-        const ext = mime.includes('mp4') ? 'mp4' : 'webm';
-        let rawBlob = new Blob(recordedChunks, { type: mime });
+        const isMp4 = (mediaRecorder.mimeType || selectedMime).includes('mp4');
+        const cleanMime = isMp4 ? 'video/mp4' : 'video/webm';
+        const ext = isMp4 ? 'mp4' : 'webm';
+        let rawBlob = new Blob(recordedChunks, { type: cleanMime });
 
-        const finalBlob = await fixWebmDuration(rawBlob, DURATION * 1000);
+        let finalBlob = rawBlob;
+        if (!isMp4) {
+          finalBlob = await fixWebmDuration(rawBlob, DURATION * 1000);
+        }
+
+        currentVideoBlob = finalBlob;
+        currentVideoFilename = `KondangSensei-Iklan-JFT-${DURATION.toFixed(0)}s-${isVertical ? 'Reels-9x16' : 'Feed-1x1'}.${ext}`;
+        currentVideoExt = ext;
+
         const videoUrl = URL.createObjectURL(finalBlob);
-        const filename = `kondangsensei-ads-${DURATION.toFixed(0)}s-${isVertical ? 'vertical-9x16' : 'square-1x1'}.${ext}`;
 
+        // Try automatic download
         const a = document.createElement('a');
         a.style.display = 'none';
         a.href = videoUrl;
-        a.download = filename;
+        a.setAttribute('download', currentVideoFilename);
+        a.download = currentVideoFilename;
         document.body.appendChild(a);
         a.click();
         setTimeout(() => {
           document.body.removeChild(a);
-        }, 150);
+        }, 300);
 
         downloadCard.style.display = 'flex';
-        directDownloadBtn.href = videoUrl;
-        directDownloadBtn.download = filename;
-        directDownloadBtn.textContent = `⬇ Unduh Ulang Video (.${ext})`;
+        const sizeMb = (finalBlob.size / (1024 * 1024)).toFixed(1);
+        if (downloadStatusTitle) downloadStatusTitle.textContent = `✅ Video ${DURATION.toFixed(0)}s Berhasil Disimpan (.${ext.toUpperCase()})!`;
+        if (downloadStatusSub) downloadStatusSub.textContent = `Ekstensi: .${ext} • Ukuran: ${sizeMb} MB • Resolusi: ${canvas.width}x${canvas.height}`;
+        if (previewVideoBtn) previewVideoBtn.href = videoUrl;
+        if (directDownloadBtn) directDownloadBtn.textContent = `⬇ Simpan File Video (.${ext})`;
 
-        recordLabel.textContent = '✅ Video Berhasil Disimpan!';
+        recordLabel.textContent = `✅ Video .${ext.toUpperCase()} Berhasil Disimpan!`;
         setTimeout(() => {
           recordLabel.textContent = '🎥 Mulai Rekam & Simpan Video (Full HD)';
         }, 5000);
       };
+
+    async function downloadCurrentVideo() {
+      if (!currentVideoBlob) {
+        alert('Belum ada video yang direkam. Silakan klik Mulai Rekam.');
+        return;
+      }
+
+      // 1. Native Windows Save File Dialog (guarantees proper extension and path)
+      if ('showSaveFilePicker' in window) {
+        try {
+          const isMp4 = currentVideoExt === 'mp4';
+          const handle = await window.showSaveFilePicker({
+            suggestedName: currentVideoFilename,
+            types: [{
+              description: isMp4 ? 'Video MP4 (*.mp4)' : 'Video WebM (*.webm)',
+              accept: {
+                [isMp4 ? 'video/mp4' : 'video/webm']: [isMp4 ? '.mp4' : '.webm']
+              }
+            }]
+          });
+          const writable = await handle.createWritable();
+          await writable.write(currentVideoBlob);
+          await writable.close();
+          alert(`✅ Video berhasil disimpan sebagai "${currentVideoFilename}"!`);
+          return;
+        } catch (err) {
+          if (err.name === 'AbortError') return;
+          console.warn('showSaveFilePicker note:', err);
+        }
+      }
+
+      // 2. Standard browser download fallback
+      const a = document.createElement('a');
+      a.style.display = 'none';
+      const url = URL.createObjectURL(currentVideoBlob);
+      a.href = url;
+      a.setAttribute('download', currentVideoFilename);
+      a.download = currentVideoFilename;
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(() => {
+        document.body.removeChild(a);
+      }, 400);
+    }
 
       isRecording = true;
       downloadCard.style.display = 'none';
