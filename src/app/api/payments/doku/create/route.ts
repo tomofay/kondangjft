@@ -1,14 +1,14 @@
 import { NextResponse } from 'next/server';
-import { getStore } from '@/lib/dataStore';
+import { getStore, calculateVoucherDiscount } from '@/lib/dataStore';
 import { pool, initDatabase } from '@/lib/db';
-import { User, TryoutPackage, Transaction } from '@/types';
+import { User, TryoutPackage, Transaction, Voucher } from '@/types';
 import { generateDokuSignature, getDokuBaseUrl } from '@/lib/doku';
 import { generateDynamicQris } from '@/lib/qris';
 
 export async function POST(request: Request) {
   try {
     await initDatabase();
-    const { userId, packageId, channel = 'BRI' } = await request.json();
+    const { userId, packageId, channel = 'BRI', voucherCode } = await request.json();
 
     if (!userId || !packageId) {
       return NextResponse.json(
@@ -86,6 +86,57 @@ export async function POST(request: Request) {
       }
     }
 
+    // Voucher validation & discount calculation
+    let appliedVoucher: Voucher | null = null;
+    let originalAmount = pkg.price;
+    let discountAmount = 0;
+    let finalAmount = pkg.price;
+    let voucherCodeUsed: string | undefined = undefined;
+
+    if (voucherCode && typeof voucherCode === 'string' && voucherCode.trim()) {
+      const cleanCode = voucherCode.trim().toUpperCase();
+      try {
+        const [vRows] = await pool.query<any[]>('SELECT * FROM vouchers WHERE UPPER(code) = ? LIMIT 1', [cleanCode]);
+        if (vRows && vRows.length > 0) {
+          const r = vRows[0];
+          let validPkgs: string[] = [];
+          if (r.validPackages) {
+            try {
+              validPkgs = typeof r.validPackages === 'string' ? JSON.parse(r.validPackages) : r.validPackages;
+            } catch {}
+          }
+          appliedVoucher = {
+            id: r.id,
+            code: r.code,
+            discountType: r.discountType,
+            discountValue: Number(r.discountValue),
+            maxDiscountAmount: r.maxDiscountAmount !== null ? Number(r.maxDiscountAmount) : null,
+            minPurchaseAmount: Number(r.minPurchaseAmount || 0),
+            usageLimit: r.usageLimit !== null ? Number(r.usageLimit) : null,
+            usedCount: Number(r.usedCount || 0),
+            validPackages: validPkgs,
+            startDate: r.startDate,
+            expiredAt: r.expiredAt,
+            isActive: Boolean(r.isActive),
+            description: r.description
+          };
+        }
+      } catch {}
+
+      if (!appliedVoucher) {
+        appliedVoucher = store.vouchers.find((v: Voucher) => v.code.toUpperCase() === cleanCode) || null;
+      }
+
+      if (appliedVoucher) {
+        const discountRes = calculateVoucherDiscount(appliedVoucher, pkg.price, pkg.id);
+        if (discountRes.isValid) {
+          discountAmount = discountRes.discountAmount;
+          finalAmount = discountRes.finalPrice;
+          voucherCodeUsed = appliedVoucher.code;
+        }
+      }
+    }
+
     const clientId = process.env.DOKU_CLIENT_ID || 'BRN-0217-1792292490991';
     const secretKey = process.env.DOKU_SECRET_KEY || 'SK-exfHwYOtzTIzZi16bxSz';
     const baseUrl = getDokuBaseUrl();
@@ -95,6 +146,84 @@ export async function POST(request: Request) {
     const requestId = `REQ-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`;
     const requestTimestamp = new Date().toISOString().replace(/\.\d{3}Z$/, 'Z');
     const merchantRef = String(Math.floor(100000000 + Math.random() * 900000000)); // 9 digits
+
+    // CASE 100% DISCOUNT: Free activation directly without payment gateway
+    if (finalAmount === 0 && voucherCodeUsed) {
+      const durationMs = pkg.durationHours
+        ? pkg.durationHours * 60 * 60 * 1000
+        : (pkg.durationDays || 7) * 24 * 60 * 60 * 1000;
+
+      const baseTime = user.subscriptionExpiresAt && new Date(user.subscriptionExpiresAt).getTime() > Date.now()
+        ? new Date(user.subscriptionExpiresAt).getTime()
+        : Date.now();
+
+      const newExpiry = new Date(baseTime + durationMs).toISOString();
+      user.subscriptionExpiresAt = newExpiry;
+
+      try {
+        await pool.query('UPDATE users SET subscriptionExpiresAt = ? WHERE id = ?', [newExpiry, user.id]);
+      } catch {}
+
+      if (appliedVoucher) {
+        appliedVoucher.usedCount += 1;
+        try {
+          await pool.query('UPDATE vouchers SET usedCount = usedCount + 1 WHERE id = ?', [appliedVoucher.id]);
+        } catch {}
+      }
+
+      const freeTx: Transaction = {
+        id: invoiceNumber,
+        userId: user.id,
+        userName: user.name,
+        packageId: pkg.id,
+        packageName: pkg.name,
+        amount: 0,
+        originalAmount,
+        discountAmount,
+        voucherCode: voucherCodeUsed,
+        paymentMethod: `Voucher 100% (${voucherCodeUsed})`,
+        paymentCode: voucherCodeUsed,
+        status: 'PAID',
+        createdAt: new Date().toISOString()
+      };
+      store.transactions.unshift(freeTx);
+
+      try {
+        await pool.query(
+          `INSERT INTO transactions (id, userId, userName, packageId, packageName, amount, voucherCode, discountAmount, originalAmount, paymentMethod, paymentCode, status, createdAt)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'PAID', ?)`,
+          [
+            freeTx.id,
+            freeTx.userId,
+            freeTx.userName,
+            freeTx.packageId,
+            freeTx.packageName,
+            freeTx.amount,
+            freeTx.voucherCode,
+            freeTx.discountAmount,
+            freeTx.originalAmount,
+            freeTx.paymentMethod,
+            freeTx.paymentCode,
+            freeTx.createdAt
+          ]
+        );
+      } catch (err) {
+        console.warn('MySQL insert free tx warning:', err);
+      }
+
+      const durationLabel = pkg.durationHours ? `${pkg.durationHours} Jam` : `${pkg.durationDays || 7} Hari`;
+      return NextResponse.json({
+        success: true,
+        isFree: true,
+        invoiceNumber,
+        amount: 0,
+        originalAmount,
+        discountAmount,
+        voucherCode: voucherCodeUsed,
+        subscriptionExpiresAt: newExpiry,
+        message: `Selamat! Voucher ${voucherCodeUsed} 100% berhasil digunakan. Akses Tryout ${durationLabel} aktif gratis!`
+      });
+    }
 
     // Dynamic base URL for hosting compatibility
     const hostHeader = request.headers.get('x-forwarded-host') || request.headers.get('host');
@@ -107,7 +236,7 @@ export async function POST(request: Request) {
     const requestBody = {
       order: {
         invoice_number: invoiceNumber,
-        amount: pkg.price,
+        amount: finalAmount,
         callback_url: baseUrlWeb,
         failed_url: baseUrlWeb,
         auto_redirect: true
@@ -193,7 +322,7 @@ export async function POST(request: Request) {
     // Ensure valid ASPI EMVCo dynamic QR string
     if (!qrString) {
       const label = isSandbox ? 'KONDANG SENSEI (SANDBOX)' : 'Kondang Sensei Education';
-      qrString = generateDynamicQris(pkg.price, invoiceNumber, label);
+      qrString = generateDynamicQris(finalAmount, invoiceNumber, label);
     }
 
     if (isSandbox && !checkoutPaymentUrl) {
@@ -236,7 +365,10 @@ export async function POST(request: Request) {
         userName: user.name,
         packageId: pkg.id,
         packageName: pkg.name,
-        amount: pkg.price,
+        amount: finalAmount,
+        originalAmount,
+        discountAmount,
+        voucherCode: voucherCodeUsed,
         paymentMethod: fullMethod,
         paymentCode: code,
         howToPayUrl,
@@ -250,9 +382,13 @@ export async function POST(request: Request) {
       try {
         await pool.query(
           `INSERT INTO transactions 
-           (id, userId, userName, packageId, packageName, amount, paymentMethod, paymentCode, howToPayUrl, expiredAt, status, createdAt)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+           (id, userId, userName, packageId, packageName, amount, voucherCode, discountAmount, originalAmount, paymentMethod, paymentCode, howToPayUrl, expiredAt, status, createdAt)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
            ON DUPLICATE KEY UPDATE 
+             amount = VALUES(amount),
+             voucherCode = VALUES(voucherCode),
+             discountAmount = VALUES(discountAmount),
+             originalAmount = VALUES(originalAmount),
              paymentMethod = VALUES(paymentMethod),
              paymentCode = VALUES(paymentCode),
              howToPayUrl = VALUES(howToPayUrl),
@@ -265,6 +401,9 @@ export async function POST(request: Request) {
             newTx.packageId,
             newTx.packageName,
             newTx.amount,
+            newTx.voucherCode || null,
+            newTx.discountAmount || 0,
+            newTx.originalAmount || null,
             newTx.paymentMethod,
             newTx.paymentCode,
             newTx.howToPayUrl,
@@ -284,7 +423,10 @@ export async function POST(request: Request) {
         paymentCode: code,
         howToPayUrl,
         expiredDate: expiredAt,
-        amount: pkg.price,
+        amount: finalAmount,
+        originalAmount,
+        discountAmount,
+        voucherCode: voucherCodeUsed,
         invoiceNumber,
         isSandbox,
         message: `Nomor Pembayaran DOKU (${paymentChannelName}${sandboxLabel}) berhasil diterbitkan.`

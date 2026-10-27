@@ -17,7 +17,10 @@ import {
   Check,
   Sparkles,
   Clock,
-  ExternalLink
+  ExternalLink,
+  Tag,
+  Ticket,
+  RefreshCw
 } from 'lucide-react';
 import { QrisLogo } from './PaymentLogos';
 
@@ -69,6 +72,97 @@ export const PackagePaymentModal: React.FC<PackagePaymentModalProps> = ({
   const [isSimulating, setIsSimulating] = useState(false);
   const [checkStatusMessage, setCheckStatusMessage] = useState('');
 
+  // Voucher states
+  const [voucherCodeInput, setVoucherCodeInput] = useState('');
+  const [appliedVoucherData, setAppliedVoucherData] = useState<{
+    code: string;
+    discountType: string;
+    discountValue: number;
+    discountAmount: number;
+    finalPrice: number;
+    description?: string;
+  } | null>(null);
+  const [voucherError, setVoucherError] = useState('');
+  const [isValidatingVoucher, setIsValidatingVoucher] = useState(false);
+
+  // Recalculate voucher if selected package changes
+  useEffect(() => {
+    if (appliedVoucherData && selectedPkg) {
+      fetch('/api/vouchers/validate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          code: appliedVoucherData.code,
+          packageId: selectedPkg.id,
+          userId: currentUser?.id
+        })
+      })
+        .then((r) => r.json())
+        .then((d) => {
+          if (d.success && d.valid) {
+            setAppliedVoucherData({
+              code: d.voucher.code,
+              discountType: d.voucher.discountType,
+              discountValue: d.voucher.discountValue,
+              discountAmount: d.discountAmount,
+              finalPrice: d.finalPrice,
+              description: d.voucher.description
+            });
+            setVoucherError('');
+          } else {
+            setAppliedVoucherData(null);
+            setVoucherError(d.message || 'Voucher tidak berlaku untuk paket ini.');
+          }
+        })
+        .catch(() => {});
+    }
+  }, [selectedPkg?.id]);
+
+  const handleApplyVoucher = async () => {
+    if (!voucherCodeInput.trim() || !selectedPkg) return;
+    setIsValidatingVoucher(true);
+    setVoucherError('');
+    try {
+      const res = await fetch('/api/vouchers/validate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          code: voucherCodeInput.trim(),
+          packageId: selectedPkg.id,
+          userId: currentUser?.id
+        })
+      });
+      const data = await res.json();
+      if (data.success && data.valid) {
+        setAppliedVoucherData({
+          code: data.voucher.code,
+          discountType: data.voucher.discountType,
+          discountValue: data.voucher.discountValue,
+          discountAmount: data.discountAmount,
+          finalPrice: data.finalPrice,
+          description: data.voucher.description
+        });
+        setVoucherError('');
+      } else {
+        setVoucherError(data.message || 'Kode voucher tidak valid.');
+        setAppliedVoucherData(null);
+      }
+    } catch {
+      setVoucherError('Gagal memvalidasi kode voucher. Silakan periksa koneksi Anda.');
+      setAppliedVoucherData(null);
+    } finally {
+      setIsValidatingVoucher(false);
+    }
+  };
+
+  const handleRemoveVoucher = () => {
+    setAppliedVoucherData(null);
+    setVoucherCodeInput('');
+    setVoucherError('');
+  };
+
+  const finalPayAmount = appliedVoucherData ? appliedVoucherData.finalPrice : (selectedPkg?.price || 0);
+
   // Auto-poll payment status while QR is displayed
   useEffect(() => {
     if (!isOpen || !vaResult?.invoiceNumber) return;
@@ -114,11 +208,22 @@ export const PackagePaymentModal: React.FC<PackagePaymentModalProps> = ({
           body: JSON.stringify({
             userId: currentUser.id,
             packageId: selectedPkg.id,
-            channel: selectedChannel
+            channel: selectedChannel,
+            voucherCode: appliedVoucherData?.code
           })
         });
 
         const data = await res.json();
+
+        // 100% Free Voucher Claimed Instantly
+        if (data.success && data.isFree) {
+          if (selectedPkg) {
+            onPaymentSuccess(selectedPkg.id, `Voucher 100% (${appliedVoucherData?.code || 'PROMO'})`);
+          }
+          setVaResult(null);
+          onClose();
+          return;
+        }
         if (data.success && (data.paymentCode || data.howToPayUrl)) {
           if (selectedChannel === 'DOKU_EWALLET' && data.howToPayUrl && !data.isSandbox) {
             window.location.href = data.howToPayUrl;
@@ -509,36 +614,141 @@ export const PackagePaymentModal: React.FC<PackagePaymentModalProps> = ({
                 </div>
               </div>
 
-              {/* 2. Metode Pembayaran: QRIS Only */}
+              {/* 2. Voucher Code Section */}
               <div className="space-y-2 pt-1">
                 <div className="flex items-center justify-between">
                   <label className="text-xs font-black text-stone-800 uppercase tracking-wider flex items-center gap-1.5">
-                    <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
-                    2. Metode Pembayaran:
+                    <Tag className="w-3.5 h-3.5 text-rose-600" />
+                    2. Punya Kode Voucher?
                   </label>
+                  {appliedVoucherData && (
+                    <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                      Hemat Rp {appliedVoucherData.discountAmount.toLocaleString('id-ID')}
+                    </span>
+                  )}
                 </div>
 
-                <div className="p-3.5 rounded-2xl border-2 border-emerald-500 bg-gradient-to-r from-emerald-50/70 via-white to-teal-50/30 shadow-xs flex items-center justify-between gap-3">
-                  <div className="flex items-center gap-3 min-w-0">
-                    <div className="w-14 h-10 rounded-xl bg-white border border-stone-200 flex items-center justify-center p-1.5 shrink-0 shadow-2xs">
-                      <QrisLogo className="h-6 w-auto" />
-                    </div>
-                    <div className="min-w-0">
-                      <div className="font-black text-xs sm:text-sm text-stone-900 flex items-center gap-1.5">
-                        <span>QRIS Instant</span>
-                        <span className="px-1.5 py-0.5 bg-emerald-600 text-white text-[9px] rounded-full font-bold">Resmi</span>
+                {!appliedVoucherData ? (
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <div className="relative flex-1">
+                        <Ticket className="w-4 h-4 text-stone-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                        <input
+                          type="text"
+                          value={voucherCodeInput}
+                          onChange={(e) => {
+                            setVoucherCodeInput(e.target.value.toUpperCase());
+                            setVoucherError('');
+                          }}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              e.preventDefault();
+                              handleApplyVoucher();
+                            }
+                          }}
+                          placeholder="Masukkan kode voucher (contoh: KONDANG50)"
+                          className="w-full pl-9 pr-3 py-2.5 text-xs font-mono font-bold tracking-wider text-stone-900 placeholder-stone-400 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-rose-500/30 focus:border-rose-500 transition"
+                        />
                       </div>
-                      <p className="text-[11px] text-stone-500 truncate font-medium">
-                        BCA, Mandiri, BRI, BNI, GoPay, OVO, DANA, ShopeePay
-                      </p>
+                      <button
+                        type="button"
+                        disabled={isValidatingVoucher || !voucherCodeInput.trim()}
+                        onClick={handleApplyVoucher}
+                        className="px-4 py-2.5 bg-stone-900 hover:bg-stone-800 disabled:opacity-50 text-white text-xs font-bold rounded-xl transition shadow-2xs shrink-0 cursor-pointer flex items-center gap-1.5"
+                      >
+                        {isValidatingVoucher ? (
+                          <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                        ) : (
+                          <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+                        )}
+                        <span>Gunakan</span>
+                      </button>
                     </div>
+
+                    {voucherError && (
+                      <div className="p-2.5 bg-rose-50 border border-rose-200 rounded-xl text-xs text-red-700 flex items-center gap-2 font-medium">
+                        <AlertCircle className="w-4 h-4 shrink-0 text-red-600" />
+                        <span>{voucherError}</span>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="p-3 bg-gradient-to-r from-emerald-50 via-teal-50/50 to-white border border-emerald-300 rounded-2xl flex items-center justify-between gap-3 shadow-2xs animate-in zoom-in-95 duration-150">
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <div className="w-8 h-8 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-2xs">
+                        <CheckCircle2 className="w-4 h-4" />
+                      </div>
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="font-mono font-black text-xs text-emerald-900 bg-white px-2 py-0.5 rounded-lg border border-emerald-200">
+                            {appliedVoucherData.code}
+                          </span>
+                          <span className="text-xs font-black text-emerald-700">
+                            -Rp {appliedVoucherData.discountAmount.toLocaleString('id-ID')}
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-emerald-800 font-medium truncate mt-0.5">
+                          {appliedVoucherData.description || 'Kode voucher berhasil digunakan!'}
+                        </p>
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={handleRemoveVoucher}
+                      className="p-1.5 text-stone-400 hover:text-red-600 hover:bg-rose-50 rounded-xl transition shrink-0 cursor-pointer"
+                      title="Batalkan Voucher"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {/* 3. Metode Pembayaran: QRIS Only (jika tidak gratis) */}
+              {finalPayAmount > 0 ? (
+                <div className="space-y-2 pt-1">
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-black text-stone-800 uppercase tracking-wider flex items-center gap-1.5">
+                      <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+                      3. Metode Pembayaran:
+                    </label>
                   </div>
 
-                  <div className="w-5 h-5 rounded-full bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-2xs">
-                    <Check className="w-3 h-3 stroke-[3]" />
+                  <div className="p-3.5 rounded-2xl border-2 border-emerald-500 bg-gradient-to-r from-emerald-50/70 via-white to-teal-50/30 shadow-xs flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="w-14 h-10 rounded-xl bg-white border border-stone-200 flex items-center justify-center p-1.5 shrink-0 shadow-2xs">
+                        <QrisLogo className="h-6 w-auto" />
+                      </div>
+                      <div className="min-w-0">
+                        <div className="font-black text-xs sm:text-sm text-stone-900 flex items-center gap-1.5">
+                          <span>QRIS Instant</span>
+                          <span className="px-1.5 py-0.5 bg-emerald-600 text-white text-[9px] rounded-full font-bold">Resmi</span>
+                        </div>
+                        <p className="text-[11px] text-stone-500 truncate font-medium">
+                          BCA, Mandiri, BRI, BNI, GoPay, OVO, DANA, ShopeePay
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="w-5 h-5 rounded-full bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-2xs">
+                      <Check className="w-3 h-3 stroke-[3]" />
+                    </div>
                   </div>
                 </div>
-              </div>
+              ) : (
+                <div className="p-3.5 rounded-2xl border-2 border-emerald-400 bg-emerald-50/90 flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-2xs">
+                    <Sparkles className="w-5 h-5 text-amber-300" />
+                  </div>
+                  <div>
+                    <h4 className="text-xs font-black text-emerald-900">Total Tagihan Rp 0 (Diskon 100%)</h4>
+                    <p className="text-[11px] text-emerald-700 font-medium">
+                      Anda tidak perlu membayar apa pun. Klik tombol di bawah untuk langsung mengaktifkan paket akses gratis Anda!
+                    </p>
+                  </div>
+                </div>
+              )}
 
               {errorMessage && (
                 <div className="p-3 bg-rose-50 border border-rose-200 text-red-700 rounded-xl text-xs font-semibold flex items-center gap-2">
@@ -575,19 +785,46 @@ export const PackagePaymentModal: React.FC<PackagePaymentModalProps> = ({
         {!vaResult && (
           <div className="p-3.5 sm:p-4 bg-stone-50 border-t border-stone-200 flex flex-col xs:flex-row items-stretch xs:items-center justify-between gap-3 shrink-0">
             <div className="flex xs:flex-col justify-between items-center xs:items-start">
-              <div className="text-[10px] text-stone-500 uppercase font-bold">Total Pembayaran:</div>
-              <div className="text-base sm:text-lg font-black text-emerald-600 font-mono">
-                Rp {selectedPkg?.price.toLocaleString('id-ID')}
+              <div className="text-[10px] text-stone-500 uppercase font-bold flex items-center gap-1.5">
+                <span>Total Pembayaran:</span>
+                {appliedVoucherData && (
+                  <span className="text-[10px] font-mono line-through text-stone-400">
+                    Rp {selectedPkg?.price.toLocaleString('id-ID')}
+                  </span>
+                )}
+              </div>
+              <div className="text-base sm:text-lg font-black font-mono flex items-center gap-2">
+                <span className={finalPayAmount === 0 ? 'text-emerald-600' : 'text-stone-900'}>
+                  {finalPayAmount === 0 ? 'GRATIS (Rp 0)' : `Rp ${finalPayAmount.toLocaleString('id-ID')}`}
+                </span>
+                {appliedVoucherData && (
+                  <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-emerald-100 text-emerald-800">
+                    Hemat Rp {appliedVoucherData.discountAmount.toLocaleString('id-ID')}
+                  </span>
+                )}
               </div>
             </div>
 
             <button
               onClick={handlePay}
               disabled={isProcessing || !selectedPkg}
-              className="w-full xs:w-auto justify-center py-3 px-5 sm:px-6 bg-gradient-to-r from-red-600 via-rose-600 to-red-700 hover:from-red-700 hover:to-rose-800 text-white font-black text-xs rounded-xl shadow-md shadow-red-600/25 transition flex items-center gap-2 disabled:opacity-50 cursor-pointer"
+              className={`w-full xs:w-auto justify-center py-3 px-5 sm:px-6 text-white font-black text-xs rounded-xl shadow-md transition flex items-center gap-2 disabled:opacity-50 cursor-pointer ${
+                finalPayAmount === 0
+                  ? 'bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 shadow-emerald-600/25'
+                  : 'bg-gradient-to-r from-red-600 via-rose-600 to-red-700 hover:from-red-700 hover:to-rose-800 shadow-red-600/25'
+              }`}
             >
-              <QrCode className="w-4 h-4" />
-              <span>{isProcessing ? 'Memproses...' : 'Bayar Sekarang via QRIS'}</span>
+              {finalPayAmount === 0 ? (
+                <>
+                  <Sparkles className="w-4 h-4 text-amber-300" />
+                  <span>{isProcessing ? 'Mengaktifkan...' : 'Klaim Akses Gratis Sekarang'}</span>
+                </>
+              ) : (
+                <>
+                  <QrCode className="w-4 h-4" />
+                  <span>{isProcessing ? 'Memproses...' : 'Bayar Sekarang via QRIS'}</span>
+                </>
+              )}
             </button>
           </div>
         )}

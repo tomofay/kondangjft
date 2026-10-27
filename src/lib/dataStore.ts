@@ -1,4 +1,4 @@
-import { User, ExamResult, Transaction, TryoutPackage, Question, PDFQuestionDraft, ExamSet } from '../types/index';
+import { User, ExamResult, Transaction, TryoutPackage, Question, PDFQuestionDraft, ExamSet, Voucher } from '../types/index';
 import { JFT_QUESTIONS_BANK } from './jftQuestions';
 import { MINI_TRYOUT_QUESTIONS } from './miniTryoutQuestions';
 
@@ -82,6 +82,7 @@ declare global {
     transactions: Transaction[];
     pdfDrafts: PDFQuestionDraft[];
     examSets: ExamSet[];
+    vouchers: Voucher[];
   } | undefined;
 }
 
@@ -140,6 +141,57 @@ export const DEFAULT_PACKAGES: TryoutPackage[] = [
     durationDays: 30,
     price: 99000,
     popular: false
+  }
+];
+
+export const DEFAULT_VOUCHERS: Voucher[] = [
+  {
+    id: 'v_kondang50',
+    code: 'KONDANG50',
+    discountType: 'PERCENTAGE',
+    discountValue: 50,
+    maxDiscountAmount: 30000,
+    minPurchaseAmount: 30000,
+    usageLimit: 100,
+    usedCount: 0,
+    validPackages: [],
+    startDate: null,
+    expiredAt: null,
+    isActive: true,
+    description: 'Diskon 50% Semua Paket (Maks. Potongan Rp 30.000)',
+    createdAt: new Date().toISOString()
+  },
+  {
+    id: 'v_hemat10k',
+    code: 'HEMAT10K',
+    discountType: 'FIXED',
+    discountValue: 10000,
+    maxDiscountAmount: null,
+    minPurchaseAmount: 30000,
+    usageLimit: 50,
+    usedCount: 0,
+    validPackages: [],
+    startDate: null,
+    expiredAt: null,
+    isActive: true,
+    description: 'Potongan Langsung Rp 10.000 untuk Semua Paket',
+    createdAt: new Date().toISOString()
+  },
+  {
+    id: 'v_gratis100',
+    code: 'GRATIS100',
+    discountType: 'PERCENTAGE',
+    discountValue: 100,
+    maxDiscountAmount: null,
+    minPurchaseAmount: 0,
+    usageLimit: 20,
+    usedCount: 0,
+    validPackages: [],
+    startDate: null,
+    expiredAt: null,
+    isActive: true,
+    description: 'Voucher Spesial Akses Gratis 100% (Kuota 20 Pengguna)',
+    createdAt: new Date().toISOString()
   }
 ];
 
@@ -206,7 +258,9 @@ globalThis.__kondangStore = globalThis.__kondangStore || {
 
   pdfDrafts: [],
 
-  examSets: [...EXAM_SETS]
+  examSets: [...EXAM_SETS],
+
+  vouchers: [...DEFAULT_VOUCHERS]
 };
 
 export const getStore = () => {
@@ -219,11 +273,75 @@ export const getStore = () => {
   ) {
     store.packages = [...DEFAULT_PACKAGES];
   }
-  if (!store.examSets || store.examSets.length === 0) {
+  if (!store.examSets) {
     store.examSets = [...EXAM_SETS];
+  } else if (!store.examSets.some((s) => s.id === 99)) {
+    const mini = EXAM_SETS.find((s) => s.id === 99);
+    if (mini) store.examSets.unshift(mini);
+  }
+  if (!store.vouchers || store.vouchers.length === 0) {
+    store.vouchers = [...DEFAULT_VOUCHERS];
   }
   return store;
 };
+
+/**
+ * Validates a voucher against package & constraints, returning calculated discount
+ */
+export function calculateVoucherDiscount(
+  voucher: Voucher,
+  packagePrice: number,
+  packageId: string
+): { isValid: boolean; reason?: string; discountAmount: number; finalPrice: number } {
+  if (!voucher.isActive) {
+    return { isValid: false, reason: 'Kode voucher ini sedang tidak aktif.', discountAmount: 0, finalPrice: packagePrice };
+  }
+
+  const now = new Date();
+  if (voucher.startDate && new Date(voucher.startDate) > now) {
+    return { isValid: false, reason: 'Voucher ini belum mulai berlaku.', discountAmount: 0, finalPrice: packagePrice };
+  }
+
+  if (voucher.expiredAt && new Date(voucher.expiredAt) < now) {
+    return { isValid: false, reason: 'Masa berlaku voucher telah berakhir (kedaluwarsa).', discountAmount: 0, finalPrice: packagePrice };
+  }
+
+  if (voucher.usageLimit && voucher.usageLimit > 0 && voucher.usedCount >= voucher.usageLimit) {
+    return { isValid: false, reason: 'Kuota penggunaan voucher ini telah habis.', discountAmount: 0, finalPrice: packagePrice };
+  }
+
+  if (voucher.validPackages && voucher.validPackages.length > 0 && !voucher.validPackages.includes(packageId)) {
+    return { isValid: false, reason: 'Voucher ini tidak berlaku untuk paket yang dipilih.', discountAmount: 0, finalPrice: packagePrice };
+  }
+
+  if (voucher.minPurchaseAmount && packagePrice < voucher.minPurchaseAmount) {
+    return {
+      isValid: false,
+      reason: `Minimal pembelian untuk voucher ini adalah Rp ${voucher.minPurchaseAmount.toLocaleString('id-ID')}.`,
+      discountAmount: 0,
+      finalPrice: packagePrice
+    };
+  }
+
+  let discount = 0;
+  if (voucher.discountType === 'PERCENTAGE') {
+    discount = Math.round((packagePrice * voucher.discountValue) / 100);
+    if (voucher.maxDiscountAmount && voucher.maxDiscountAmount > 0 && discount > voucher.maxDiscountAmount) {
+      discount = voucher.maxDiscountAmount;
+    }
+  } else {
+    discount = voucher.discountValue;
+  }
+
+  discount = Math.min(discount, packagePrice);
+  const finalPrice = Math.max(0, packagePrice - discount);
+
+  return {
+    isValid: true,
+    discountAmount: discount,
+    finalPrice
+  };
+}
 
 // Single Session Manager Utilities
 export function generateSessionId(): string {

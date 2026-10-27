@@ -43,6 +43,9 @@ export async function POST(request: Request) {
             packageId: dbTx.packageId,
             packageName: dbTx.packageName,
             amount: dbTx.amount,
+            voucherCode: dbTx.voucherCode || undefined,
+            discountAmount: dbTx.discountAmount ? Number(dbTx.discountAmount) : 0,
+            originalAmount: dbTx.originalAmount ? Number(dbTx.originalAmount) : undefined,
             paymentMethod: dbTx.paymentMethod,
             paymentCode: dbTx.paymentCode,
             status: 'PENDING',
@@ -72,6 +75,16 @@ export async function POST(request: Request) {
       );
     } catch (dbErr) {
       console.warn('MySQL update tx status warning:', dbErr);
+    }
+
+    // Increment voucher usedCount if applicable
+    if (tx.voucherCode) {
+      const cleanVoc = tx.voucherCode.trim().toUpperCase();
+      const v = store.vouchers.find((voc) => voc.code.toUpperCase() === cleanVoc);
+      if (v) v.usedCount += 1;
+      try {
+        await pool.query('UPDATE vouchers SET usedCount = usedCount + 1 WHERE UPPER(code) = ?', [cleanVoc]);
+      } catch {}
     }
 
     // 3. Perpanjang masa aktif akun siswa

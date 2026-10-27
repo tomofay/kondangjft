@@ -317,7 +317,7 @@ export default function HomePage() {
     try {
       const res = await fetch('/api/exam-sets');
       const data = await res.json();
-      if (data.success && Array.isArray(data.examSets) && data.examSets.length > 0) {
+      if (data.success && Array.isArray(data.examSets)) {
         setExamSets(data.examSets);
       }
     } catch (err) {
@@ -1512,7 +1512,7 @@ export default function HomePage() {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {(examSets && examSets.length > 0 ? examSets : EXAM_SETS).map((set, setIdx) => {
+                {(examSets && examSets.length > 0 ? examSets : EXAM_SETS.filter((s) => s.id === 99)).map((set, setIdx) => {
                   const setQuestionCount = questions.filter((q) => (q.packageId || 1) === set.id).length;
                   const isSelected = selectedPackageId === set.id;
 

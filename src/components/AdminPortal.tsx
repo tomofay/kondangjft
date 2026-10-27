@@ -1,8 +1,8 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { User, Question, Transaction, PDFQuestionDraft, SectionType, ExamResult } from '../types';
-import { Users, FileText, Lock, Upload, Layers, DollarSign, BookOpen, X, ChevronLeft, ChevronRight, RefreshCw, Trash2, Shield, Image as ImageIcon, Link as LinkIcon, UploadCloud, Check, Volume2, Headphones, Sparkles, Eye, ZoomIn, AlertCircle, FileUp, FolderUp, Folder, FolderPlus, ArrowLeft, Edit3, Plus, Award, CheckCircle2, XCircle, Calendar, Clock, TrendingUp, BarChart3, Activity, MessageCircle, Download, Copy, Search, Phone } from 'lucide-react';
+import { User, Question, Transaction, PDFQuestionDraft, SectionType, ExamResult, Voucher } from '../types';
+import { Users, FileText, Lock, Upload, Layers, DollarSign, BookOpen, X, ChevronLeft, ChevronRight, RefreshCw, Trash2, Shield, Image as ImageIcon, Link as LinkIcon, UploadCloud, Check, Volume2, Headphones, Sparkles, Eye, ZoomIn, AlertCircle, FileUp, FolderUp, Folder, FolderPlus, ArrowLeft, Edit3, Plus, Award, CheckCircle2, XCircle, Calendar, Clock, TrendingUp, BarChart3, Activity, MessageCircle, Download, Copy, Search, Phone, Tag, Ticket, Percent } from 'lucide-react';
 import { isSubscriptionActive, getRemainingDays, getRemainingSubscriptionText, DEFAULT_ANONYMOUS_PHOTO } from '../lib/dataStore';
 import { renderFormattedQuestion } from '../lib/formatQuestion';
 import { JftResultReport } from './JftResultReport';
@@ -44,12 +44,213 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
   onSaveQuestion,
   onDeleteQuestion
 }) => {
-  const [activeTab, setActiveTab] = useState<'USERS' | 'QUESTIONS' | 'PDF_PARSER' | 'TRANSACTIONS' | 'LEADS'>('USERS');
+  const [activeTab, setActiveTab] = useState<'USERS' | 'QUESTIONS' | 'PDF_PARSER' | 'TRANSACTIONS' | 'LEADS' | 'VOUCHERS'>('USERS');
   const [pdfInputText, setPdfInputText] = useState('');
   const [isParsing, setIsParsing] = useState(false);
   const [parseMessage, setParseMessage] = useState('');
   const [actionLoadingUserId, setActionLoadingUserId] = useState<string | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
+
+  // Voucher Management States
+  const [vouchers, setVouchers] = useState<Voucher[]>([]);
+  const [isLoadingVouchers, setIsLoadingVouchers] = useState(false);
+  const [voucherSearchQuery, setVoucherSearchQuery] = useState('');
+  const [voucherFilterStatus, setVoucherFilterStatus] = useState<'ALL' | 'ACTIVE' | 'INACTIVE' | 'EXPIRED'>('ALL');
+  const [isVoucherModalOpen, setIsVoucherModalOpen] = useState(false);
+  const [editingVoucher, setEditingVoucher] = useState<Voucher | null>(null);
+  const [isSavingVoucher, setIsSavingVoucher] = useState(false);
+  const [voucherFormError, setVoucherFormError] = useState('');
+  const [copiedVoucherCode, setCopiedVoucherCode] = useState<string | null>(null);
+
+  // Voucher Form State
+  const [vCode, setVCode] = useState('');
+  const [vDiscountType, setVDiscountType] = useState<'PERCENTAGE' | 'FIXED'>('PERCENTAGE');
+  const [vDiscountValue, setVDiscountValue] = useState<number | string>('');
+  const [vMaxDiscountAmount, setVMaxDiscountAmount] = useState<number | string>('');
+  const [vMinPurchaseAmount, setVMinPurchaseAmount] = useState<number | string>('0');
+  const [vUsageLimit, setVUsageLimit] = useState<number | string>('');
+  const [vValidPackages, setVValidPackages] = useState<string[]>([]);
+  const [vStartDate, setVStartDate] = useState('');
+  const [vExpiredAt, setVExpiredAt] = useState('');
+  const [vIsActive, setVIsActive] = useState(true);
+  const [vDescription, setVDescription] = useState('');
+
+  const fetchVouchers = async () => {
+    setIsLoadingVouchers(true);
+    try {
+      const res = await fetch('/api/admin/vouchers');
+      const data = await res.json();
+      if (data.success && Array.isArray(data.vouchers)) {
+        setVouchers(data.vouchers);
+      }
+    } catch (err) {
+      console.error('Error fetching vouchers:', err);
+    } finally {
+      setIsLoadingVouchers(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchVouchers();
+  }, []);
+
+  const handleOpenAddVoucher = () => {
+    setEditingVoucher(null);
+    setVCode('');
+    setVDiscountType('PERCENTAGE');
+    setVDiscountValue('');
+    setVMaxDiscountAmount('');
+    setVMinPurchaseAmount('0');
+    setVUsageLimit('');
+    setVValidPackages([]);
+    setVStartDate('');
+    setVExpiredAt('');
+    setVIsActive(true);
+    setVDescription('');
+    setVoucherFormError('');
+    setIsVoucherModalOpen(true);
+  };
+
+  const handleOpenEditVoucher = (v: Voucher) => {
+    setEditingVoucher(v);
+    setVCode(v.code);
+    setVDiscountType(v.discountType);
+    setVDiscountValue(v.discountValue);
+    setVMaxDiscountAmount(v.maxDiscountAmount !== null && v.maxDiscountAmount !== undefined ? v.maxDiscountAmount : '');
+    setVMinPurchaseAmount(v.minPurchaseAmount || 0);
+    setVUsageLimit(v.usageLimit !== null && v.usageLimit !== undefined ? v.usageLimit : '');
+    setVValidPackages(v.validPackages || []);
+    setVStartDate(v.startDate ? v.startDate.slice(0, 10) : '');
+    setVExpiredAt(v.expiredAt ? v.expiredAt.slice(0, 10) : '');
+    setVIsActive(v.isActive);
+    setVDescription(v.description || '');
+    setVoucherFormError('');
+    setIsVoucherModalOpen(true);
+  };
+
+  const handleSaveVoucher = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setVoucherFormError('');
+
+    if (!vCode.trim()) {
+      setVoucherFormError('Kode voucher wajib diisi.');
+      return;
+    }
+
+    const val = Number(vDiscountValue);
+    if (isNaN(val) || val <= 0) {
+      setVoucherFormError('Nilai potongan harus lebih dari 0.');
+      return;
+    }
+
+    if (vDiscountType === 'PERCENTAGE' && val > 100) {
+      setVoucherFormError('Potongan persentase tidak boleh lebih dari 100%.');
+      return;
+    }
+
+    setIsSavingVoucher(true);
+    try {
+      const res = await fetch('/api/admin/vouchers', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: editingVoucher ? 'update' : 'create',
+          id: editingVoucher?.id,
+          code: vCode,
+          discountType: vDiscountType,
+          discountValue: val,
+          maxDiscountAmount: vMaxDiscountAmount ? Number(vMaxDiscountAmount) : null,
+          minPurchaseAmount: vMinPurchaseAmount ? Number(vMinPurchaseAmount) : 0,
+          usageLimit: vUsageLimit ? Number(vUsageLimit) : null,
+          validPackages: vValidPackages,
+          startDate: vStartDate || null,
+          expiredAt: vExpiredAt || null,
+          isActive: vIsActive,
+          description: vDescription
+        })
+      });
+
+      const data = await res.json();
+      if (data.success) {
+        setIsVoucherModalOpen(false);
+        fetchVouchers();
+      } else {
+        setVoucherFormError(data.message || 'Gagal menyimpan voucher.');
+      }
+    } catch {
+      setVoucherFormError('Terjadi kesalahan koneksi server.');
+    } finally {
+      setIsSavingVoucher(false);
+    }
+  };
+
+  const handleToggleVoucher = async (v: Voucher) => {
+    try {
+      const res = await fetch('/api/admin/vouchers', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'toggle', id: v.id })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setVouchers((prev) =>
+          prev.map((item) => (item.id === v.id ? { ...item, isActive: !item.isActive } : item))
+        );
+      }
+    } catch (err) {
+      console.error('Toggle voucher error:', err);
+    }
+  };
+
+  const handleDeleteVoucher = async (v: Voucher) => {
+    if (!window.confirm(`Hapus voucher "${v.code}" secara permanen?`)) return;
+    try {
+      const res = await fetch('/api/admin/vouchers', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'delete', id: v.id })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setVouchers((prev) => prev.filter((item) => item.id !== v.id));
+      }
+    } catch (err) {
+      console.error('Delete voucher error:', err);
+    }
+  };
+
+  const filteredVouchers = React.useMemo(() => {
+    return vouchers.filter((v) => {
+      if (voucherSearchQuery.trim()) {
+        const q = voucherSearchQuery.toLowerCase();
+        const matchCode = v.code.toLowerCase().includes(q);
+        const matchDesc = v.description?.toLowerCase().includes(q);
+        if (!matchCode && !matchDesc) return false;
+      }
+
+      const now = new Date();
+      const isExpired = v.expiredAt ? new Date(v.expiredAt) < now : false;
+
+      if (voucherFilterStatus === 'ACTIVE') {
+        return v.isActive && !isExpired;
+      }
+      if (voucherFilterStatus === 'INACTIVE') {
+        return !v.isActive;
+      }
+      if (voucherFilterStatus === 'EXPIRED') {
+        return isExpired;
+      }
+      return true;
+    });
+  }, [vouchers, voucherSearchQuery, voucherFilterStatus]);
+
+  const voucherStats = React.useMemo(() => {
+    const total = vouchers.length;
+    const now = new Date();
+    const active = vouchers.filter((v) => v.isActive && (!v.expiredAt || new Date(v.expiredAt) >= now)).length;
+    const totalUsed = vouchers.reduce((acc, v) => acc + (v.usedCount || 0), 0);
+    return { total, active, totalUsed };
+  }, [vouchers]);
 
   // Leads CRM & Monitoring States
   const [leads, setLeads] = useState<any[]>([]);
@@ -117,13 +318,19 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
   }, [onRefreshData]);
 
   const allExamSets = React.useMemo(() => {
-    const baseSets = examSets && examSets.length > 0 ? examSets : [
-      { id: 99, name: 'Mini Tryout Gratis (12 Soal)', code: 'MINI-TRYOUT', description: '12 Soal diagnostik gratis untuk calon siswa.', totalQuestions: 12 },
-      { id: 1, name: 'Paket Ujian #1 (Simulasi Utama)', code: 'JFT-SET-A', description: 'Simulasi standar JFT-Basic.', totalQuestions: 50 },
-      { id: 2, name: 'Paket Ujian #2 (Intensif Kosakata & Tata Bahasa)', code: 'JFT-SET-B', description: 'Variasi tata bahasa & kosakata A2.', totalQuestions: 50 },
-      { id: 3, name: 'Paket Ujian #3 (Master Chōkai Pendengaran)', code: 'JFT-SET-C', description: 'Simulasi audio percakapan & pengumuman.', totalQuestions: 50 },
-      { id: 4, name: 'Paket Ujian #4 (Tryout Spesial Final Test)', code: 'JFT-SET-D', description: 'Komprehensif tes akhir sebelum ujian resmi.', totalQuestions: 50 }
+    const baseSets = examSets && examSets.length > 0 ? [...examSets] : [
+      { id: 99, name: 'Mini Tryout Gratis (12 Soal)', code: 'MINI-TRYOUT', description: '12 Soal diagnostik gratis untuk calon siswa.', totalQuestions: 12 }
     ];
+
+    if (!baseSets.some((s) => s.id === 99)) {
+      baseSets.unshift({
+        id: 99,
+        name: 'Mini Tryout Gratis (12 Soal)',
+        code: 'MINI-TRYOUT',
+        description: '12 Soal diagnostik gratis untuk calon siswa.',
+        totalQuestions: 12
+      });
+    }
 
     return baseSets.map((s) => {
       const qCount = questions.filter((q) => (q.packageId || 1) === s.id).length;
@@ -763,6 +970,19 @@ B：いえ、だいじょうぶですよ。
           >
             <MessageCircle className="w-4 h-4 text-emerald-200" />
             Leads Calon Siswa ({leads.length})
+          </button>
+
+          <button
+            onClick={() => {
+              setActiveTab('VOUCHERS');
+              fetchVouchers();
+            }}
+            className={`px-4 py-2 rounded-xl transition flex items-center gap-1.5 ${
+              activeTab === 'VOUCHERS' ? 'bg-rose-600 text-white shadow font-bold' : 'text-stone-600 hover:text-stone-900 hover:bg-stone-200/60'
+            }`}
+          >
+            <Tag className="w-4 h-4 text-rose-200" />
+            Kode Voucher ({vouchers.length})
           </button>
         </div>
       </div>
@@ -2310,8 +2530,21 @@ B：いえ、だいじょうぶですよ。
                       </td>
                       <td className="p-3 font-semibold text-stone-900">{tx.userName}</td>
                       <td className="p-3 text-stone-700">{tx.packageName}</td>
-                      <td className="p-3 font-bold text-red-600">
-                        Rp {tx.amount.toLocaleString('id-ID')}
+                      <td className="p-3">
+                        <div className="font-bold text-stone-900">
+                          Rp {tx.amount.toLocaleString('id-ID')}
+                        </div>
+                        {tx.voucherCode && (
+                          <div className="flex items-center gap-1 text-[10px] text-emerald-700 font-bold mt-0.5">
+                            <Tag className="w-3 h-3 text-rose-500" />
+                            <span>{tx.voucherCode} (-Rp {(tx.discountAmount || 0).toLocaleString('id-ID')})</span>
+                          </div>
+                        )}
+                        {tx.originalAmount && tx.originalAmount > tx.amount && (
+                          <div className="text-[10px] line-through text-stone-400">
+                            Rp {tx.originalAmount.toLocaleString('id-ID')}
+                          </div>
+                        )}
                       </td>
                       <td className="p-3 text-stone-500">{tx.paymentMethod}</td>
                       <td className="p-3">
@@ -2579,6 +2812,610 @@ B：いえ、だいじょうぶですよ。
                 )}
               </tbody>
             </table>
+          </div>
+        </div>
+      )}
+
+      {/* Tab 6: Voucher Codes & Discount Promotions */}
+      {activeTab === 'VOUCHERS' && (
+        <div className="bg-white rounded-3xl p-6 shadow-xl border border-stone-200 space-y-6">
+          {/* Header */}
+          <div className="flex flex-wrap items-center justify-between border-b pb-4 border-stone-200 gap-4">
+            <div>
+              <h2 className="text-lg font-bold text-stone-900 flex items-center gap-2">
+                <Tag className="w-5 h-5 text-rose-600" />
+                Manajemen Kode Voucher Promo &amp; Diskon ({vouchers.length} Kode Terdaftar)
+              </h2>
+              <p className="text-xs text-stone-500">
+                Atur kode promo, besaran potongan (% atau Rp tetap), batas kuota pemakaian, dan masa berlaku voucher untuk siswa.
+              </p>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={fetchVouchers}
+                disabled={isLoadingVouchers}
+                className="px-3.5 py-2 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 text-xs font-bold transition flex items-center gap-1.5 border border-stone-200 shadow-sm cursor-pointer"
+              >
+                <RefreshCw className={`w-3.5 h-3.5 ${isLoadingVouchers ? 'animate-spin text-rose-600' : ''}`} />
+                <span>Sinkronkan</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={handleOpenAddVoucher}
+                className="px-4 py-2 bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-700 hover:to-red-700 text-white text-xs font-bold rounded-xl transition shadow flex items-center gap-1.5 cursor-pointer"
+              >
+                <Plus className="w-4 h-4" />
+                <span>Buat Voucher Baru</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Stat Cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="p-4 rounded-2xl bg-gradient-to-br from-rose-50/70 to-white border border-rose-200/80 shadow-2xs">
+              <div className="flex items-center justify-between text-xs font-bold text-rose-800">
+                <span>Total Kode Voucher</span>
+                <Tag className="w-4 h-4 text-rose-600" />
+              </div>
+              <div className="text-2xl font-black text-rose-700 mt-2 font-mono">
+                {voucherStats.total}
+              </div>
+              <div className="text-[11px] text-stone-400 mt-0.5">Tersimpan di database</div>
+            </div>
+
+            <div className="p-4 rounded-2xl bg-gradient-to-br from-emerald-50/70 to-white border border-emerald-200/80 shadow-2xs">
+              <div className="flex items-center justify-between text-xs font-bold text-emerald-800">
+                <span>Voucher Aktif</span>
+                <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+              </div>
+              <div className="text-2xl font-black text-emerald-700 mt-2 font-mono">
+                {voucherStats.active}
+              </div>
+              <div className="text-[11px] text-stone-400 mt-0.5">Siap digunakan saat bayar</div>
+            </div>
+
+            <div className="p-4 rounded-2xl bg-gradient-to-br from-sky-50/70 to-white border border-sky-200/80 shadow-2xs">
+              <div className="flex items-center justify-between text-xs font-bold text-sky-800">
+                <span>Total Klaim Terpakai</span>
+                <TrendingUp className="w-4 h-4 text-sky-600" />
+              </div>
+              <div className="text-2xl font-black text-sky-700 mt-2 font-mono">
+                {voucherStats.totalUsed} <span className="text-xs font-normal text-stone-500">kali</span>
+              </div>
+              <div className="text-[11px] text-stone-400 mt-0.5">Penggunaan berhasil</div>
+            </div>
+
+            <div className="p-4 rounded-2xl bg-gradient-to-br from-amber-50/70 to-white border border-amber-200/80 shadow-2xs">
+              <div className="flex items-center justify-between text-xs font-bold text-amber-800">
+                <span>Tipe Potongan</span>
+                <Percent className="w-4 h-4 text-amber-600" />
+              </div>
+              <div className="text-xs font-black text-stone-800 mt-2.5">
+                Persen (%) &amp; Rupiah Tetap
+              </div>
+              <div className="text-[11px] text-stone-400 mt-0.5">Dukungan diskon s.d 100%</div>
+            </div>
+          </div>
+
+          {/* Filter & Search Bar */}
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-stone-50 p-3 rounded-2xl border border-stone-200">
+            <div className="relative flex-1">
+              <Search className="w-4 h-4 text-stone-400 absolute left-3 top-1/2 -translate-y-1/2" />
+              <input
+                type="text"
+                value={voucherSearchQuery}
+                onChange={(e) => setVoucherSearchQuery(e.target.value)}
+                placeholder="Cari kode promo atau deskripsi voucher..."
+                className="w-full pl-9 pr-3 py-2 text-xs bg-white border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-rose-500/30 text-stone-800"
+              />
+            </div>
+
+            <div className="flex items-center gap-1.5 overflow-x-auto text-xs font-bold">
+              <button
+                type="button"
+                onClick={() => setVoucherFilterStatus('ALL')}
+                className={`px-3 py-1.5 rounded-xl transition ${
+                  voucherFilterStatus === 'ALL'
+                    ? 'bg-rose-600 text-white shadow-2xs'
+                    : 'bg-white text-stone-600 border border-stone-200 hover:bg-stone-100'
+                }`}
+              >
+                Semua ({vouchers.length})
+              </button>
+              <button
+                type="button"
+                onClick={() => setVoucherFilterStatus('ACTIVE')}
+                className={`px-3 py-1.5 rounded-xl transition ${
+                  voucherFilterStatus === 'ACTIVE'
+                    ? 'bg-emerald-600 text-white shadow-2xs'
+                    : 'bg-white text-stone-600 border border-stone-200 hover:bg-stone-100'
+                }`}
+              >
+                Aktif ({voucherStats.active})
+              </button>
+              <button
+                type="button"
+                onClick={() => setVoucherFilterStatus('INACTIVE')}
+                className={`px-3 py-1.5 rounded-xl transition ${
+                  voucherFilterStatus === 'INACTIVE'
+                    ? 'bg-stone-700 text-white shadow-2xs'
+                    : 'bg-white text-stone-600 border border-stone-200 hover:bg-stone-100'
+                }`}
+              >
+                Nonaktif
+              </button>
+              <button
+                type="button"
+                onClick={() => setVoucherFilterStatus('EXPIRED')}
+                className={`px-3 py-1.5 rounded-xl transition ${
+                  voucherFilterStatus === 'EXPIRED'
+                    ? 'bg-amber-600 text-white shadow-2xs'
+                    : 'bg-white text-stone-600 border border-stone-200 hover:bg-stone-100'
+                }`}
+              >
+                Kedaluwarsa
+              </button>
+            </div>
+          </div>
+
+          {/* Vouchers Table */}
+          <div className="overflow-x-auto border border-stone-200 rounded-2xl">
+            <table className="w-full text-left text-xs border-collapse">
+              <thead>
+                <tr className="border-b border-stone-200 bg-stone-50 text-stone-500 font-bold uppercase tracking-wider">
+                  <th className="p-3 w-10 text-center">#</th>
+                  <th className="p-3">Kode Voucher</th>
+                  <th className="p-3">Besar Potongan</th>
+                  <th className="p-3">Min. Pembelian</th>
+                  <th className="p-3">Kuota Penggunaan</th>
+                  <th className="p-3">Masa Berlaku</th>
+                  <th className="p-3">Paket</th>
+                  <th className="p-3 text-center">Status</th>
+                  <th className="p-3 text-right">Aksi</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-stone-100">
+                {filteredVouchers.length === 0 ? (
+                  <tr>
+                    <td colSpan={9} className="text-center py-10 text-stone-400">
+                      <Tag className="w-8 h-8 text-stone-300 mx-auto mb-2" />
+                      <div>Belum ada kode voucher yang cocok dengan filter.</div>
+                    </td>
+                  </tr>
+                ) : (
+                  filteredVouchers.map((v, idx) => {
+                    const now = new Date();
+                    const isExpired = v.expiredAt ? new Date(v.expiredAt) < now : false;
+                    const hasLimit = v.usageLimit && v.usageLimit > 0;
+                    const isQuotaFull = hasLimit ? v.usedCount >= (v.usageLimit || 0) : false;
+
+                    return (
+                      <tr key={v.id} className="hover:bg-rose-50/30 transition">
+                        <td className="p-3 text-center text-stone-400 font-mono text-[11px]">
+                          {idx + 1}
+                        </td>
+
+                        {/* Kode Promo */}
+                        <td className="p-3">
+                          <div className="flex items-center gap-1.5">
+                            <span className="font-mono font-black text-xs text-rose-700 bg-rose-50 border border-rose-200 px-2 py-0.5 rounded-lg tracking-wider">
+                              {v.code}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                navigator.clipboard.writeText(v.code);
+                                setCopiedVoucherCode(v.code);
+                                setTimeout(() => setCopiedVoucherCode(null), 2000);
+                              }}
+                              className="p-1 text-stone-400 hover:text-stone-700 hover:bg-stone-100 rounded-md transition cursor-pointer"
+                              title="Salin Kode Voucher"
+                            >
+                              {copiedVoucherCode === v.code ? (
+                                <Check className="w-3.5 h-3.5 text-emerald-600" />
+                              ) : (
+                                <Copy className="w-3.5 h-3.5" />
+                              )}
+                            </button>
+                          </div>
+                          {v.description && (
+                            <div className="text-[11px] text-stone-500 mt-1 line-clamp-1 max-w-xs">
+                              {v.description}
+                            </div>
+                          )}
+                        </td>
+
+                        {/* Besar Potongan */}
+                        <td className="p-3">
+                          {v.discountType === 'PERCENTAGE' ? (
+                            <div>
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-black bg-indigo-50 text-indigo-700 border border-indigo-200">
+                                Diskon {v.discountValue}%
+                              </span>
+                              {v.maxDiscountAmount && v.maxDiscountAmount > 0 ? (
+                                <div className="text-[10px] text-stone-400 mt-0.5">
+                                  Maks. Rp {v.maxDiscountAmount.toLocaleString('id-ID')}
+                                </div>
+                              ) : (
+                                <div className="text-[10px] text-stone-400 mt-0.5">Tanpa batas maks</div>
+                              )}
+                            </div>
+                          ) : (
+                            <div>
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-black bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                Potongan Rp {v.discountValue.toLocaleString('id-ID')}
+                              </span>
+                            </div>
+                          )}
+                        </td>
+
+                        {/* Min Pembelian */}
+                        <td className="p-3">
+                          {v.minPurchaseAmount && v.minPurchaseAmount > 0 ? (
+                            <span className="font-mono font-medium text-stone-700 text-[11px]">
+                              Rp {v.minPurchaseAmount.toLocaleString('id-ID')}
+                            </span>
+                          ) : (
+                            <span className="text-[11px] text-stone-400">Tanpa Minimum</span>
+                          )}
+                        </td>
+
+                        {/* Kuota Penggunaan */}
+                        <td className="p-3">
+                          {hasLimit ? (
+                            <div className="space-y-1">
+                              <div className="flex items-center justify-between text-[11px] font-mono font-bold text-stone-700 gap-2">
+                                <span>{v.usedCount} / {v.usageLimit}</span>
+                                {isQuotaFull && (
+                                  <span className="text-[9px] px-1.5 py-0.2 rounded-md bg-rose-100 text-rose-700 font-sans font-bold">
+                                    Habis
+                                  </span>
+                                )}
+                              </div>
+                              <div className="w-24 h-1.5 bg-stone-100 rounded-full overflow-hidden border border-stone-200">
+                                <div
+                                  className={`h-full ${isQuotaFull ? 'bg-rose-500' : 'bg-emerald-500'} rounded-full`}
+                                  style={{
+                                    width: `${Math.min(100, Math.round(((v.usedCount || 0) / (v.usageLimit || 1)) * 100))}%`
+                                  }}
+                                />
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="text-[11px] font-medium text-stone-600">
+                              <span>Unlimited</span>{' '}
+                              <span className="text-[10px] text-stone-400 font-mono">({v.usedCount} dipakai)</span>
+                            </div>
+                          )}
+                        </td>
+
+                        {/* Masa Berlaku */}
+                        <td className="p-3">
+                          {v.expiredAt ? (
+                            <div className="space-y-0.5">
+                              <div className="text-[11px] text-stone-700 font-medium">
+                                s.d. {new Date(v.expiredAt).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })}
+                              </div>
+                              {isExpired ? (
+                                <span className="inline-block text-[9px] px-1.5 py-0.2 rounded bg-red-100 text-red-700 font-bold">
+                                  Kedaluwarsa
+                                </span>
+                              ) : (
+                                <span className="inline-block text-[9px] px-1.5 py-0.2 rounded bg-emerald-100 text-emerald-800 font-bold">
+                                  Berlaku
+                                </span>
+                              )}
+                            </div>
+                          ) : (
+                            <span className="text-[11px] text-stone-500 font-medium">Selamanya</span>
+                          )}
+                        </td>
+
+                        {/* Paket Berlaku */}
+                        <td className="p-3">
+                          {v.validPackages && v.validPackages.length > 0 ? (
+                            <div className="flex flex-wrap gap-1">
+                              {v.validPackages.map((pId) => (
+                                <span key={pId} className="px-1.5 py-0.5 bg-stone-100 text-stone-700 text-[10px] font-mono rounded">
+                                  {pId === 'pkg_7d' ? '7 Hari' : pId === 'pkg_14d' ? '14 Hari' : pId === 'pkg_30d' ? '30 Hari' : pId}
+                                </span>
+                              ))}
+                            </div>
+                          ) : (
+                            <span className="text-[11px] text-emerald-700 font-semibold bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                              Semua Paket
+                            </span>
+                          )}
+                        </td>
+
+                        {/* Toggle Status */}
+                        <td className="p-3 text-center">
+                          <button
+                            type="button"
+                            onClick={() => handleToggleVoucher(v)}
+                            className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold transition cursor-pointer ${
+                              v.isActive
+                                ? 'bg-emerald-100 text-emerald-800 hover:bg-emerald-200'
+                                : 'bg-stone-200 text-stone-600 hover:bg-stone-300'
+                            }`}
+                          >
+                            <span className={`w-2 h-2 rounded-full ${v.isActive ? 'bg-emerald-600' : 'bg-stone-400'}`} />
+                            <span>{v.isActive ? 'Aktif' : 'Nonaktif'}</span>
+                          </button>
+                        </td>
+
+                        {/* Aksi */}
+                        <td className="p-3 text-right">
+                          <div className="flex items-center justify-end gap-1.5">
+                            <button
+                              type="button"
+                              onClick={() => handleOpenEditVoucher(v)}
+                              className="p-1.5 bg-stone-100 hover:bg-stone-200 text-stone-700 rounded-lg transition cursor-pointer"
+                              title="Edit Voucher"
+                            >
+                              <Edit3 className="w-3.5 h-3.5" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteVoucher(v)}
+                              className="p-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-lg transition cursor-pointer"
+                              title="Hapus Voucher"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* VOUCHER CREATE & EDIT MODAL OVERLAY */}
+      {isVoucherModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-stone-900/40 backdrop-blur-xs p-4 overflow-y-auto animate-in fade-in">
+          <div className="bg-white max-w-xl w-full rounded-3xl p-5 sm:p-6 shadow-2xl border border-stone-200 space-y-4 my-6 animate-in zoom-in-95">
+            <div className="flex items-center justify-between border-b pb-3 border-stone-200">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-xl bg-rose-50 border border-rose-200 text-rose-600 flex items-center justify-center">
+                  <Tag className="w-4 h-4" />
+                </div>
+                <h3 className="text-base font-black text-stone-900">
+                  {editingVoucher ? `Edit Voucher "${editingVoucher.code}"` : 'Buat Kode Voucher Baru'}
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsVoucherModalOpen(false)}
+                className="p-1.5 text-stone-400 hover:text-stone-700 rounded-xl hover:bg-stone-100 transition cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveVoucher} className="space-y-4 text-xs">
+              {voucherFormError && (
+                <div className="p-3 bg-rose-50 border border-rose-200 text-rose-700 rounded-xl flex items-center gap-2 font-medium">
+                  <AlertCircle className="w-4 h-4 shrink-0" />
+                  <span>{voucherFormError}</span>
+                </div>
+              )}
+
+              {/* 1. Kode Voucher */}
+              <div>
+                <label className="font-bold text-stone-800 block mb-1">Kode Voucher (Promo Code):</label>
+                <input
+                  type="text"
+                  required
+                  value={vCode}
+                  onChange={(e) => setVCode(e.target.value.toUpperCase().replace(/[^A-Z0-9_-]/g, ''))}
+                  placeholder="Contoh: KONDANG50, HEMAT10K, SPESIALSSW"
+                  className="w-full p-2.5 bg-stone-50 border border-stone-200 rounded-xl text-stone-900 font-mono font-black text-sm tracking-wider focus:outline-none focus:ring-2 focus:ring-rose-500/30"
+                />
+                <span className="text-[10px] text-stone-400 mt-0.5 block">Hanya huruf kapital, angka, strip, dan garis bawah.</span>
+              </div>
+
+              {/* 2. Tipe Diskon & Besaran Potongan */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="font-bold text-stone-800 block mb-1">Tipe Potongan:</label>
+                  <select
+                    value={vDiscountType}
+                    onChange={(e) => setVDiscountType(e.target.value as 'PERCENTAGE' | 'FIXED')}
+                    className="w-full p-2.5 bg-stone-50 border border-stone-200 rounded-xl text-stone-900 font-bold"
+                  >
+                    <option value="PERCENTAGE">Persentase Diskon (%)</option>
+                    <option value="FIXED">Nominal Rupiah Tetap (Rp)</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="font-bold text-stone-800 block mb-1">
+                    {vDiscountType === 'PERCENTAGE' ? 'Besar Diskon Persen (%):' : 'Nominal Potongan (Rp):'}
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="number"
+                      required
+                      min="1"
+                      max={vDiscountType === 'PERCENTAGE' ? '100' : undefined}
+                      value={vDiscountValue}
+                      onChange={(e) => setVDiscountValue(e.target.value)}
+                      placeholder={vDiscountType === 'PERCENTAGE' ? 'misal: 50' : 'misal: 15000'}
+                      className="w-full p-2.5 bg-stone-50 border border-stone-200 rounded-xl text-stone-900 font-mono font-bold"
+                    />
+                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 font-bold">
+                      {vDiscountType === 'PERCENTAGE' ? '%' : 'Rp'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* 3. Maksimal Potongan & Minimal Pembelian */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {vDiscountType === 'PERCENTAGE' && (
+                  <div>
+                    <label className="font-bold text-stone-800 block mb-1">
+                      Maksimal Potongan Rupiah:
+                    </label>
+                    <input
+                      type="number"
+                      min="0"
+                      value={vMaxDiscountAmount}
+                      onChange={(e) => setVMaxDiscountAmount(e.target.value)}
+                      placeholder="misal: 30000 (kosongkan jika tanpa batas)"
+                      className="w-full p-2.5 bg-stone-50 border border-stone-200 rounded-xl text-stone-900 font-mono"
+                    />
+                  </div>
+                )}
+
+                <div>
+                  <label className="font-bold text-stone-800 block mb-1">
+                    Minimal Nilai Pembelian (Rp):
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    value={vMinPurchaseAmount}
+                    onChange={(e) => setVMinPurchaseAmount(e.target.value)}
+                    placeholder="misal: 35000 (0 = tanpa syarat)"
+                    className="w-full p-2.5 bg-stone-50 border border-stone-200 rounded-xl text-stone-900 font-mono"
+                  />
+                </div>
+
+                <div>
+                  <label className="font-bold text-stone-800 block mb-1">
+                    Batas Kuota Penggunaan:
+                  </label>
+                  <input
+                    type="number"
+                    min="1"
+                    value={vUsageLimit}
+                    onChange={(e) => setVUsageLimit(e.target.value)}
+                    placeholder="misal: 100 (kosongkan jika Unlimited)"
+                    className="w-full p-2.5 bg-stone-50 border border-stone-200 rounded-xl text-stone-900 font-mono"
+                  />
+                </div>
+              </div>
+
+              {/* 4. Masa Berlaku */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="font-bold text-stone-800 block mb-1">Mulai Berlaku:</label>
+                  <input
+                    type="date"
+                    value={vStartDate}
+                    onChange={(e) => setVStartDate(e.target.value)}
+                    className="w-full p-2.5 bg-stone-50 border border-stone-200 rounded-xl text-stone-900 font-medium"
+                  />
+                </div>
+
+                <div>
+                  <label className="font-bold text-stone-800 block mb-1">Kedaluwarsa (Expired At):</label>
+                  <input
+                    type="date"
+                    value={vExpiredAt}
+                    onChange={(e) => setVExpiredAt(e.target.value)}
+                    className="w-full p-2.5 bg-stone-50 border border-stone-200 rounded-xl text-stone-900 font-medium"
+                  />
+                </div>
+              </div>
+
+              {/* 5. Paket yang Berlaku */}
+              <div>
+                <label className="font-bold text-stone-800 block mb-1.5">Berlaku untuk Paket:</label>
+                <div className="flex flex-wrap gap-2 text-xs">
+                  {[
+                    { id: 'pkg_7d', label: 'Paket 1 Minggu (7 Hari)' },
+                    { id: 'pkg_14d', label: 'Paket 2 Minggu (14 Hari)' },
+                    { id: 'pkg_30d', label: 'Paket 1 Bulan (30 Hari)' }
+                  ].map((p) => {
+                    const isChecked = vValidPackages.includes(p.id);
+                    return (
+                      <label
+                        key={p.id}
+                        className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border cursor-pointer font-medium transition ${
+                          isChecked
+                            ? 'bg-rose-50 border-rose-300 text-rose-800 font-bold'
+                            : 'bg-stone-50 border-stone-200 text-stone-600 hover:bg-stone-100'
+                        }`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={isChecked}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setVValidPackages([...vValidPackages, p.id]);
+                            } else {
+                              setVValidPackages(vValidPackages.filter((id) => id !== p.id));
+                            }
+                          }}
+                          className="rounded text-rose-600 focus:ring-rose-500"
+                        />
+                        <span>{p.label}</span>
+                      </label>
+                    );
+                  })}
+                </div>
+                <span className="text-[10px] text-stone-400 mt-1 block">Jika tidak ada paket yang dicentang, voucher berlaku otomatis untuk semua paket.</span>
+              </div>
+
+              {/* 6. Deskripsi / Catatan */}
+              <div>
+                <label className="font-bold text-stone-800 block mb-1">Deskripsi / Catatan Promo:</label>
+                <input
+                  type="text"
+                  value={vDescription}
+                  onChange={(e) => setVDescription(e.target.value)}
+                  placeholder="Contoh: Promo Ramadhan 50% untuk persiapan ujian JFT SSW"
+                  className="w-full p-2.5 bg-stone-50 border border-stone-200 rounded-xl text-stone-900"
+                />
+              </div>
+
+              {/* 7. Status Aktif */}
+              <div className="flex items-center gap-2 p-3 bg-stone-50 rounded-xl border border-stone-200">
+                <input
+                  type="checkbox"
+                  id="voucherIsActive"
+                  checked={vIsActive}
+                  onChange={(e) => setVIsActive(e.target.checked)}
+                  className="w-4 h-4 rounded text-rose-600 focus:ring-rose-500"
+                />
+                <label htmlFor="voucherIsActive" className="font-bold text-stone-800 cursor-pointer">
+                  Aktifkan voucher ini segera agar dapat digunakan oleh peserta
+                </label>
+              </div>
+
+              {/* Modal Actions */}
+              <div className="pt-2 flex items-center justify-end gap-2 border-t border-stone-200">
+                <button
+                  type="button"
+                  onClick={() => setIsVoucherModalOpen(false)}
+                  className="px-4 py-2.5 bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold rounded-xl transition cursor-pointer"
+                >
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSavingVoucher}
+                  className="px-5 py-2.5 bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-700 hover:to-red-700 text-white font-bold rounded-xl transition shadow flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                >
+                  {isSavingVoucher ? (
+                    <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                  ) : (
+                    <Check className="w-3.5 h-3.5" />
+                  )}
+                  <span>{editingVoucher ? 'Simpan Perubahan' : 'Buat Voucher'}</span>
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

@@ -180,6 +180,15 @@ export async function initDatabase() {
       try {
         await connection.query(`ALTER TABLE transactions ADD COLUMN expiredAt VARCHAR(64) NULL AFTER howToPayUrl`);
       } catch {}
+      try {
+        await connection.query(`ALTER TABLE transactions ADD COLUMN voucherCode VARCHAR(64) NULL AFTER amount`);
+      } catch {}
+      try {
+        await connection.query(`ALTER TABLE transactions ADD COLUMN discountAmount INT NOT NULL DEFAULT 0 AFTER voucherCode`);
+      } catch {}
+      try {
+        await connection.query(`ALTER TABLE transactions ADD COLUMN originalAmount INT NULL AFTER discountAmount`);
+      } catch {}
 
       // 5. Exam Sets Table (Paket Bank Soal Dinamis)
       await connection.query(`
@@ -193,10 +202,32 @@ export async function initDatabase() {
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
       `);
 
-      // 6. Auto Seed & Sync Bank Soal, Exam Sets, and Users
+      // 6. Vouchers Table (Kode Kupon & Potongan Diskon)
+      await connection.query(`
+        CREATE TABLE IF NOT EXISTS vouchers (
+          id VARCHAR(64) PRIMARY KEY,
+          code VARCHAR(64) NOT NULL UNIQUE,
+          discountType ENUM('PERCENTAGE', 'FIXED') NOT NULL DEFAULT 'PERCENTAGE',
+          discountValue INT NOT NULL,
+          maxDiscountAmount INT NULL,
+          minPurchaseAmount INT NOT NULL DEFAULT 0,
+          usageLimit INT NULL DEFAULT NULL,
+          usedCount INT NOT NULL DEFAULT 0,
+          validPackages JSON NULL,
+          startDate VARCHAR(64) NULL,
+          expiredAt VARCHAR(64) NULL,
+          isActive BOOLEAN NOT NULL DEFAULT TRUE,
+          description VARCHAR(255) NULL,
+          createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+      `);
+
+      // 7. Auto Seed & Sync Bank Soal, Exam Sets, Users, and Vouchers
       await syncUsersToDatabase(connection);
       await syncQuestionsToDatabase(connection);
       await syncExamSetsToDatabase(connection);
+      await syncVouchersToDatabase(connection);
 
       isInitialized = true;
       console.log('✅ MySQL database tables in db_kondangsensei verified/created successfully.');
@@ -312,24 +343,44 @@ export async function syncUsersToDatabase(existingConn?: mysql.PoolConnection, f
 
 /**
  * Synchronizes default Exam Sets (Paket 1 - 4) to MySQL database if empty.
+ * Only Mini Tryout (id = 99) is strictly protected from deletion.
  */
-export async function syncExamSetsToDatabase(existingConn?: mysql.PoolConnection) {
+export async function syncExamSetsToDatabase(existingConn?: mysql.PoolConnection, force = false) {
   const conn = existingConn || (await pool.getConnection());
   try {
+    const [setCountRows] = await conn.query<any[]>('SELECT COUNT(*) as count FROM exam_sets');
+    const count = setCountRows?.[0]?.count || 0;
     const { EXAM_SETS } = await import('./dataStore');
-    for (const set of EXAM_SETS) {
-      await conn.query(
-        `INSERT INTO exam_sets (id, name, code, description, totalQuestions)
-         VALUES (?, ?, ?, ?, ?)
-         ON DUPLICATE KEY UPDATE
-           name = VALUES(name),
-           code = VALUES(code),
-           description = VALUES(description),
-           totalQuestions = VALUES(totalQuestions)`,
-        [set.id, set.name, set.code, set.description, set.totalQuestions]
-      );
+
+    // Hanya masukkan paket awal lengkap (Paket 1 - 4) jika database kosong / baru pertama kali dibuat
+    if (count === 0 || force) {
+      for (const set of EXAM_SETS) {
+        await conn.query(
+          `INSERT INTO exam_sets (id, name, code, description, totalQuestions)
+           VALUES (?, ?, ?, ?, ?)
+           ON DUPLICATE KEY UPDATE
+             name = VALUES(name),
+             code = VALUES(code),
+             description = VALUES(description),
+             totalQuestions = VALUES(totalQuestions)`,
+          [set.id, set.name, set.code, set.description, set.totalQuestions]
+        );
+      }
+      console.log('✅ Berhasil menyinkronkan daftar paket awal ke MySQL.');
+    } else {
+      // Pastikan Paket Mini Tryout (id = 99) SELALU ada di database
+      const [miniRows] = await conn.query<any[]>('SELECT COUNT(*) as count FROM exam_sets WHERE id = 99');
+      if ((miniRows?.[0]?.count || 0) === 0) {
+        const miniSet = EXAM_SETS.find((s) => s.id === 99);
+        if (miniSet) {
+          await conn.query(
+            `INSERT INTO exam_sets (id, name, code, description, totalQuestions)
+             VALUES (?, ?, ?, ?, ?)`,
+            [miniSet.id, miniSet.name, miniSet.code, miniSet.description, miniSet.totalQuestions]
+          );
+        }
+      }
     }
-    console.log('✅ Berhasil menyinkronkan daftar paket awal (termasuk Mini Tryout) ke MySQL.');
   } catch (err) {
     console.warn('⚠️ Gagal menyinkronkan exam_sets ke MySQL:', err);
   } finally {
@@ -426,3 +477,48 @@ export async function syncQuestionsToDatabase(existingConn?: mysql.PoolConnectio
     }
   }
 }
+
+/**
+ * Synchronizes default Vouchers to MySQL database if empty.
+ */
+export async function syncVouchersToDatabase(existingConn?: mysql.PoolConnection) {
+  const conn = existingConn || (await pool.getConnection());
+  try {
+    const [rows] = await conn.query<any[]>('SELECT COUNT(*) as count FROM vouchers');
+    const count = rows?.[0]?.count || 0;
+    if (count === 0) {
+      const { DEFAULT_VOUCHERS } = await import('./dataStore');
+      for (const v of DEFAULT_VOUCHERS) {
+        await conn.query(
+          `INSERT INTO vouchers (id, code, discountType, discountValue, maxDiscountAmount, minPurchaseAmount, usageLimit, usedCount, validPackages, startDate, expiredAt, isActive, description)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+           ON DUPLICATE KEY UPDATE
+             code = VALUES(code)`,
+          [
+            v.id,
+            v.code,
+            v.discountType,
+            v.discountValue,
+            v.maxDiscountAmount || null,
+            v.minPurchaseAmount || 0,
+            v.usageLimit || null,
+            v.usedCount || 0,
+            v.validPackages ? JSON.stringify(v.validPackages) : null,
+            v.startDate || null,
+            v.expiredAt || null,
+            v.isActive ? 1 : 0,
+            v.description || null
+          ]
+        );
+      }
+      console.log('✅ Berhasil menyinkronkan daftar voucher awal ke MySQL.');
+    }
+  } catch (err) {
+    console.warn('⚠️ Gagal menyinkronkan vouchers ke MySQL:', err);
+  } finally {
+    if (!existingConn) {
+      conn.release();
+    }
+  }
+}
+

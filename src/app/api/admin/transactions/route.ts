@@ -11,6 +11,9 @@ interface TxRow extends RowDataPacket {
   packageId: string;
   packageName: string;
   amount: number;
+  originalAmount?: number | null;
+  discountAmount?: number | null;
+  voucherCode?: string | null;
   paymentMethod: string;
   paymentCode: string | null;
   howToPayUrl: string | null;
@@ -28,7 +31,7 @@ export async function GET() {
     let dbTransactions: Transaction[] = [];
     try {
       const [rows] = await pool.query<TxRow[]>(
-        'SELECT id, userId, userName, packageId, packageName, amount, paymentMethod, paymentCode, howToPayUrl, expiredAt, status, createdAt FROM transactions ORDER BY createdAt DESC'
+        'SELECT * FROM transactions ORDER BY createdAt DESC'
       );
       if (rows && rows.length > 0) {
         dbTransactions = rows.map((r) => ({
@@ -38,6 +41,9 @@ export async function GET() {
           packageId: r.packageId,
           packageName: r.packageName,
           amount: Number(r.amount),
+          originalAmount: r.originalAmount !== null && r.originalAmount !== undefined ? Number(r.originalAmount) : undefined,
+          discountAmount: r.discountAmount !== null && r.discountAmount !== undefined ? Number(r.discountAmount) : 0,
+          voucherCode: r.voucherCode || undefined,
           paymentMethod: r.paymentMethod,
           paymentCode: r.paymentCode || undefined,
           howToPayUrl: r.howToPayUrl || undefined,

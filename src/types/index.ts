@@ -106,6 +106,24 @@ export interface TryoutPackage {
   badge?: string;
 }
 
+export interface Voucher {
+  id: string;
+  code: string; // e.g. "DISKON50"
+  discountType: 'PERCENTAGE' | 'FIXED';
+  discountValue: number; // e.g. 50 (%) or 15000 (Rp)
+  maxDiscountAmount?: number | null; // e.g. 25000 (for percentage)
+  minPurchaseAmount?: number; // e.g. 0
+  usageLimit?: number | null; // e.g. 100 or null for unlimited
+  usedCount: number;
+  validPackages?: string[]; // null or empty for all packages, or ['pkg_7d', 'pkg_14d']
+  startDate?: string | null;
+  expiredAt?: string | null;
+  isActive: boolean;
+  description?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
 export interface Transaction {
   id: string;
   userId: string;
@@ -113,6 +131,9 @@ export interface Transaction {
   packageId: string;
   packageName: string;
   amount: number;
+  originalAmount?: number;
+  discountAmount?: number;
+  voucherCode?: string;
   paymentMethod: string; // e.g. "QRIS", "BCA Virtual Account", "Mandiri VA"
   status: 'PENDING' | 'PAID' | 'FAILED' | 'EXPIRED';
   createdAt: string;

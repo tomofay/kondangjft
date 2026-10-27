@@ -17,10 +17,9 @@ export async function GET() {
   try {
     try {
       await initDatabase();
-      await syncExamSetsToDatabase();
 
       const [rows] = await pool.query<ExamSetRow[]>('SELECT * FROM exam_sets ORDER BY id ASC');
-      if (rows && rows.length > 0) {
+      if (rows) {
         const examSets: ExamSet[] = rows.map((r) => ({
           id: r.id,
           name: r.name,
@@ -37,10 +36,11 @@ export async function GET() {
     }
 
     const store = getStore();
-    return NextResponse.json({ success: true, examSets: store.examSets || EXAM_SETS });
+    const fallbackSets = store.examSets && store.examSets.length > 0 ? store.examSets : EXAM_SETS.filter((s) => s.id === 99);
+    return NextResponse.json({ success: true, examSets: fallbackSets });
   } catch (error) {
     console.warn('Exam sets fallback triggered:', error);
-    return NextResponse.json({ success: true, examSets: EXAM_SETS });
+    return NextResponse.json({ success: true, examSets: EXAM_SETS.filter((s) => s.id === 99) });
   }
 }
 
