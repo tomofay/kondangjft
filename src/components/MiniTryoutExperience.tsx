@@ -829,7 +829,7 @@ export const MiniTryoutExperience: React.FC<MiniTryoutExperienceProps> = ({
                   <span>PROMO SPESIAL UJIAN SIMULASI PENUH</span>
                 </span>
                 <h3 className="text-lg sm:text-2xl font-black tracking-tight leading-snug">
-                  &ldquo;Mau latihan soal full-length yang mirip ujian aslinya biar makin siap? Buka akses 5 Paket Simulasi Full cuma Rp35.000!&rdquo;
+                  &ldquo;Mau latihan soal CBT full-length yang 99% mirip ujian aslinya biar makin siap lulus? Buka akses Paket Simulasi Penuh sekarang!&rdquo;
                 </h3>
                 <p className="text-xs sm:text-sm text-stone-300 leading-relaxed">
                   Buka akses <strong>5 Paket Simulasi Full (250 Soal Asli + Audio Chōkai Lengkap + Lembar Hasil Evaluasi &amp; Sertifikat PDF)</strong>. Bebas retake berkali-kali tanpa batas!
@@ -983,7 +983,7 @@ export const MiniTryoutExperience: React.FC<MiniTryoutExperienceProps> = ({
                 }}
                 className="py-3.5 px-6 bg-gradient-to-r from-red-600 to-rose-600 text-white font-black text-xs sm:text-sm rounded-2xl shadow-lg transition cursor-pointer"
               >
-                Buka 5 Paket Simulasi Full (Cuma Rp35.000)
+                Buka 5 Paket Simulasi Penuh (Mulai Rp 35.000)
               </button>
             </div>
           </div>

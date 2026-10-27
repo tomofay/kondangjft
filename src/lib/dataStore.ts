@@ -120,27 +120,30 @@ export function getRemainingSubscriptionText(user: User | null): string {
 export const DEFAULT_PACKAGES: TryoutPackage[] = [
   {
     id: 'pkg_7d',
-    name: 'Paket 1 Minggu',
-    description: 'Akses Tryout JFT-Basic Tanpa Batas (Unlimited) selama 7 Hari + Audio Chōkai, Pembahasan & Rapor Hasil',
+    name: 'Paket SKS / Mepet Ujian',
+    description: 'Akses Tryout JFT-Basic Tanpa Batas (Unlimited) selama 7 Hari. Pilihan tepat untuk drill kilat & maraton latihan mepet tanggal ujian.',
     durationDays: 7,
     price: 35000,
-    popular: false
+    popular: false,
+    badge: 'SKS / Mepet Ujian'
   },
   {
     id: 'pkg_14d',
-    name: 'Paket 2 Minggu',
-    description: 'Akses Tryout JFT-Basic Tanpa Batas (Unlimited) selama 14 Hari + Audio Chōkai, Pembahasan & Rapor Hasil',
+    name: 'Paket Ideal / Rekomendasi Utama',
+    description: 'Akses Tryout JFT-Basic Tanpa Batas (Unlimited) selama 14 Hari. Waktu paling ideal & direkomendasikan untuk evaluasi serta pemantapan 4 seksi.',
     durationDays: 14,
     price: 59000,
-    popular: true
+    popular: true,
+    badge: 'Rekomendasi Utama'
   },
   {
     id: 'pkg_30d',
-    name: 'Paket 1 Bulan',
-    description: 'Akses Tryout JFT-Basic Tanpa Batas (Unlimited) selama 30 Hari + Audio Chōkai, Pembahasan & Rapor Hasil',
+    name: 'Paket Penguasaan Penuh',
+    description: 'Akses Tryout JFT-Basic Tanpa Batas (Unlimited) selama 30 Hari + Bonus File PDF Kosakata & Pola Kalimat JFT via WA.',
     durationDays: 30,
     price: 99000,
-    popular: false
+    popular: false,
+    badge: 'Bonus PDF via WA'
   }
 ];
 
@@ -269,7 +272,14 @@ export const getStore = () => {
   if (
     !store.packages ||
     store.packages.length === 0 ||
-    store.packages.some((p) => p.id === 'pkg_special_1h' || p.price === 100 || p.firstTimeOnly)
+    store.packages.some(
+      (p) =>
+        p.id === 'pkg_special_1h' ||
+        p.price === 100 ||
+        p.firstTimeOnly ||
+        p.name === 'Paket 1 Minggu' ||
+        p.name === 'Paket 2 Minggu'
+    )
   ) {
     store.packages = [...DEFAULT_PACKAGES];
   }

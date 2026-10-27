@@ -3350,9 +3350,9 @@ B：いえ、だいじょうぶですよ。
                 <label className="font-bold text-stone-800 block mb-1.5">Berlaku untuk Paket:</label>
                 <div className="flex flex-wrap gap-2 text-xs">
                   {[
-                    { id: 'pkg_7d', label: 'Paket 1 Minggu (7 Hari)' },
-                    { id: 'pkg_14d', label: 'Paket 2 Minggu (14 Hari)' },
-                    { id: 'pkg_30d', label: 'Paket 1 Bulan (30 Hari)' }
+                    { id: 'pkg_7d', label: 'Paket SKS / Mepet Ujian (7 Hari)' },
+                    { id: 'pkg_14d', label: 'Paket Ideal / Rekomendasi Utama (14 Hari)' },
+                    { id: 'pkg_30d', label: 'Paket Penguasaan Penuh (30 Hari)' }
                   ].map((p) => {
                     const isChecked = vValidPackages.includes(p.id);
                     return (

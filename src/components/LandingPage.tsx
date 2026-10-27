@@ -161,15 +161,15 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           <div className="text-center space-y-4 max-w-3xl mx-auto">
             <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-rose-50 border border-rose-200 text-red-700 text-xs font-black uppercase tracking-wider shadow-2xs">
               <Sparkles className="w-3.5 h-3.5 text-red-600" />
-              <span>Platform Simulasi CBT JFT-Basic A2 No. 1 di Indonesia</span>
+              <span>Standar Ujian Resmi Tokutei Ginou SSW Jepang</span>
             </div>
 
             <h1 className="text-2xl xs:text-3xl sm:text-5xl font-black text-stone-900 tracking-tight leading-tight sm:leading-none">
-              Simulasi CBT JFT-Basic A2 — <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-600 via-rose-600 to-amber-600">Mirip 99% Ujian Asli</span>
+              Sistem Simulasi CBT JFT-Basic A2 <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-600 via-rose-600 to-amber-600">99% Mirip Ujian Asli</span>
             </h1>
 
             <p className="text-xs sm:text-base text-stone-600 leading-relaxed max-w-2xl mx-auto">
-              Kuasai ujian kerja Tokutei Ginou (SSW) Jepang dengan latihan soal asli, audio Chōkai terstandar, skor real-time, dan lembar hasil evaluasi resmi JFT-Basic A2.
+              Tingkatkan peluang lulus sekali tes dengan sistem ujian CBT yang presisi meniru tes resmi: 4 seksi lengkap, audio Chōkai standar asli, timer ketat, hingga lembar hasil evaluasi instan.
             </p>
 
             {/* Quick action buttons */}
@@ -412,10 +412,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               <span>PILIHAN PAKET SIMULASI RESMI</span>
             </span>
             <h2 className="text-2xl sm:text-3xl font-black text-stone-900 tracking-tight leading-snug">
-              &ldquo;Mau latihan soal full-length yang mirip ujian aslinya biar makin siap? Buka akses 5 Paket Simulasi Full cuma Rp35.000!&rdquo;
+              Investasi Terbaik untuk Kelulusan Ujian CBT JFT-Basic A2
             </h2>
             <p className="text-xs sm:text-sm text-stone-600 leading-relaxed">
-              Dapatkan total <strong>250 Soal Asli JFT-Basic A2 (5 Paket Penuh)</strong> dengan audio Chōkai standar ujian, sistem skoring otomatis resmi, dan sertifikat kelulusan A2.
+              Semua paket memberikan akses tanpa batas (unlimited) ke <strong>250 Soal Simulasi Standar Asli (5 Paket Penuh)</strong> dengan audio Chōkai resmi, analisis kelemahan otomatis, dan lembar hasil evaluasi instan.
             </p>
           </div>
 
@@ -423,51 +423,75 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             {(packages && packages.length > 0 ? packages : DEFAULT_PACKAGES)
               .filter((p) => p.id !== 'pkg_special_1h' && p.price > 100 && !p.firstTimeOnly)
               .map((pkg) => {
-                const isPromo = pkg.firstTimeOnly;
-                const isPopular = pkg.popular;
+                const isRecommended = pkg.id === 'pkg_14d' || pkg.popular;
+                const isFull = pkg.id === 'pkg_30d';
+
                 return (
                 <div
                   key={pkg.id}
                   className={`rounded-3xl border p-6 flex flex-col justify-between space-y-6 relative transition ${
-                    isPopular
-                      ? 'border-2 border-red-500 bg-gradient-to-b from-rose-50/40 via-white to-white shadow-xl shadow-red-500/10'
-                      : isPromo
-                      ? 'border-2 border-amber-400 bg-gradient-to-b from-amber-50/40 via-white to-white shadow-md'
+                    isRecommended
+                      ? 'border-2 border-red-500 bg-gradient-to-b from-rose-50/60 via-white to-white shadow-xl shadow-red-500/15 ring-2 ring-red-500/20 md:-translate-y-2'
+                      : isFull
+                      ? 'border-2 border-emerald-400 bg-gradient-to-b from-emerald-50/40 via-white to-white shadow-md hover:border-emerald-500'
                       : 'border-stone-200 bg-white hover:border-stone-300 shadow-xs'
                   }`}
                 >
                   {/* Badge */}
-                  {isPopular && (
-                    <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 px-3 py-0.5 rounded-full bg-gradient-to-r from-red-600 to-rose-600 text-white text-[10px] font-black uppercase tracking-wider shadow-sm">
-                      Paling Populer
+                  {isRecommended ? (
+                    <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 px-3.5 py-0.5 rounded-full bg-gradient-to-r from-red-600 to-rose-600 text-white text-[10px] font-black uppercase tracking-wider shadow-sm flex items-center gap-1 shrink-0 whitespace-nowrap">
+                      <Star className="w-3 h-3 fill-amber-300 text-amber-300" />
+                      <span>REKOMENDASI UTAMA • PALING IDEAL</span>
                     </div>
-                  )}
-                  {isPromo && (
-                    <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 px-3 py-0.5 rounded-full bg-gradient-to-r from-amber-500 to-orange-500 text-white text-[10px] font-black uppercase tracking-wider shadow-sm">
-                      Promo Pengguna Baru
+                  ) : isFull ? (
+                    <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 px-3 py-0.5 rounded-full bg-gradient-to-r from-emerald-600 to-teal-600 text-white text-[10px] font-black uppercase tracking-wider shadow-sm shrink-0 whitespace-nowrap">
+                      🎁 BONUS PDF KOSAKATA VIA WA
+                    </div>
+                  ) : (
+                    <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 px-3 py-0.5 rounded-full bg-stone-700 text-stone-100 text-[10px] font-bold uppercase tracking-wider shadow-sm shrink-0 whitespace-nowrap">
+                      MEPET UJIAN • SKS
                     </div>
                   )}
 
                   <div className="space-y-4">
                     <div className="space-y-1">
-                      <h3 className="text-base font-black text-stone-900">{pkg.name}</h3>
+                      <h3 className="text-base font-black text-stone-900 flex items-center gap-1.5">
+                        <span>{pkg.name}</span>
+                        {isRecommended && <Sparkles className="w-4 h-4 text-amber-500 shrink-0" />}
+                      </h3>
                       <p className="text-xs text-stone-500 leading-relaxed">{pkg.description}</p>
                     </div>
 
                     <div className="pt-2 border-t border-stone-100">
                       <span className="text-xs text-stone-400 font-bold">Investasi:</span>
-                      <div className="text-2xl sm:text-3xl font-black text-stone-950 font-mono">
-                        Rp {pkg.price.toLocaleString('id-ID')}
+                      <div className="flex items-baseline gap-2">
+                        <div className="text-2xl sm:text-3xl font-black text-stone-950 font-mono">
+                          Rp {pkg.price.toLocaleString('id-ID')}
+                        </div>
+                        {isRecommended && (
+                          <span className="text-xs font-bold text-red-600 font-mono bg-rose-50 px-2 py-0.5 rounded-md border border-rose-200">
+                            Hemat 26%
+                          </span>
+                        )}
+                        {isFull && (
+                          <span className="text-xs font-bold text-emerald-700 font-mono bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
+                            Hemat 38%
+                          </span>
+                        )}
                       </div>
-                      <div className="text-[11px] text-stone-500 font-medium">
-                        {pkg.durationDays > 0 ? `Masa Aktif: ${pkg.durationDays} Hari Unlimited` : 'Masa Aktif: 1 Jam Akses Penuh'}
+                      <div className="text-[11px] text-stone-500 font-medium mt-0.5">
+                        {isRecommended
+                          ? 'Masa Aktif: 14 Hari Unlimited • Pilihan Terbanyak Siswa'
+                          : isFull
+                          ? 'Masa Aktif: 30 Hari Unlimited + File PDF Kosakata'
+                          : 'Masa Aktif: 7 Hari Unlimited • Khusus Drill Kilat'}
                       </div>
                     </div>
 
                     <div className="space-y-2 text-xs text-stone-700 pt-2 border-t border-stone-100">
                       <div className="flex items-center gap-2">
                         <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                        <span>Akses 5 Paket Ujian JFT-Basic A2</span>
+                        <span>Akses 5 Paket Ujian JFT-Basic A2 (250 Soal)</span>
                       </div>
                       <div className="flex items-center gap-2">
                         <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
@@ -481,21 +505,33 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                         <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
                         <span>Pembahasan Lengkap Tiap Soal</span>
                       </div>
+                      {isRecommended && (
+                        <div className="flex items-center gap-2 text-red-700 font-bold bg-rose-50 p-1.5 rounded-lg border border-rose-200">
+                          <Check className="w-3.5 h-3.5 text-red-600 shrink-0" />
+                          <span>Waktu Persiapan Paling Ideal &amp; Terbukti Efektif</span>
+                        </div>
+                      )}
+                      {isFull && (
+                        <div className="flex items-center gap-2 text-emerald-800 font-bold bg-emerald-50 p-1.5 rounded-lg border border-emerald-200">
+                          <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                          <span>Bonus File PDF Kosakata &amp; Pola Kalimat via WA</span>
+                        </div>
+                      )}
                     </div>
                   </div>
 
                   <button
                     onClick={() => onSelectPackage(pkg)}
                     className={`w-full py-3.5 px-4 rounded-2xl font-black text-xs transition flex items-center justify-center gap-2 cursor-pointer shadow-xs ${
-                      isPopular
-                        ? 'bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 text-white shadow-red-500/25'
-                        : isPromo
-                        ? 'bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white'
+                      isRecommended
+                        ? 'bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 text-white shadow-red-500/25 ring-2 ring-red-400/40 text-sm'
+                        : isFull
+                        ? 'bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white shadow-emerald-500/20'
                         : 'bg-stone-900 hover:bg-black text-white'
                     }`}
                   >
                     <CreditCard className="w-4 h-4" />
-                    <span>Pilih Paket Ini</span>
+                    <span>{isRecommended ? 'Ambil Rekomendasi Utama →' : 'Pilih Paket Ini'}</span>
                   </button>
                 </div>
               );

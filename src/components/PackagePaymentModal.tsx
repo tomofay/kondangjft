@@ -517,33 +517,33 @@ export const PackagePaymentModal: React.FC<PackagePaymentModalProps> = ({
 
                     if (pkg.id === 'pkg_7d') {
                       originalPrice = 50000;
-                      badgeText = 'PALING POPULER';
+                      badgeText = 'MEPET UJIAN • SKS';
                       dailyPriceText = 'Rp 5.000 / hari';
-                      badgeStyle = 'bg-amber-500 text-white border-amber-600 font-black';
+                      badgeStyle = 'bg-stone-700 text-white border-stone-800 font-bold';
                       pkgTheme = {
-                        selectedBorder: 'border-amber-500 bg-gradient-to-r from-amber-50/90 via-white to-orange-50/30 ring-amber-500/20',
-                        radio: 'border-amber-500 bg-amber-500',
-                        priceText: 'text-amber-600'
+                        selectedBorder: 'border-stone-600 bg-gradient-to-r from-stone-50/90 via-white to-stone-50/30 ring-stone-500/20',
+                        radio: 'border-stone-600 bg-stone-600',
+                        priceText: 'text-stone-800'
                       };
                     } else if (pkg.id === 'pkg_14d') {
                       originalPrice = 80000;
-                      badgeText = 'INTENSIF • HEMAT 26%';
-                      dailyPriceText = 'Rp 4.200 / hari';
-                      badgeStyle = 'bg-sky-500 text-white border-sky-600 font-bold';
+                      badgeText = '★ REKOMENDASI UTAMA • PALING IDEAL';
+                      dailyPriceText = 'Rp 4.200 / hari • Hemat 26%';
+                      badgeStyle = 'bg-gradient-to-r from-red-600 to-rose-600 text-white border-red-700 font-black shadow-xs';
                       pkgTheme = {
-                        selectedBorder: 'border-sky-500 bg-gradient-to-r from-sky-50/90 via-white to-blue-50/30 ring-sky-500/20',
-                        radio: 'border-sky-500 bg-sky-500',
-                        priceText: 'text-sky-600'
+                        selectedBorder: 'border-red-600 bg-gradient-to-r from-rose-50/90 via-white to-amber-50/30 ring-red-500/30 shadow-md',
+                        radio: 'border-red-600 bg-red-600',
+                        priceText: 'text-red-600'
                       };
                     } else if (pkg.id === 'pkg_30d') {
                       originalPrice = 160000;
-                      badgeText = 'BEST VALUE • HEMAT 38%';
-                      dailyPriceText = 'Rp 3.300 / hari';
-                      badgeStyle = 'bg-gradient-to-r from-violet-600 to-indigo-600 text-white border-transparent font-black shadow-2xs';
+                      badgeText = '🎁 BONUS PDF KOSAKATA VIA WA';
+                      dailyPriceText = 'Rp 3.300 / hari • Hemat 38%';
+                      badgeStyle = 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white border-emerald-700 font-black shadow-xs';
                       pkgTheme = {
-                        selectedBorder: 'border-violet-500 bg-gradient-to-r from-violet-50/90 via-white to-indigo-50/30 ring-violet-500/20',
-                        radio: 'border-violet-500 bg-violet-500',
-                        priceText: 'text-violet-600'
+                        selectedBorder: 'border-emerald-600 bg-gradient-to-r from-emerald-50/90 via-white to-teal-50/30 ring-emerald-500/20',
+                        radio: 'border-emerald-600 bg-emerald-600',
+                        priceText: 'text-emerald-700'
                       };
                     }
 
