@@ -89,7 +89,7 @@ const EXAM_SETS = [
     id: 3,
     name: 'Paket Ujian #3 (Master Chōkai Pendengaran)',
     code: 'JFT-SET-C',
-    description: '50 Soal dengan simulasi audio percakapan tempat kerja SSW & pengumuman.',
+    description: '50 Soal dengan simulasi audio percakapan tempat kerja & kehidupan sehari-hari.',
     totalQuestions: 50
   },
   {

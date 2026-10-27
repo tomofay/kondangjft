@@ -2771,7 +2771,7 @@ B：いえ、だいじょうぶですよ。
                       : cleanPhone;
 
                     const hasScore = lead.score !== null && lead.score !== undefined;
-                    const prefilledMessage = `Halo Kak ${lead.name}, salam dari Admin KondangSensei CBT! Kami melihat Kakak baru saja mencoba Mini Tryout JFT-Basic A2${hasScore ? ` dengan perolehan skor ${lead.score}/250` : ''}.${lead.weakness ? ` Terlihat ada catatan evaluasi pada bagian ${lead.weakness}.` : ''} Apakah Kakak ingin konsultasi materi atau membutuhkan akses Paket Simulasi Full untuk persiapan kerja SSW ke Jepang?`;
+                    const prefilledMessage = `Halo Kak ${lead.name}, salam dari Admin KondangSensei CBT! Kami melihat Kakak baru saja mencoba Mini Tryout JFT-Basic A2${hasScore ? ` dengan perolehan skor ${lead.score}/250` : ''}.${lead.weakness ? ` Terlihat ada catatan evaluasi pada bagian ${lead.weakness}.` : ''} Apakah Kakak ingin konsultasi materi atau membutuhkan akses Paket Simulasi Full untuk persiapan ujian JFT-Basic A2?`;
                     const waLink = `https://wa.me/${formattedPhone}?text=${encodeURIComponent(prefilledMessage)}`;
 
                     return (
@@ -3259,7 +3259,7 @@ B：いえ、だいじょうぶですよ。
                   required
                   value={vCode}
                   onChange={(e) => setVCode(e.target.value.toUpperCase().replace(/[^A-Z0-9_-]/g, ''))}
-                  placeholder="Contoh: KONDANG50, HEMAT10K, SPESIALSSW"
+                  placeholder="Contoh: KONDANG50, HEMAT10K, SPESIALJFT"
                   className="w-full p-2.5 bg-stone-50 border border-stone-200 rounded-xl text-stone-900 font-mono font-black text-sm tracking-wider focus:outline-none focus:ring-2 focus:ring-rose-500/30"
                 />
                 <span className="text-[10px] text-stone-400 mt-0.5 block">Hanya huruf kapital, angka, strip, dan garis bawah.</span>
@@ -3417,7 +3417,7 @@ B：いえ、だいじょうぶですよ。
                   type="text"
                   value={vDescription}
                   onChange={(e) => setVDescription(e.target.value)}
-                  placeholder="Contoh: Promo Ramadhan 50% untuk persiapan ujian JFT SSW"
+                  placeholder="Contoh: Promo Ramadhan 50% untuk persiapan ujian JFT-Basic A2"
                   className="w-full p-2.5 bg-stone-50 border border-stone-200 rounded-xl text-stone-900"
                 />
               </div>

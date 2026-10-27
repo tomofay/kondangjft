@@ -54,7 +54,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
   const faqs = [
     {
       q: 'Apa itu ujian JFT-Basic A2 dan mengapa perlu simulasi CBT?',
-      a: 'JFT-Basic adalah ujian resmi berbasis komputer (CBT) yang mengukur kemampuan bahasa Jepang tingkat A2 untuk syarat visa Tokutei Ginou (Specified Skilled Worker). Format ujian menggunakan komputer dengan timer ketat dan audio Chōkai yang hanya berputar 2 kali tanpa bisa diulang/dijeda. Simulasi CBT KondangSensei dirancang 99% mirip sistem ujian asli agar Anda tidak kaget saat menghadapi tes sebenarnya.'
+      a: 'JFT-Basic adalah ujian resmi berbasis komputer (CBT) yang mengukur kemampuan bahasa Jepang komunikasi praktis tingkat dasar A2. Format ujian menggunakan komputer dengan timer ketat 60 menit dan audio Chōkai yang hanya berputar 2 kali tanpa bisa diulang/dijeda. Simulasi CBT KondangSensei dirancang 99% mirip sistem ujian asli agar Anda tidak kaget saat menghadapi tes sebenarnya.'
     },
     {
       q: 'Apakah Mini Tryout 12 Soal benar-benar 100% gratis?',
@@ -78,7 +78,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
     },
     {
       q: 'Bagaimana simulasi ini mempersiapkan peserta asal Bogor untuk menghadapi ujian CBT resmi?',
-      a: 'Calon pekerja SSW asal Bogor dan Jawa Barat umumnya mengikuti tes resmi JFT-Basic A2 di pusat tes CBT Jakarta dan sekitarnya. Simulasi CBT KondangSensei dirancang presisi meniru antarmuka ujian CBT komputer asli — termasuk pembagian waktu 60 menit dan audio Chōkai standar resmi (maks. 2x putar) — sehingga peserta sudah terbiasa dan percaya diri saat menghadapi tes sesungguhnya.'
+      a: 'Peserta ujian JFT-Basic A2 asal Bogor dan Jawa Barat umumnya mengikuti tes resmi di pusat tes CBT Jakarta dan sekitarnya. Simulasi CBT KondangSensei dirancang presisi meniru antarmuka ujian CBT komputer asli — termasuk pembagian waktu 60 menit dan audio Chōkai standar resmi (maks. 2x putar) — sehingga peserta sudah terbiasa dan percaya diri saat menghadapi tes sesungguhnya.'
     }
   ];
 
@@ -161,7 +161,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           <div className="text-center space-y-4 max-w-3xl mx-auto">
             <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-rose-50 border border-rose-200 text-red-700 text-xs font-black uppercase tracking-wider shadow-2xs">
               <Sparkles className="w-3.5 h-3.5 text-red-600" />
-              <span>Standar Ujian Resmi Tokutei Ginou SSW Jepang</span>
+              <span>Standar Ujian Resmi JFT-Basic A2 Japan Foundation</span>
             </div>
 
             <h1 className="text-2xl xs:text-3xl sm:text-5xl font-black text-stone-900 tracking-tight leading-tight sm:leading-none">
@@ -295,7 +295,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               Fitur Lengkap yang Menjamin Kesiapan Mental Ujian Anda
             </h2>
             <p className="text-xs sm:text-sm text-stone-500">
-              Didesain khusus berdasarkan format ujian CBT JFT-Basic A2 terbaru untuk calon pekerja Tokutei Ginou di Jepang.
+              Didesain khusus berdasarkan format ujian CBT JFT-Basic A2 terbaru standar Japan Foundation.
             </p>
           </div>
 
@@ -541,14 +541,14 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       </section>
 
       {/* ========================================================= */}
-      {/* 7. TESTIMONI SISWA LOLOS SSW */}
+      {/* 7. TESTIMONI SISWA LOLOS JFT-BASIC A2 */}
       {/* ========================================================= */}
       <section id="testimoni" className="py-12 sm:py-20 bg-[#f8fafc] border-t border-stone-200 scroll-mt-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
           <div className="text-center space-y-2 max-w-2xl mx-auto">
             <span className="text-xs font-black text-emerald-600 uppercase tracking-wider">KISAH SUKSES</span>
             <h2 className="text-2xl sm:text-3xl font-black text-stone-900 tracking-tight">
-              Mereka yang Telah Lolos JFT-Basic A2 & Berangkat ke Jepang
+              Mereka yang Telah Berhasil Lolos Ujian JFT-Basic A2
             </h2>
           </div>
 
@@ -568,7 +568,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 </div>
                 <div>
                   <div className="font-bold text-xs text-stone-900">Aris Munandar</div>
-                  <div className="text-[10px] text-stone-500">SSW Bidang Kaigo (Caregiver), Osaka</div>
+                  <div className="text-[10px] text-stone-500">Alumni Ujian JFT-Basic A2, Osaka</div>
                 </div>
               </div>
             </div>
@@ -588,7 +588,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 </div>
                 <div>
                   <div className="font-bold text-xs text-stone-900">Dina Novita</div>
-                  <div className="text-[10px] text-stone-500">SSW Pengolahan Makanan, Saitama</div>
+                  <div className="text-[10px] text-stone-500">Alumni Ujian JFT-Basic A2, Saitama</div>
                 </div>
               </div>
             </div>
@@ -608,7 +608,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 </div>
                 <div>
                   <div className="font-bold text-xs text-stone-900">Rizky Wahyudi</div>
-                  <div className="text-[10px] text-stone-500">SSW Pertanian, Gunma</div>
+                  <div className="text-[10px] text-stone-500">Alumni Ujian JFT-Basic A2, Gunma</div>
                 </div>
               </div>
             </div>
@@ -754,7 +754,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           </div>
 
           <div className="text-[11px] text-stone-600 text-center sm:text-right">
-            Platform Simulasi Mandiri CBT JFT-Basic A2 untuk Calon Tenaga Kerja SSW Jepang.
+            Platform Simulasi Mandiri CBT JFT-Basic A2 Standar Ujian Asli Japan Foundation.
           </div>
         </div>
       </footer>

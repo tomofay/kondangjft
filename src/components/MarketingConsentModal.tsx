@@ -59,7 +59,7 @@ export const MarketingConsentModal: React.FC<MarketingConsentModalProps> = ({ is
               <span>2. Konsultasi & Penawaran Program Edukasi</span>
             </div>
             <p className="text-indigo-900/90 text-[11px] pl-5.5">
-              Anda menyetujui bahwa tim atau admin resmi KondangSensei dapat menghubungi Anda melalui WhatsApp untuk memberikan konsultasi persiapan ujian JFT-Basic A2, tips lulus Tokutei Ginou (SSW) Jepang, serta penawaran paket latihan tryout full CBT berdiskon.
+              Anda menyetujui bahwa tim atau admin resmi KondangSensei dapat menghubungi Anda melalui WhatsApp untuk memberikan konsultasi persiapan ujian JFT-Basic A2, tips lulus ujian JFT-Basic A2, serta penawaran paket latihan tryout full CBT berdiskon.
             </p>
           </div>
 

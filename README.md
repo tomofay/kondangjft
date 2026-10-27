@@ -1,6 +1,6 @@
 # KondangSensei CBT - Platform Simulasi Ujian JFT-Basic A2
 
-KondangSensei CBT adalah platform Computer Based Test (CBT) modern yang dirancang khusus untuk simulasi ujian bahasa Jepang Japan Foundation Test for Basic Japanese (JFT-Basic) level A2. Platform ini ditujukan bagi calon pekerja migran Tokutei Ginou (Specified Skilled Worker / SSW), siswa Lembaga Pelatihan Kerja (LPK), serta pembelajar mandiri bahasa Jepang di Indonesia.
+KondangSensei CBT adalah platform Computer Based Test (CBT) modern yang dirancang khusus untuk simulasi ujian bahasa Jepang Japan Foundation Test for Basic Japanese (JFT-Basic) level A2. Platform ini ditujukan bagi calon peserta ujian JFT-Basic A2, siswa Lembaga Pelatihan Kerja (LPK), serta pembelajar mandiri bahasa Jepang di Indonesia.
 
 Antarmuka ujian dirancang dengan akurasi tinggi (99% identik dengan sistem CBT Prometric resmi), dilengkapi audio Chokai autentik, sistem penilaian otomatis sesuai standar penilaian Japan Foundation (skor 0-250 dengan ambang kelulusan 200 poin), serta sistem CRM dan manajemen bisnis terintegrasi.
 
@@ -94,7 +94,7 @@ Antarmuka ujian dirancang dengan akurasi tinggi (99% identik dengan sistem CBT P
   - Pelacakan data calon siswa dari Mini Tryout gratis secara real-time.
   - Kartu KPI: Total Leads, Jumlah Sudah Selesai Tes, Rata-rata Skor, Rasio Kelulusan.
   - Tabel Analisis Leads: Tanggal Masuk, Nama Siswa, Nomor WhatsApp, Skor Hasil Mini Tryout, dan Analisis Kelemahan Materi (seksi dengan skor terendah).
-  - Tombol Tindakan 1-Klik Chat WhatsApp: Membuka chat WhatsApp dengan draft pesan personalisasi otomatis menyebutkan nama siswa, skor perolehan, dan rekomendasi konsultasi program persiapan SSW.
+  - Tombol Tindakan 1-Klik Chat WhatsApp: Membuka chat WhatsApp dengan draft pesan personalisasi otomatis menyebutkan nama siswa, skor perolehan, dan rekomendasi konsultasi program persiapan ujian JFT-Basic A2.
   - Fitur Salin Nomor WhatsApp ke Clipboard.
   - Ekspor Data Leads ke format CSV untuk analisis spreadsheet atau integrasi ke alat broadcast marketing.
   - Sistem Deduplikasi Otomatis: Mencegah data ganda jika nomor WhatsApp yang sama mengulang ujian.

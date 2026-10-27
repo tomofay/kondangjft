@@ -1168,7 +1168,7 @@ export default function HomePage() {
                   <span className="text-lg sm:text-2xl font-japanese text-rose-600 font-bold">さん</span>
                 </h1>
                 <p className="text-xs sm:text-sm text-stone-500 font-medium">
-                  Siap menaklukkan JFT/SSW hari ini? Ayo mulai latihan! • 今日も合格を目指して頑張りましょう！
+                  Siap menaklukkan ujian JFT-Basic A2 hari ini? Ayo mulai latihan! • 今日も合格を目指して頑張りましょう！
                 </p>
               </div>
 

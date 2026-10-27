@@ -26,7 +26,7 @@ export const metadata: Metadata = {
     template: "%s | KondangSensei CBT"
   },
   description:
-    "Platform Simulasi CBT JFT-Basic A2 resmi 99% mirip ujian aslinya. Coba 1 Mini Tryout Gratis 12 Soal + Audio Chōkai! Pilihan tepat peserta Tokutei Ginou (SSW) & siswa LPK bahasa Jepang di Bogor, Jabodetabek, dan seluruh Indonesia di kondangsensei.my.id.",
+    "Platform Simulasi CBT JFT-Basic A2 resmi 99% mirip ujian aslinya. Coba 1 Mini Tryout Gratis 12 Soal + Audio Chōkai! Pilihan tepat pembelajar & siswa LPK bahasa Jepang di Bogor, Jabodetabek, dan seluruh Indonesia di kondangsensei.my.id.",
   keywords: [
     "simulasi jft a2",
     "simulasi jft a2 bogor",
@@ -39,8 +39,8 @@ export const metadata: Metadata = {
     "mini tryout jft a2",
     "jft basic listening audio chokai",
     "ujian cbt jft jepang bogor",
-    "tokutei ginou ssw jepang bogor 2026",
-    "lpk bahasa jepang bogor ssw",
+    "simulasi jft basic a2 bogor 2026",
+    "lpk bahasa jepang bogor jft",
     "kursus jft a2 bogor",
     "kondangsensei",
     "kondangsensei.my.id",
@@ -85,7 +85,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Simulasi JFT A2 Online & Tryout CBT Gratis | KondangSensei Bogor & Indonesia",
     description:
-      "Simulasi CBT JFT-Basic A2 99% mirip ujian aslinya. Latihan soal resmi untuk peserta Tokutei Ginou SSW di Bogor & seluruh Indonesia di kondangsensei.my.id!",
+      "Simulasi CBT JFT-Basic A2 99% mirip ujian aslinya. Latihan soal resmi ujian JFT-Basic A2 di Bogor & seluruh Indonesia di kondangsensei.my.id!",
     images: ["/og-image.png"],
   },
   icons: {
@@ -122,7 +122,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         "url": "https://kondangsensei.my.id",
         "logo": "https://kondangsensei.my.id/logo.png",
         "image": "https://kondangsensei.my.id/og-image.png",
-        "description": "Pusat Simulasi Ujian CBT JFT-Basic A2 Bahasa Jepang untuk Program Tokutei Ginou (SSW) di Bogor, Jabodetabek, dan Seluruh Indonesia",
+        "description": "Pusat Simulasi Ujian CBT JFT-Basic A2 Bahasa Jepang 99% Mirip Ujian Asli di Bogor, Jabodetabek, dan Seluruh Indonesia",
         "address": {
           "@type": "PostalAddress",
           "addressLocality": "Bogor",
@@ -182,7 +182,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
             "name": "Apa itu ujian JFT-Basic A2 dan mengapa simulasi CBT sangat penting?",
             "acceptedAnswer": {
               "@type": "Answer",
-              "text": "JFT-Basic A2 adalah tes kemampuan bahasa Jepang berbasis komputer (CBT) sebagai syarat wajib visa Tokutei Ginou (Specified Skilled Worker/SSW). Simulasi CBT KondangSensei dirancang 99% persis seperti sistem ujian asli dengan batas waktu 60 menit dan audio Chōkai standar resmi (maks. 2x putar)."
+              "text": "JFT-Basic A2 adalah tes kemampuan bahasa Jepang komunikasi praktis tingkat dasar berbasis komputer (CBT). Simulasi CBT KondangSensei dirancang 99% persis seperti sistem ujian asli dengan batas waktu 60 menit dan audio Chōkai standar resmi (maks. 2x putar)."
             }
           },
           {
