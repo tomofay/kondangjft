@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import Link from 'next/link';
 import {
   GraduationCap,
   Sparkles,
@@ -122,10 +123,14 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
           {/* Nav Menu */}
           <nav className="hidden md:flex items-center gap-6 text-xs font-bold text-stone-600">
-            <a href="#mini-tryout" className="hover:text-red-600 transition">Mini Tryout Gratis</a>
+            <Link href="/kelas-n5" className="text-red-600 hover:text-red-700 transition flex items-center gap-1 font-black">
+              <span>Kelas N5 Interaktif</span>
+              <span className="text-[9px] bg-red-100 text-red-700 px-1.5 py-0.2 rounded-full">BARU</span>
+            </Link>
+            <Link href="/tryout-jft" className="hover:text-red-600 transition">Mini Tryout 12 Soal</Link>
             <a href="#fitur" className="hover:text-red-600 transition">Fitur CBT</a>
             <a href="#paket" className="hover:text-red-600 transition">Paket Simulasi</a>
-            <a href="#testimoni" className="hover:text-red-600 transition">Testimoni Siswa</a>
+            <a href="#testimoni" className="hover:text-red-600 transition">Testimoni</a>
             <a href="#faq" className="hover:text-red-600 transition">FAQ</a>
           </nav>
 
@@ -172,23 +177,68 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               Tingkatkan peluang lulus sekali tes dengan sistem ujian CBT yang presisi meniru tes resmi: 4 seksi lengkap, audio Chōkai standar asli, timer ketat, hingga lembar hasil evaluasi instan.
             </p>
 
-            {/* Quick action buttons */}
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
-              <button
-                onClick={onOpenMiniTryout}
-                className="w-full sm:w-auto py-3.5 px-7 bg-gradient-to-r from-red-600 via-rose-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-black text-xs sm:text-sm rounded-2xl shadow-lg shadow-red-500/25 transition flex items-center justify-center gap-2 transform hover:-translate-y-0.5 cursor-pointer"
-              >
-                <Zap className="w-4 h-4 fill-current" />
-                <span>Mulai 1 Mini Tryout Gratis (12 Soal)</span>
-                <ArrowRight className="w-4 h-4" />
-              </button>
+            {/* Split-Path Navigation Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-4xl mx-auto pt-4 text-left">
+              {/* Path 1: Kelas Bimbel N5 Interaktif */}
+              <div className="group relative bg-gradient-to-br from-white to-rose-50/50 border-2 border-red-300 hover:border-red-500 rounded-3xl p-6 shadow-md hover:shadow-xl transition transform hover:-translate-y-1">
+                <div className="flex items-center justify-between pb-3">
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-100 text-red-700 text-xs font-black">
+                    <BookOpen className="w-3.5 h-3.5" />
+                    <span>JALUR PEMULA / DASAR</span>
+                  </span>
+                  <span className="text-[11px] font-bold text-stone-400">Flipped Classroom</span>
+                </div>
+                <h3 className="text-xl font-black text-stone-900 group-hover:text-red-600 transition">
+                  Kelas Bimbel N5 Interaktif
+                </h3>
+                <p className="text-xs text-stone-600 mt-2 leading-relaxed">
+                  Belajar dari nol tanpa video pasif yang membosankan. Kuasai Bunpou lewat <strong>Blok Warna Interaktif</strong>, SRS Kotoba pintar, dan interaksi langsung <strong>Live Zoom</strong> bersama Sensei.
+                </p>
+                <div className="pt-4">
+                  <Link
+                    href="/kelas-n5"
+                    className="w-full py-3 px-5 bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 text-white font-black text-xs sm:text-sm rounded-xl shadow-xs transition flex items-center justify-center gap-2 cursor-pointer"
+                  >
+                    <span>Masuk Jalur Kelas N5</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </Link>
+                </div>
+              </div>
 
-              <a
-                href="#paket"
-                className="w-full sm:w-auto py-3.5 px-6 bg-white hover:bg-stone-100 text-stone-800 font-bold text-xs sm:text-sm rounded-2xl border border-stone-200 transition flex items-center justify-center gap-2 shadow-xs cursor-pointer"
-              >
-                <span>Lihat 5 Paket Simulasi Full</span>
-              </a>
+              {/* Path 2: Simulasi Ujian CBT JFT-Basic A2 */}
+              <div className="group relative bg-gradient-to-br from-white to-amber-50/40 border-2 border-amber-300 hover:border-amber-500 rounded-3xl p-6 shadow-md hover:shadow-xl transition transform hover:-translate-y-1">
+                <div className="flex items-center justify-between pb-3">
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-100 text-amber-800 text-xs font-black">
+                    <Zap className="w-3.5 h-3.5 fill-amber-700" />
+                    <span>JALUR UJIAN / PEKERJA SSW</span>
+                  </span>
+                  <span className="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                    Gratis 12 Soal
+                  </span>
+                </div>
+                <h3 className="text-xl font-black text-stone-900 group-hover:text-amber-700 transition">
+                  Tryout &amp; Simulasi JFT-Basic A2
+                </h3>
+                <p className="text-xs text-stone-600 mt-2 leading-relaxed">
+                  Simulasi CBT <strong>99% mirip ujian Prometric asli</strong>. Dilengkapi audio Chōkai standar resmi, timer ketat, <strong>skor instan skala 250</strong>, dan analisis diagnosa kelemahan.
+                </p>
+                <div className="pt-4 flex items-center gap-2">
+                  <Link
+                    href="/tryout-jft"
+                    className="flex-1 py-3 px-4 bg-stone-900 hover:bg-black text-white font-black text-xs sm:text-sm rounded-xl shadow-xs transition flex items-center justify-center gap-2 cursor-pointer"
+                  >
+                    <span>Masuk Jalur Tryout JFT</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </Link>
+                  <button
+                    onClick={onOpenMiniTryout}
+                    className="py-3 px-3.5 bg-amber-500 hover:bg-amber-600 text-white font-black text-xs rounded-xl shadow-xs transition cursor-pointer"
+                    title="Mulai Mini Tryout Langsung"
+                  >
+                    <Play className="w-4 h-4 fill-white" />
+                  </button>
+                </div>
+              </div>
             </div>
 
             {/* Trust Badges */}

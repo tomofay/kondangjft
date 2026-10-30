@@ -71,6 +71,7 @@ export const PackagePaymentModal: React.FC<PackagePaymentModalProps> = ({
   const [isCheckingPayment, setIsCheckingPayment] = useState(false);
   const [isSimulating, setIsSimulating] = useState(false);
   const [checkStatusMessage, setCheckStatusMessage] = useState('');
+  const [countdownSeconds, setCountdownSeconds] = useState(900);
 
   // Voucher states
   const [voucherCodeInput, setVoucherCodeInput] = useState('');
@@ -163,7 +164,23 @@ export const PackagePaymentModal: React.FC<PackagePaymentModalProps> = ({
 
   const finalPayAmount = appliedVoucherData ? appliedVoucherData.finalPrice : (selectedPkg?.price || 0);
 
-  // Auto-poll payment status while QR is displayed
+  // Countdown timer for payment expiration
+  useEffect(() => {
+    if (!vaResult) return;
+    setCountdownSeconds(900); // 15 mins for QRIS
+    const timer = setInterval(() => {
+      setCountdownSeconds((prev) => (prev > 0 ? prev - 1 : 0));
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [vaResult]);
+
+  const formatCountdown = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  // Auto-poll payment status every 3 seconds while QR is displayed
   useEffect(() => {
     if (!isOpen || !vaResult?.invoiceNumber) return;
 
@@ -188,7 +205,7 @@ export const PackagePaymentModal: React.FC<PackagePaymentModalProps> = ({
           }, 1200);
         }
       } catch {}
-    }, 3500);
+    }, 3000);
 
     return () => clearInterval(interval);
   }, [isOpen, vaResult?.invoiceNumber, selectedPkg, onPaymentSuccess, onClose]);
@@ -431,6 +448,16 @@ export const PackagePaymentModal: React.FC<PackagePaymentModalProps> = ({
                 <div className="flex justify-between items-center text-[11px] text-stone-500">
                   <span>No. Invoice:</span>
                   <span className="font-mono font-bold text-stone-700">{vaResult.invoiceNumber}</span>
+                </div>
+
+                <div className="flex justify-between items-center text-[11px] text-amber-800 bg-amber-50 px-2.5 py-1.5 rounded-lg border border-amber-200">
+                  <span className="flex items-center gap-1.5 font-bold">
+                    <Clock className="w-3.5 h-3.5 text-amber-600 animate-pulse" />
+                    Batas Waktu Pembayaran:
+                  </span>
+                  <span className="font-mono font-black text-amber-900 text-xs">
+                    {countdownSeconds > 0 ? formatCountdown(countdownSeconds) : 'Kedaluwarsa'}
+                  </span>
                 </div>
               </div>
 

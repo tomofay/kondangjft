@@ -3,7 +3,7 @@ name: CI/CD Deploy to VPS (Docker)
 on:
   push:
     branches:
-      - main
+      - production
   workflow_dispatch:
 
 jobs:
@@ -52,15 +52,16 @@ jobs:
             if [ ! -d "$DEPLOY_PATH/.git" ]; then
               echo "📥 Direktori belum ada git repo, mengkloning dari GitHub..."
               mkdir -p "$DEPLOY_PATH"
-              git clone https://github.com/tomofay/kondangjft.git "$DEPLOY_PATH"
+              git clone -b production https://github.com/tomofay/kondangjft.git "$DEPLOY_PATH"
             fi
 
             cd "$DEPLOY_PATH"
 
-            # 3. Pull pembaruan kode terbaru dari branch main
-            echo "🔄 Sinkronisasi kode dari branch main..."
-            git fetch origin main
-            git reset --hard origin/main
+            # 3. Pull pembaruan kode terbaru dari branch production
+            echo "🔄 Sinkronisasi kode dari branch production..."
+            git fetch origin production
+            git checkout -B production origin/production
+            git reset --hard origin/production
 
             # 4. Siapkan berkas .env jika belum tersedia di VPS
             if [ ! -f .env ]; then

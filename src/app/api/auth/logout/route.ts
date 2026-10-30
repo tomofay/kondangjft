@@ -1,20 +1,15 @@
 import { NextResponse } from 'next/server';
-import { kickUserSession } from '../../../../lib/dataStore';
-import { pool } from '../../../../lib/db';
+import { buildClearSessionCookie } from '@/lib/authCookie';
 
 export async function POST(request: Request) {
-  try {
-    const { userId } = await request.json();
-    if (userId) {
-      kickUserSession(userId);
-      try {
-        await pool.query('UPDATE users SET activeSessionId = NULL, currentActivity = NULL WHERE id = ?', [userId]);
-      } catch (err) {
-        console.warn('MySQL logout session clear fallback:', err);
-      }
-    }
-    return NextResponse.json({ success: true });
-  } catch {
-    return NextResponse.json({ success: true });
-  }
+  const host = request.headers.get('host') || 'kondangsensei.my.id';
+  const clearCookie = buildClearSessionCookie(host);
+
+  const response = NextResponse.json({
+    success: true,
+    message: 'Logout berhasil. Sesi telah diakhiri di seluruh subdomain.'
+  });
+
+  response.headers.set('Set-Cookie', clearCookie);
+  return response;
 }

@@ -234,6 +234,112 @@ export async function initDatabase() {
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
       `);
 
+      // 7. Leads Table (M2 Lead Magnet)
+      await connection.query(`
+        CREATE TABLE IF NOT EXISTS leads (
+          id VARCHAR(36) PRIMARY KEY,
+          name VARCHAR(150) NOT NULL,
+          whatsapp_number VARCHAR(20) NOT NULL,
+          email VARCHAR(191) NULL,
+          score INT NOT NULL,
+          max_score INT DEFAULT 250,
+          passing_grade INT DEFAULT 200,
+          is_passed BOOLEAN NOT NULL,
+          weakest_section VARCHAR(50) NOT NULL,
+          utm_source VARCHAR(100) NULL,
+          utm_campaign VARCHAR(100) NULL,
+          converted_to_user_id VARCHAR(36) NULL,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+      `);
+
+      // 8. Packages Table (M3 Centralized Catalog)
+      await connection.query(`
+        CREATE TABLE IF NOT EXISTS packages (
+          id VARCHAR(36) PRIMARY KEY,
+          name VARCHAR(150) NOT NULL,
+          slug VARCHAR(150) UNIQUE NOT NULL,
+          description TEXT,
+          price DECIMAL(12,2) NOT NULL,
+          original_price DECIMAL(12,2) NULL,
+          is_bundle BOOLEAN DEFAULT FALSE,
+          is_active BOOLEAN DEFAULT TRUE,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+      `);
+
+      // 9. Bundle Items Table (M3 Bundling Components)
+      await connection.query(`
+        CREATE TABLE IF NOT EXISTS bundle_items (
+          id VARCHAR(36) PRIMARY KEY,
+          bundle_package_id VARCHAR(36) NOT NULL,
+          target_module ENUM('lms_n5', 'cbt_jft') NOT NULL,
+          access_duration_days INT NOT NULL,
+          cbt_attempt_quota INT DEFAULT 0
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+      `);
+
+      // 10. User Entitlements Table (M3 Entitlement Provisioning)
+      await connection.query(`
+        CREATE TABLE IF NOT EXISTS user_entitlements (
+          id VARCHAR(36) PRIMARY KEY,
+          user_id VARCHAR(64) NOT NULL,
+          module ENUM('lms_n5', 'cbt_jft') NOT NULL,
+          cbt_quota_remaining INT DEFAULT 0,
+          valid_until DATETIME NOT NULL,
+          transaction_id VARCHAR(64) NOT NULL
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+      `);
+
+      // 11. Bunpou Lessons Table (M4 Zero-Video Bunpou Architecture)
+      await connection.query(`
+        CREATE TABLE IF NOT EXISTS bunpou_lessons (
+          id VARCHAR(36) PRIMARY KEY,
+          chapter_id INT NOT NULL,
+          pattern_code VARCHAR(64) NOT NULL,
+          title VARCHAR(255) NOT NULL,
+          meaning TEXT NOT NULL,
+          formula_blocks JSON NOT NULL,
+          key_points JSON NOT NULL,
+          example_sentences JSON NOT NULL,
+          nuance_accordion JSON NULL,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+      `);
+
+      // 12. Vocabularies Table (M5 Kotoba SRS)
+      await connection.query(`
+        CREATE TABLE IF NOT EXISTS vocabularies (
+          id VARCHAR(36) PRIMARY KEY,
+          chapter_id INT NOT NULL,
+          kanji VARCHAR(50) NULL,
+          kana VARCHAR(50) NOT NULL,
+          romaji VARCHAR(50) NOT NULL,
+          indonesian_meaning TEXT NOT NULL,
+          word_type VARCHAR(50) NULL,
+          audio_url VARCHAR(255) NULL,
+          example_sentence_jp TEXT NULL,
+          example_sentence_id TEXT NULL,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+      `);
+
+      // 13. User Vocab SRS Table (M5 SM-2 Algorithm Progress)
+      await connection.query(`
+        CREATE TABLE IF NOT EXISTS user_vocab_srs (
+          id VARCHAR(36) PRIMARY KEY,
+          user_id VARCHAR(64) NOT NULL,
+          vocab_id VARCHAR(36) NOT NULL,
+          easiness_factor DECIMAL(4,2) DEFAULT 2.50,
+          repetition_count INT DEFAULT 0,
+          interval_days INT DEFAULT 0,
+          last_quality_rating INT NULL,
+          next_review_at DATETIME NOT NULL,
+          last_reviewed_at DATETIME NULL,
+          UNIQUE KEY uq_user_vocab (user_id, vocab_id)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+      `);
+
       // 7. Auto Seed & Sync Bank Soal, Exam Sets, Users, and Vouchers
       await syncUsersToDatabase(connection);
       await syncQuestionsToDatabase(connection);
