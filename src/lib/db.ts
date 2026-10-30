@@ -634,6 +634,34 @@ export async function initDatabase() {
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
       `);
 
+      // 34. Live Telemetry Answers Table (M14 Real-time Gradebook)
+      await connection.query(`
+        CREATE TABLE IF NOT EXISTS live_telemetry_answers (
+          id VARCHAR(64) PRIMARY KEY,
+          class_id VARCHAR(64) NOT NULL,
+          student_id VARCHAR(64) NOT NULL,
+          question_number INT NOT NULL,
+          is_correct BOOLEAN NOT NULL,
+          submitted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+      `);
+
+      // 35. Homework Reviews Table (M15 Hanamaru Stamp & Review Board)
+      await connection.query(`
+        CREATE TABLE IF NOT EXISTS homework_reviews (
+          id VARCHAR(64) PRIMARY KEY,
+          submission_type ENUM('kaku_image', 'kaiwa_audio') NOT NULL,
+          submission_id VARCHAR(64) NOT NULL,
+          sensei_id VARCHAR(64) NOT NULL,
+          status ENUM('approved', 'revision_needed') NOT NULL,
+          hanamaru_type VARCHAR(64) NOT NULL,
+          stamp_coordinates_json JSON NULL,
+          written_feedback TEXT NULL,
+          audio_feedback_url VARCHAR(255) NULL,
+          reviewed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+      `);
+
       // 7. Auto Seed & Sync Bank Soal, Exam Sets, Users, and Vouchers
       await syncUsersToDatabase(connection);
       await syncQuestionsToDatabase(connection);

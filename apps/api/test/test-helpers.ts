@@ -56,6 +56,12 @@ import { POST as n5JourneyCompleteStepHandler } from '@/app/api/n5/journey/compl
 import { POST as teacherStageControllerHandler } from '@/app/api/teacher/classes/[classId]/stage-controller/route';
 import { POST as zoomGenerateSignatureHandler } from '@/app/api/zoom/generate-signature/route';
 import { POST as zoomAttendanceWebhookHandler } from '@/app/api/zoom/attendance-webhook/route';
+import { GET as teacherGradebookMatrixHandler } from '@/app/api/teacher/classes/[classId]/gradebook-matrix/route';
+import { GET as teacherErrorRateAnalyticsHandler } from '@/app/api/teacher/classes/[classId]/error-rate-analytics/route';
+import { POST as n5TelemetrySubmitAnswerHandler } from '@/app/api/n5/telemetry/submit-answer/route';
+import { GET as teacherPendingReviewsQueueHandler } from '@/app/api/teacher/reviews/pending-queue/route';
+import { POST as teacherSubmitEvaluationHandler } from '@/app/api/teacher/reviews/submit-evaluation/route';
+import { GET as n5HomeworkEvaluatedHandler } from '@/app/api/n5/homework/evaluated/[submissionId]/route';
 import { middleware as nextMiddleware } from '@/middleware';
 import { NextRequest, NextResponse } from 'next/server';
 import { createSessionToken } from '@/lib/authCookie';
@@ -329,6 +335,23 @@ function createDispatcherServer(): http.Server {
         nextRes = await zoomGenerateSignatureHandler(webReq);
       } else if (pathname === '/api/zoom/attendance-webhook' && method === 'POST') {
         nextRes = await zoomAttendanceWebhookHandler(webReq);
+      } else if (pathname.startsWith('/api/teacher/classes/') && pathname.endsWith('/gradebook-matrix') && method === 'GET') {
+        const parts = pathname.split('/');
+        const classId = parts[4];
+        nextRes = await teacherGradebookMatrixHandler(webReq, { params: Promise.resolve({ classId }) });
+      } else if (pathname.startsWith('/api/teacher/classes/') && pathname.endsWith('/error-rate-analytics') && method === 'GET') {
+        const parts = pathname.split('/');
+        const classId = parts[4];
+        nextRes = await teacherErrorRateAnalyticsHandler(webReq, { params: Promise.resolve({ classId }) });
+      } else if (pathname === '/api/n5/telemetry/submit-answer' && method === 'POST') {
+        nextRes = await n5TelemetrySubmitAnswerHandler(webReq);
+      } else if (pathname === '/api/teacher/reviews/pending-queue' && method === 'GET') {
+        nextRes = await teacherPendingReviewsQueueHandler(webReq);
+      } else if (pathname === '/api/teacher/reviews/submit-evaluation' && method === 'POST') {
+        nextRes = await teacherSubmitEvaluationHandler(webReq);
+      } else if (pathname.startsWith('/api/n5/homework/evaluated/') && method === 'GET') {
+        const submissionId = pathname.replace('/api/n5/homework/evaluated/', '');
+        nextRes = await n5HomeworkEvaluatedHandler(webReq, { params: Promise.resolve({ submissionId }) });
       }
 
       if (!nextRes) {
