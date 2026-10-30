@@ -592,6 +592,48 @@ export async function initDatabase() {
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
       `);
 
+      // 31. Chapter Journey States Table (M12 Flipped Classroom)
+      await connection.query(`
+        CREATE TABLE IF NOT EXISTS chapter_journey_states (
+          id VARCHAR(64) PRIMARY KEY,
+          user_id VARCHAR(64) NOT NULL,
+          chapter_id INT NOT NULL,
+          current_stage ENUM('pre_class', 'in_class', 'post_class', 'completed') DEFAULT 'pre_class',
+          pre_class_srs_completed BOOLEAN DEFAULT FALSE,
+          in_class_attendance BOOLEAN DEFAULT FALSE,
+          in_class_renshu_score INT NULL,
+          in_class_kaku_submitted BOOLEAN DEFAULT FALSE,
+          post_class_audio_submitted BOOLEAN DEFAULT FALSE,
+          post_class_mondai_passed BOOLEAN DEFAULT FALSE,
+          stage_started_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          completed_at TIMESTAMP NULL,
+          UNIQUE KEY uq_user_chapter_journey (user_id, chapter_id)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+      `);
+
+      // 32. Zoom Class Meetings Table (M13 Zoom Web SDK)
+      await connection.query(`
+        CREATE TABLE IF NOT EXISTS zoom_class_meetings (
+          id VARCHAR(64) PRIMARY KEY,
+          class_id VARCHAR(64) UNIQUE NOT NULL,
+          meeting_number VARCHAR(64) NOT NULL,
+          encrypted_password VARCHAR(128) NOT NULL,
+          topic VARCHAR(150) NOT NULL,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+      `);
+
+      // 33. Zoom Attendance Logs Table (M13 Zoom Web SDK)
+      await connection.query(`
+        CREATE TABLE IF NOT EXISTS zoom_attendance_logs (
+          id VARCHAR(64) PRIMARY KEY,
+          user_id VARCHAR(64) NOT NULL,
+          class_id VARCHAR(64) NOT NULL,
+          meeting_status VARCHAR(64) NOT NULL,
+          joined_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+      `);
+
       // 7. Auto Seed & Sync Bank Soal, Exam Sets, Users, and Vouchers
       await syncUsersToDatabase(connection);
       await syncQuestionsToDatabase(connection);

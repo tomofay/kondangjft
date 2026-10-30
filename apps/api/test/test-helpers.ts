@@ -51,6 +51,11 @@ import { GET as n5OmakeHandler } from '@/app/api/n5/omake/route';
 import { POST as n5CertificatesGenerateHandler } from '@/app/api/n5/certificates/generate/route';
 import { GET as publicVerifyCertificateHandler } from '@/app/api/public/verify/[hash]/route';
 import { POST as adminCertificatesRevokeHandler } from '@/app/api/admin/certificates/[certId]/revoke/route';
+import { GET as n5JourneyStateHandler } from '@/app/api/n5/journey/state/route';
+import { POST as n5JourneyCompleteStepHandler } from '@/app/api/n5/journey/complete-step/route';
+import { POST as teacherStageControllerHandler } from '@/app/api/teacher/classes/[classId]/stage-controller/route';
+import { POST as zoomGenerateSignatureHandler } from '@/app/api/zoom/generate-signature/route';
+import { POST as zoomAttendanceWebhookHandler } from '@/app/api/zoom/attendance-webhook/route';
 import { middleware as nextMiddleware } from '@/middleware';
 import { NextRequest, NextResponse } from 'next/server';
 import { createSessionToken } from '@/lib/authCookie';
@@ -312,6 +317,18 @@ function createDispatcherServer(): http.Server {
         const parts = pathname.split('/');
         const certId = parts[4];
         nextRes = await adminCertificatesRevokeHandler(webReq, { params: Promise.resolve({ certId }) });
+      } else if (pathname === '/api/n5/journey/state' && method === 'GET') {
+        nextRes = await n5JourneyStateHandler(webReq);
+      } else if (pathname === '/api/n5/journey/complete-step' && method === 'POST') {
+        nextRes = await n5JourneyCompleteStepHandler(webReq);
+      } else if (pathname.startsWith('/api/teacher/classes/') && pathname.endsWith('/stage-controller') && method === 'POST') {
+        const parts = pathname.split('/');
+        const classId = parts[4];
+        nextRes = await teacherStageControllerHandler(webReq, { params: Promise.resolve({ classId }) });
+      } else if (pathname === '/api/zoom/generate-signature' && method === 'POST') {
+        nextRes = await zoomGenerateSignatureHandler(webReq);
+      } else if (pathname === '/api/zoom/attendance-webhook' && method === 'POST') {
+        nextRes = await zoomAttendanceWebhookHandler(webReq);
       }
 
       if (!nextRes) {
