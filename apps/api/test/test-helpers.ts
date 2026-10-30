@@ -44,6 +44,13 @@ import { GET as teacherImageQueueHandler } from '@/app/api/teacher/reviews/image
 import { POST as n5MondaiStartHandler } from '@/app/api/n5/mondai/start/route';
 import { POST as n5MondaiSubmitHandler } from '@/app/api/n5/mondai/submit/route';
 import { GET as teacherMondaiAnalyticsHandler } from '@/app/api/teacher/classes/[classId]/mondai-analytics/route';
+import { POST as gamificationHeartbeatHandler } from '@/app/api/gamification/heartbeat/route';
+import { GET as gamificationLeaderboardHandler } from '@/app/api/gamification/leaderboard/route';
+import { POST as adminCronWhatsappHandler } from '@/app/api/admin/cron/whatsapp-reengagement/route';
+import { GET as n5OmakeHandler } from '@/app/api/n5/omake/route';
+import { POST as n5CertificatesGenerateHandler } from '@/app/api/n5/certificates/generate/route';
+import { GET as publicVerifyCertificateHandler } from '@/app/api/public/verify/[hash]/route';
+import { POST as adminCertificatesRevokeHandler } from '@/app/api/admin/certificates/[certId]/revoke/route';
 import { middleware as nextMiddleware } from '@/middleware';
 import { NextRequest, NextResponse } from 'next/server';
 import { createSessionToken } from '@/lib/authCookie';
@@ -288,6 +295,23 @@ function createDispatcherServer(): http.Server {
         const parts = pathname.split('/');
         const classId = parts[4];
         nextRes = await teacherMondaiAnalyticsHandler(webReq, { params: Promise.resolve({ classId }) });
+      } else if (pathname === '/api/gamification/heartbeat' && method === 'POST') {
+        nextRes = await gamificationHeartbeatHandler(webReq);
+      } else if (pathname === '/api/gamification/leaderboard' && method === 'GET') {
+        nextRes = await gamificationLeaderboardHandler(webReq);
+      } else if (pathname === '/api/admin/cron/whatsapp-reengagement' && method === 'POST') {
+        nextRes = await adminCronWhatsappHandler(webReq);
+      } else if (pathname === '/api/n5/omake' && method === 'GET') {
+        nextRes = await n5OmakeHandler(webReq);
+      } else if (pathname === '/api/n5/certificates/generate' && method === 'POST') {
+        nextRes = await n5CertificatesGenerateHandler(webReq);
+      } else if (pathname.startsWith('/api/public/verify/') && method === 'GET') {
+        const hash = pathname.replace('/api/public/verify/', '');
+        nextRes = await publicVerifyCertificateHandler(webReq, { params: Promise.resolve({ hash }) });
+      } else if (pathname.startsWith('/api/admin/certificates/') && pathname.endsWith('/revoke') && method === 'POST') {
+        const parts = pathname.split('/');
+        const certId = parts[4];
+        nextRes = await adminCertificatesRevokeHandler(webReq, { params: Promise.resolve({ certId }) });
       }
 
       if (!nextRes) {

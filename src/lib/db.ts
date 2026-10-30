@@ -506,6 +506,92 @@ export async function initDatabase() {
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
       `);
 
+      // 25. User Gamification Table (M10)
+      await connection.query(`
+        CREATE TABLE IF NOT EXISTS user_gamification (
+          id VARCHAR(64) PRIMARY KEY,
+          user_id VARCHAR(64) UNIQUE NOT NULL,
+          current_streak INT DEFAULT 0,
+          longest_streak INT DEFAULT 0,
+          last_active_date DATE NULL,
+          total_xp INT DEFAULT 0,
+          level INT DEFAULT 1,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+      `);
+
+      // 26. XP History Table (M10)
+      await connection.query(`
+        CREATE TABLE IF NOT EXISTS xp_history (
+          id VARCHAR(64) PRIMARY KEY,
+          user_id VARCHAR(64) NOT NULL,
+          xp_amount INT NOT NULL,
+          source_type VARCHAR(64) NOT NULL,
+          reference_id VARCHAR(64) NULL,
+          awarded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+      `);
+
+      // 27. WhatsApp Reminders Log Table (M10)
+      await connection.query(`
+        CREATE TABLE IF NOT EXISTS whatsapp_reminders_log (
+          id VARCHAR(64) PRIMARY KEY,
+          user_id VARCHAR(64) NOT NULL,
+          phone_number VARCHAR(20) NOT NULL,
+          template_type VARCHAR(64) NOT NULL,
+          message_content TEXT NOT NULL,
+          sent_status ENUM('success', 'failed') NOT NULL,
+          gateway_response_id VARCHAR(100) NULL,
+          sent_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+      `);
+
+      // 28. Omake Rewards Table (M11)
+      await connection.query(`
+        CREATE TABLE IF NOT EXISTS omake_rewards (
+          id VARCHAR(64) PRIMARY KEY,
+          chapter_id INT UNIQUE NOT NULL,
+          title VARCHAR(150) NOT NULL,
+          japanese_title VARCHAR(150) NOT NULL,
+          category VARCHAR(64) NOT NULL,
+          thumbnail_url VARCHAR(255) NOT NULL,
+          content_markdown TEXT NOT NULL,
+          media_url VARCHAR(255) NULL,
+          reading_time_minutes INT DEFAULT 5,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+      `);
+
+      // 29. User Omake Unlocked Table (M11)
+      await connection.query(`
+        CREATE TABLE IF NOT EXISTS user_omake_unlocked (
+          id VARCHAR(64) PRIMARY KEY,
+          user_id VARCHAR(64) NOT NULL,
+          omake_id VARCHAR(64) NOT NULL,
+          unlocked_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          UNIQUE KEY uq_user_omake (user_id, omake_id)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+      `);
+
+      // 30. Certificates Table (M11)
+      await connection.query(`
+        CREATE TABLE IF NOT EXISTS certificates (
+          id VARCHAR(64) PRIMARY KEY,
+          certificate_number VARCHAR(64) UNIQUE NOT NULL,
+          verification_hash VARCHAR(64) UNIQUE NOT NULL,
+          user_id VARCHAR(64) NOT NULL,
+          course_name VARCHAR(150) DEFAULT 'Kelas Intensif Bahasa Jepang N5 Interaktif',
+          student_name VARCHAR(150) NOT NULL,
+          issue_date DATE NOT NULL,
+          final_gpa_score DECIMAL(5,2) NOT NULL,
+          pdf_file_url VARCHAR(255) NOT NULL,
+          qr_code_url VARCHAR(255) NOT NULL,
+          is_revoked BOOLEAN DEFAULT FALSE,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+      `);
+
       // 7. Auto Seed & Sync Bank Soal, Exam Sets, Users, and Vouchers
       await syncUsersToDatabase(connection);
       await syncQuestionsToDatabase(connection);
