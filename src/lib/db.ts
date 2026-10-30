@@ -662,6 +662,82 @@ export async function initDatabase() {
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
       `);
 
+      // 36. Class Chat Messages Table (M16 Classroom WebSocket Chat)
+      await connection.query(`
+        CREATE TABLE IF NOT EXISTS class_chat_messages (
+          id VARCHAR(64) PRIMARY KEY,
+          class_id VARCHAR(64) NOT NULL,
+          sender_id VARCHAR(64) NOT NULL,
+          sender_name VARCHAR(150) NOT NULL,
+          message_type ENUM('text', 'image', 'audio', 'document', 'system_announcement') DEFAULT 'text',
+          content TEXT NOT NULL,
+          is_pinned BOOLEAN DEFAULT FALSE,
+          sent_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+      `);
+
+      // 37. Class Chat Attachments Table (M16)
+      await connection.query(`
+        CREATE TABLE IF NOT EXISTS class_chat_attachments (
+          id VARCHAR(64) PRIMARY KEY,
+          message_id VARCHAR(64) NOT NULL,
+          file_name VARCHAR(255) NOT NULL,
+          file_url VARCHAR(255) NOT NULL,
+          file_size_kb INT NOT NULL,
+          mime_type VARCHAR(100) NOT NULL,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+      `);
+
+      // 38. JFT Exam Packages Table (M17 Prometric CBT Engine)
+      await connection.query(`
+        CREATE TABLE IF NOT EXISTS jft_exam_packages (
+          id VARCHAR(64) PRIMARY KEY,
+          title VARCHAR(150) NOT NULL,
+          code VARCHAR(50) UNIQUE NOT NULL,
+          total_duration_minutes INT DEFAULT 60,
+          passing_score INT DEFAULT 200,
+          max_score INT DEFAULT 250,
+          is_active BOOLEAN DEFAULT TRUE,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+      `);
+
+      // 39. JFT CBT Questions Table (M17)
+      await connection.query(`
+        CREATE TABLE IF NOT EXISTS jft_cbt_questions (
+          id VARCHAR(64) PRIMARY KEY,
+          package_id VARCHAR(64) NOT NULL,
+          section ENUM('s1_moji_goi', 's2_kaiwa', 's3_chokai', 's4_dokkai') NOT NULL,
+          question_number INT NOT NULL,
+          question_text TEXT NOT NULL,
+          image_url VARCHAR(255) NULL,
+          audio_url VARCHAR(255) NULL,
+          options_json JSON NOT NULL,
+          correct_option_index INT NOT NULL,
+          explanation_text TEXT NOT NULL
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+      `);
+
+      // 40. JFT Exam Sessions Table (M17)
+      await connection.query(`
+        CREATE TABLE IF NOT EXISTS jft_exam_sessions (
+          id VARCHAR(64) PRIMARY KEY,
+          user_id VARCHAR(64) NOT NULL,
+          package_id VARCHAR(64) NOT NULL,
+          started_at DATETIME NOT NULL,
+          finished_at DATETIME NULL,
+          is_submitted BOOLEAN DEFAULT FALSE,
+          score_s1 INT DEFAULT 0,
+          score_s2 INT DEFAULT 0,
+          score_s3 INT DEFAULT 0,
+          score_s4 INT DEFAULT 0,
+          total_score INT DEFAULT 0,
+          is_passed BOOLEAN DEFAULT FALSE,
+          user_answers_json JSON NOT NULL
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+      `);
+
       // 7. Auto Seed & Sync Bank Soal, Exam Sets, Users, and Vouchers
       await syncUsersToDatabase(connection);
       await syncQuestionsToDatabase(connection);

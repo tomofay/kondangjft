@@ -62,6 +62,14 @@ import { POST as n5TelemetrySubmitAnswerHandler } from '@/app/api/n5/telemetry/s
 import { GET as teacherPendingReviewsQueueHandler } from '@/app/api/teacher/reviews/pending-queue/route';
 import { POST as teacherSubmitEvaluationHandler } from '@/app/api/teacher/reviews/submit-evaluation/route';
 import { GET as n5HomeworkEvaluatedHandler } from '@/app/api/n5/homework/evaluated/[submissionId]/route';
+import { GET as n5ChatMessagesHandler } from '@/app/api/n5/chat/messages/route';
+import { POST as n5ChatSendHandler } from '@/app/api/n5/chat/send/route';
+import { POST as teacherChatPinMessageHandler } from '@/app/api/teacher/chat/pin-message/route';
+import { POST as n5ChatUploadAttachmentHandler } from '@/app/api/n5/chat/upload-attachment/route';
+import { POST as cbtStartSessionHandler } from '@/app/api/cbt/start-session/route';
+import { POST as cbtPlayAudioHandler } from '@/app/api/cbt/play-audio/route';
+import { POST as cbtSubmitExamHandler } from '@/app/api/cbt/submit-exam/route';
+import { GET as adminJftPreviewPackageHandler } from '@/app/api/admin/jft/preview-package/[packageId]/route';
 import { middleware as nextMiddleware } from '@/middleware';
 import { NextRequest, NextResponse } from 'next/server';
 import { createSessionToken } from '@/lib/authCookie';
@@ -143,7 +151,11 @@ export const MOCK_USERS = {
  */
 export function authHeader(user: TestUserSession, host = 'kondangsensei.my.id') {
   let token = user.token;
-  if (user.userId && user.token === 'mock_jwt_siswa_n5_valid_token' && user.userId !== 'usr_siswa_001') {
+  if (
+    (user.userId && user.token === 'mock_jwt_siswa_n5_valid_token' && user.userId !== 'usr_siswa_001') ||
+    (user.userId && user.token === 'mock_jwt_peserta_jft_valid_token' && user.userId !== 'usr_peserta_001') ||
+    (user.userId && user.token === 'mock_jwt_sensei_valid_token' && user.userId !== 'usr_sensei_001')
+  ) {
     token = createSessionToken({
       userId: user.userId,
       name: user.name,
@@ -352,6 +364,23 @@ function createDispatcherServer(): http.Server {
       } else if (pathname.startsWith('/api/n5/homework/evaluated/') && method === 'GET') {
         const submissionId = pathname.replace('/api/n5/homework/evaluated/', '');
         nextRes = await n5HomeworkEvaluatedHandler(webReq, { params: Promise.resolve({ submissionId }) });
+      } else if (pathname === '/api/n5/chat/messages' && method === 'GET') {
+        nextRes = await n5ChatMessagesHandler(webReq);
+      } else if (pathname === '/api/n5/chat/send' && method === 'POST') {
+        nextRes = await n5ChatSendHandler(webReq);
+      } else if (pathname === '/api/teacher/chat/pin-message' && method === 'POST') {
+        nextRes = await teacherChatPinMessageHandler(webReq);
+      } else if (pathname === '/api/n5/chat/upload-attachment' && method === 'POST') {
+        nextRes = await n5ChatUploadAttachmentHandler(webReq);
+      } else if (pathname === '/api/cbt/start-session' && method === 'POST') {
+        nextRes = await cbtStartSessionHandler(webReq);
+      } else if (pathname === '/api/cbt/play-audio' && method === 'POST') {
+        nextRes = await cbtPlayAudioHandler(webReq);
+      } else if (pathname === '/api/cbt/submit-exam' && method === 'POST') {
+        nextRes = await cbtSubmitExamHandler(webReq);
+      } else if (pathname.startsWith('/api/admin/jft/preview-package/') && method === 'GET') {
+        const packageId = pathname.replace('/api/admin/jft/preview-package/', '');
+        nextRes = await adminJftPreviewPackageHandler(webReq, { params: Promise.resolve({ packageId }) });
       }
 
       if (!nextRes) {
