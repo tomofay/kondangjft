@@ -31,6 +31,12 @@ import { GET as n5BunpouPresentationHandler } from '@/app/api/n5/bunpou/presenta
 import { POST as adminBunpouHandler } from '@/app/api/admin/bunpou/route';
 import { GET as srsDeckHandler } from '@/app/api/srs/deck/route';
 import { POST as srsReviewHandler } from '@/app/api/srs/review/route';
+import { GET as n5RenshuHandler } from '@/app/api/n5/renshu/route';
+import { POST as n5RenshuSubmitHandler } from '@/app/api/n5/renshu/submit/route';
+import { GET as teacherRenshuLiveHandler } from '@/app/api/teacher/classes/[classId]/renshu-live/route';
+import { GET as n5KaiwaSceneHandler } from '@/app/api/n5/kaiwa/scene/route';
+import { POST as n5KaiwaSubmitVoiceHandler } from '@/app/api/n5/kaiwa/submit-voice/route';
+import { GET as teacherVoiceQueueHandler } from '@/app/api/teacher/reviews/voice-queue/route';
 import { middleware as nextMiddleware } from '@/middleware';
 import { NextRequest, NextResponse } from 'next/server';
 
@@ -234,6 +240,20 @@ function createDispatcherServer(): http.Server {
         nextRes = await srsDeckHandler(webReq);
       } else if (pathname === '/api/srs/review' && method === 'POST') {
         nextRes = await srsReviewHandler(webReq);
+      } else if (pathname === '/api/n5/renshu' && method === 'GET') {
+        nextRes = await n5RenshuHandler(webReq);
+      } else if (pathname === '/api/n5/renshu/submit' && method === 'POST') {
+        nextRes = await n5RenshuSubmitHandler(webReq);
+      } else if (pathname.startsWith('/api/teacher/classes/') && pathname.endsWith('/renshu-live') && method === 'GET') {
+        const parts = pathname.split('/');
+        const classId = parts[4];
+        nextRes = await teacherRenshuLiveHandler(webReq, { params: Promise.resolve({ classId }) });
+      } else if (pathname === '/api/n5/kaiwa/scene' && method === 'GET') {
+        nextRes = await n5KaiwaSceneHandler(webReq);
+      } else if (pathname === '/api/n5/kaiwa/submit-voice' && method === 'POST') {
+        nextRes = await n5KaiwaSubmitVoiceHandler(webReq);
+      } else if (pathname === '/api/teacher/reviews/voice-queue' && method === 'GET') {
+        nextRes = await teacherVoiceQueueHandler(webReq);
       }
 
       if (!nextRes) {

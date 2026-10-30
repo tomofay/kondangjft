@@ -340,6 +340,82 @@ export async function initDatabase() {
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
       `);
 
+      // 14. Renshu Questions Table (M6 Dynamic Practice)
+      await connection.query(`
+        CREATE TABLE IF NOT EXISTS renshu_questions (
+          id VARCHAR(36) PRIMARY KEY,
+          chapter_id INT NOT NULL,
+          question_type ENUM('drag_drop', 'fill_blank') NOT NULL,
+          prompt_text TEXT NOT NULL,
+          correct_tokens JSON NOT NULL,
+          distractor_tokens JSON NULL,
+          target_sentence_jp VARCHAR(255) NOT NULL,
+          explanation TEXT NOT NULL,
+          difficulty_level INT DEFAULT 1,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+      `);
+
+      // 15. Renshu Submissions Table
+      await connection.query(`
+        CREATE TABLE IF NOT EXISTS renshu_submissions (
+          id VARCHAR(36) PRIMARY KEY,
+          user_id VARCHAR(64) NOT NULL,
+          question_id VARCHAR(36) NOT NULL,
+          class_id VARCHAR(64) NULL,
+          submitted_tokens JSON NOT NULL,
+          is_correct BOOLEAN NOT NULL,
+          attempt_count INT DEFAULT 1,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+      `);
+
+      // 16. Kaiwa Scenes Table (M7 2D Visual Novel)
+      await connection.query(`
+        CREATE TABLE IF NOT EXISTS kaiwa_scenes (
+          id VARCHAR(36) PRIMARY KEY,
+          chapter_id INT NOT NULL,
+          scene_title VARCHAR(150) NOT NULL,
+          setting_background_url VARCHAR(255) NOT NULL,
+          situation_description TEXT NOT NULL,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+      `);
+
+      // 17. Kaiwa Lines Table
+      await connection.query(`
+        CREATE TABLE IF NOT EXISTS kaiwa_lines (
+          id VARCHAR(36) PRIMARY KEY,
+          scene_id VARCHAR(36) NOT NULL,
+          line_order INT NOT NULL,
+          speaker_name VARCHAR(50) NOT NULL,
+          character_avatar_url VARCHAR(255) NOT NULL,
+          character_position ENUM('left', 'right') DEFAULT 'left',
+          japanese_text TEXT NOT NULL,
+          furigana_json JSON NULL,
+          romaji TEXT NOT NULL,
+          indonesian_translation TEXT NOT NULL,
+          audio_url VARCHAR(255) NOT NULL,
+          is_student_role BOOLEAN DEFAULT FALSE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+      `);
+
+      // 18. Kaiwa Voice Submissions Table
+      await connection.query(`
+        CREATE TABLE IF NOT EXISTS kaiwa_voice_submissions (
+          id VARCHAR(36) PRIMARY KEY,
+          user_id VARCHAR(64) NOT NULL,
+          line_id VARCHAR(36) NOT NULL,
+          audio_file_url VARCHAR(255) NOT NULL,
+          audio_duration_seconds DECIMAL(5,2) NOT NULL,
+          review_status ENUM('pending', 'approved', 'revision_needed') DEFAULT 'pending',
+          sensei_feedback_audio_url VARCHAR(255) NULL,
+          sensei_feedback_text TEXT NULL,
+          hanamaru_awarded BOOLEAN DEFAULT FALSE,
+          submitted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+      `);
+
       // 7. Auto Seed & Sync Bank Soal, Exam Sets, Users, and Vouchers
       await syncUsersToDatabase(connection);
       await syncQuestionsToDatabase(connection);
