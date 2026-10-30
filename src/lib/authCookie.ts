@@ -1,4 +1,4 @@
-import crypto from 'crypto';
+import { hmacSha256 } from './sha256';
 
 export type UserRole = 'super_admin' | 'sensei' | 'siswa_n5' | 'peserta_jft';
 
@@ -18,9 +18,11 @@ const JWT_SECRET = process.env.JWT_SECRET || 'kondangsensei_super_secret_jwt_key
 /**
  * Base64URL encode/decode helpers
  */
-function base64UrlEncode(str: string | Buffer): string {
-  const buf = typeof str === 'string' ? Buffer.from(str) : str;
-  return buf.toString('base64').replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
+function base64UrlEncode(str: string | Uint8Array | Buffer): string {
+  if (typeof str === 'string') {
+    return Buffer.from(str).toString('base64').replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
+  }
+  return Buffer.from(str).toString('base64').replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
 }
 
 function base64UrlDecode(str: string): string {
@@ -29,6 +31,14 @@ function base64UrlDecode(str: string): string {
     base64 += '=';
   }
   return Buffer.from(base64, 'base64').toString('utf8');
+}
+
+/**
+ * Edge & Node runtime safe HMAC-SHA256 signature generator
+ */
+function computeHmacSha256(data: string, secret: string): string {
+  const digest = hmacSha256(data, secret);
+  return base64UrlEncode(digest);
 }
 
 /**
@@ -55,11 +65,7 @@ export function createSessionToken(
 
   const encodedHeader = base64UrlEncode(JSON.stringify(header));
   const encodedPayload = base64UrlEncode(JSON.stringify(payload));
-  const signature = crypto
-    .createHmac('sha256', JWT_SECRET)
-    .update(`${encodedHeader}.${encodedPayload}`)
-    .digest();
-  const encodedSignature = base64UrlEncode(signature);
+  const encodedSignature = computeHmacSha256(`${encodedHeader}.${encodedPayload}`, JWT_SECRET);
 
   return `${encodedHeader}.${encodedPayload}.${encodedSignature}`;
 }
@@ -189,9 +195,7 @@ export function verifySessionToken(token: string): TokenVerificationResult {
   const [encodedHeader, encodedPayload, encodedSignature] = parts;
 
   // Verify HMAC signature
-  const expectedSignature = base64UrlEncode(
-    crypto.createHmac('sha256', JWT_SECRET).update(`${encodedHeader}.${encodedPayload}`).digest()
-  );
+  const expectedSignature = computeHmacSha256(`${encodedHeader}.${encodedPayload}`, JWT_SECRET);
 
   if (encodedSignature !== expectedSignature) {
     return { valid: false, reason: 'invalid' };
