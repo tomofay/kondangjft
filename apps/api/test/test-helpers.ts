@@ -37,8 +37,16 @@ import { GET as teacherRenshuLiveHandler } from '@/app/api/teacher/classes/[clas
 import { GET as n5KaiwaSceneHandler } from '@/app/api/n5/kaiwa/scene/route';
 import { POST as n5KaiwaSubmitVoiceHandler } from '@/app/api/n5/kaiwa/submit-voice/route';
 import { GET as teacherVoiceQueueHandler } from '@/app/api/teacher/reviews/voice-queue/route';
+import { GET as n5KakuAssignmentHandler } from '@/app/api/n5/kaku/assignment/route';
+import { POST as n5KakuSubmitHandler } from '@/app/api/n5/kaku/submit/route';
+import { GET as n5KakuMySubmissionsHandler } from '@/app/api/n5/kaku/my-submissions/route';
+import { GET as teacherImageQueueHandler } from '@/app/api/teacher/reviews/image-queue/route';
+import { POST as n5MondaiStartHandler } from '@/app/api/n5/mondai/start/route';
+import { POST as n5MondaiSubmitHandler } from '@/app/api/n5/mondai/submit/route';
+import { GET as teacherMondaiAnalyticsHandler } from '@/app/api/teacher/classes/[classId]/mondai-analytics/route';
 import { middleware as nextMiddleware } from '@/middleware';
 import { NextRequest, NextResponse } from 'next/server';
+import { createSessionToken } from '@/lib/authCookie';
 
 export interface TestUserSession {
   userId: string;
@@ -116,9 +124,19 @@ export const MOCK_USERS = {
  * Generate standard authorization headers with cookie or bearer token
  */
 export function authHeader(user: TestUserSession, host = 'kondangsensei.my.id') {
+  let token = user.token;
+  if (user.userId && user.token === 'mock_jwt_siswa_n5_valid_token' && user.userId !== 'usr_siswa_001') {
+    token = createSessionToken({
+      userId: user.userId,
+      name: user.name,
+      email: user.email,
+      roles: user.roles,
+      classId: user.classId
+    });
+  }
   return {
-    Authorization: `Bearer ${user.token}`,
-    Cookie: `ks_session_token=${user.token}; Domain=.kondangsensei.my.id`,
+    Authorization: `Bearer ${token}`,
+    Cookie: `ks_session_token=${token}; Domain=.kondangsensei.my.id`,
     Host: host
   };
 }
@@ -254,6 +272,22 @@ function createDispatcherServer(): http.Server {
         nextRes = await n5KaiwaSubmitVoiceHandler(webReq);
       } else if (pathname === '/api/teacher/reviews/voice-queue' && method === 'GET') {
         nextRes = await teacherVoiceQueueHandler(webReq);
+      } else if (pathname === '/api/n5/kaku/assignment' && method === 'GET') {
+        nextRes = await n5KakuAssignmentHandler(webReq);
+      } else if (pathname === '/api/n5/kaku/submit' && method === 'POST') {
+        nextRes = await n5KakuSubmitHandler(webReq);
+      } else if (pathname === '/api/n5/kaku/my-submissions' && method === 'GET') {
+        nextRes = await n5KakuMySubmissionsHandler(webReq);
+      } else if (pathname === '/api/teacher/reviews/image-queue' && method === 'GET') {
+        nextRes = await teacherImageQueueHandler(webReq);
+      } else if (pathname === '/api/n5/mondai/start' && method === 'POST') {
+        nextRes = await n5MondaiStartHandler(webReq);
+      } else if (pathname === '/api/n5/mondai/submit' && method === 'POST') {
+        nextRes = await n5MondaiSubmitHandler(webReq);
+      } else if (pathname.startsWith('/api/teacher/classes/') && pathname.endsWith('/mondai-analytics') && method === 'GET') {
+        const parts = pathname.split('/');
+        const classId = parts[4];
+        nextRes = await teacherMondaiAnalyticsHandler(webReq, { params: Promise.resolve({ classId }) });
       }
 
       if (!nextRes) {

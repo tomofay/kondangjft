@@ -416,6 +416,96 @@ export async function initDatabase() {
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
       `);
 
+      // 19. Kaku Assignments Table (M8)
+      await connection.query(`
+        CREATE TABLE IF NOT EXISTS kaku_assignments (
+          id VARCHAR(64) PRIMARY KEY,
+          chapter_id INT NOT NULL,
+          title VARCHAR(150) NOT NULL,
+          instructions TEXT NOT NULL,
+          sample_sheet_pdf_url VARCHAR(255) NULL,
+          due_date DATETIME NULL,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+      `);
+
+      // 20. Kaku Submissions Table (M8)
+      await connection.query(`
+        CREATE TABLE IF NOT EXISTS kaku_submissions (
+          id VARCHAR(64) PRIMARY KEY,
+          assignment_id VARCHAR(64) NOT NULL,
+          user_id VARCHAR(64) NOT NULL,
+          class_id VARCHAR(64) NULL,
+          image_url VARCHAR(255) NOT NULL,
+          compressed_size_kb INT NOT NULL,
+          original_size_kb INT NOT NULL,
+          status ENUM('pending', 'approved', 'revision_needed') DEFAULT 'pending',
+          sensei_notes TEXT NULL,
+          hanamaru_awarded BOOLEAN DEFAULT FALSE,
+          reviewed_by VARCHAR(64) NULL,
+          reviewed_at TIMESTAMP NULL,
+          submitted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+      `);
+
+      // 21. Mondai Tests Table (M9)
+      await connection.query(`
+        CREATE TABLE IF NOT EXISTS mondai_tests (
+          id VARCHAR(64) PRIMARY KEY,
+          chapter_id INT UNIQUE NOT NULL,
+          title VARCHAR(150) NOT NULL,
+          duration_minutes INT DEFAULT 20,
+          passing_grade_percent INT DEFAULT 75,
+          total_questions INT NOT NULL,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+      `);
+
+      // 22. Mondai Questions Table (M9)
+      await connection.query(`
+        CREATE TABLE IF NOT EXISTS mondai_questions (
+          id VARCHAR(64) PRIMARY KEY,
+          test_id VARCHAR(64) NOT NULL,
+          question_number INT NOT NULL,
+          question_text TEXT NOT NULL,
+          image_url VARCHAR(255) NULL,
+          audio_url VARCHAR(255) NULL,
+          options_json JSON NOT NULL,
+          correct_option_id VARCHAR(10) NOT NULL,
+          explanation_text TEXT NOT NULL
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+      `);
+
+      // 23. User Chapter Progress Table (M9 Gating)
+      await connection.query(`
+        CREATE TABLE IF NOT EXISTS user_chapter_progress (
+          id VARCHAR(64) PRIMARY KEY,
+          user_id VARCHAR(64) NOT NULL,
+          chapter_id INT NOT NULL,
+          is_unlocked BOOLEAN DEFAULT FALSE,
+          is_completed BOOLEAN DEFAULT FALSE,
+          highest_score DECIMAL(5,2) DEFAULT 0.00,
+          attempts_count INT DEFAULT 0,
+          unlocked_at TIMESTAMP NULL,
+          completed_at TIMESTAMP NULL,
+          UNIQUE KEY uq_user_chapter (user_id, chapter_id)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+      `);
+
+      // 24. Mondai Test Attempts Table (M9)
+      await connection.query(`
+        CREATE TABLE IF NOT EXISTS mondai_test_attempts (
+          id VARCHAR(64) PRIMARY KEY,
+          user_id VARCHAR(64) NOT NULL,
+          test_id VARCHAR(64) NOT NULL,
+          score_percent DECIMAL(5,2) NOT NULL,
+          is_passed BOOLEAN NOT NULL,
+          answers_payload JSON NOT NULL,
+          started_at DATETIME NOT NULL,
+          finished_at DATETIME NOT NULL
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+      `);
+
       // 7. Auto Seed & Sync Bank Soal, Exam Sets, Users, and Vouchers
       await syncUsersToDatabase(connection);
       await syncQuestionsToDatabase(connection);

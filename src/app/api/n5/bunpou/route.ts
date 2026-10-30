@@ -20,7 +20,7 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { roles } = auth.payload;
+    const { roles, userId } = auth.payload;
 
     // RBAC: Peserta JFT is forbidden from viewing N5 LMS Bunpou
     const isN5Eligible = roles.includes('siswa_n5') || roles.includes('sensei') || roles.includes('super_admin');
@@ -40,13 +40,16 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: 'Bab tidak ditemukan' }, { status: 404 });
     }
 
-    // Gating check for Siswa N5: Bab 5 is locked if prerequisite is incomplete
+    // Dynamic Gating Check (M9): Bab N (N > 1) is locked until student passes previous Mondai exam
     const isStaff = roles.includes('sensei') || roles.includes('super_admin');
-    if (!isStaff && chapterId >= 5) {
-      return NextResponse.json(
-        { error: 'Bab ini masih terkunci. Anda harus lulus Ujian Mondai Bab sebelumnya terlebih dahulu.' },
-        { status: 403 }
-      );
+    if (!isStaff && chapterId > 1) {
+      const { isChapterUnlocked } = await import('@/lib/mondaiStore');
+      if (!isChapterUnlocked(userId, chapterId)) {
+        return NextResponse.json(
+          { error: `Bab ${chapterId} masih terkunci! Anda wajib lulus Ujian Mondai Bab sebelumnya terlebih dahulu.` },
+          { status: 403 }
+        );
+      }
     }
 
     return NextResponse.json({
