@@ -738,6 +738,51 @@ export async function initDatabase() {
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
       `);
 
+      // 41. Graduation Cross Sells Table (M18 N5 Graduation Funnel)
+      await connection.query(`
+        CREATE TABLE IF NOT EXISTS graduation_cross_sells (
+          id VARCHAR(64) PRIMARY KEY,
+          user_id VARCHAR(64) NOT NULL,
+          voucher_code VARCHAR(64) UNIQUE NOT NULL,
+          discount_percentage INT DEFAULT 30,
+          target_package_id VARCHAR(64) NOT NULL,
+          is_claimed BOOLEAN DEFAULT FALSE,
+          claimed_at TIMESTAMP NULL,
+          expired_at TIMESTAMP NOT NULL,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+      `);
+
+      // 42. Audit Logs Table (M19 Super Admin Immutable Logging)
+      await connection.query(`
+        CREATE TABLE IF NOT EXISTS audit_logs (
+          id VARCHAR(64) PRIMARY KEY,
+          actor_user_id VARCHAR(64) NOT NULL,
+          actor_email VARCHAR(191) NOT NULL,
+          ip_address VARCHAR(45) NOT NULL,
+          user_agent TEXT NULL,
+          action_type VARCHAR(64) NOT NULL,
+          target_resource_id VARCHAR(100) NOT NULL,
+          details_json JSON NOT NULL,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+      `);
+
+      // 43. Financial Settlements Table (M19 DOKU Reconciliation)
+      await connection.query(`
+        CREATE TABLE IF NOT EXISTS financial_settlements (
+          id VARCHAR(64) PRIMARY KEY,
+          settlement_date DATE NOT NULL,
+          total_gross_idr DECIMAL(14,2) NOT NULL,
+          doku_fee_idr DECIMAL(12,2) NOT NULL,
+          net_received_idr DECIMAL(14,2) NOT NULL,
+          total_transactions_count INT NOT NULL,
+          reconciliation_status ENUM('matched', 'discrepancy', 'pending') DEFAULT 'pending',
+          notes TEXT NULL,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+      `);
+
       // 7. Auto Seed & Sync Bank Soal, Exam Sets, Users, and Vouchers
       await syncUsersToDatabase(connection);
       await syncQuestionsToDatabase(connection);

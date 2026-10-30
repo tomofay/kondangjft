@@ -70,6 +70,13 @@ import { POST as cbtStartSessionHandler } from '@/app/api/cbt/start-session/rout
 import { POST as cbtPlayAudioHandler } from '@/app/api/cbt/play-audio/route';
 import { POST as cbtSubmitExamHandler } from '@/app/api/cbt/submit-exam/route';
 import { GET as adminJftPreviewPackageHandler } from '@/app/api/admin/jft/preview-package/[packageId]/route';
+import { GET as n5GraduationCelebrationHandler } from '@/app/api/n5/graduation/celebration/route';
+import { POST as paymentsCheckoutWithVoucherHandler } from '@/app/api/payments/checkout-with-voucher/route';
+import { GET as adminCrossSellConversionsHandler } from '@/app/api/admin/analytics/cross-sell-conversions/route';
+import { GET as adminMetricsOverviewHandler } from '@/app/api/admin/metrics/overview/route';
+import { POST as adminFinanceReconcileDokuHandler } from '@/app/api/admin/finance/reconcile-doku/route';
+import { GET as adminAuditLogsGetHandler } from '@/app/api/admin/audit-logs/route';
+import { DELETE as adminAuditLogsDeleteHandler } from '@/app/api/admin/audit-logs/[logId]/route';
 import { middleware as nextMiddleware } from '@/middleware';
 import { NextRequest, NextResponse } from 'next/server';
 import { createSessionToken } from '@/lib/authCookie';
@@ -381,6 +388,21 @@ function createDispatcherServer(): http.Server {
       } else if (pathname.startsWith('/api/admin/jft/preview-package/') && method === 'GET') {
         const packageId = pathname.replace('/api/admin/jft/preview-package/', '');
         nextRes = await adminJftPreviewPackageHandler(webReq, { params: Promise.resolve({ packageId }) });
+      } else if (pathname === '/api/n5/graduation/celebration' && method === 'GET') {
+        nextRes = await n5GraduationCelebrationHandler(webReq);
+      } else if (pathname === '/api/payments/checkout-with-voucher' && method === 'POST') {
+        nextRes = await paymentsCheckoutWithVoucherHandler(webReq);
+      } else if (pathname === '/api/admin/analytics/cross-sell-conversions' && method === 'GET') {
+        nextRes = await adminCrossSellConversionsHandler(webReq);
+      } else if (pathname === '/api/admin/metrics/overview' && method === 'GET') {
+        nextRes = await adminMetricsOverviewHandler(webReq);
+      } else if (pathname === '/api/admin/finance/reconcile-doku' && method === 'POST') {
+        nextRes = await adminFinanceReconcileDokuHandler(webReq);
+      } else if (pathname === '/api/admin/audit-logs' && method === 'GET') {
+        nextRes = await adminAuditLogsGetHandler(webReq);
+      } else if (pathname.startsWith('/api/admin/audit-logs/') && method === 'DELETE') {
+        const logId = pathname.replace('/api/admin/audit-logs/', '');
+        nextRes = await adminAuditLogsDeleteHandler(webReq, { params: Promise.resolve({ logId }) });
       }
 
       if (!nextRes) {
